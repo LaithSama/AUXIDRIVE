@@ -60,23 +60,30 @@ public class AssureService {
         return fiche;
     }
 
-    /** Le numéro d'assuré, l'e-mail (identifiant de connexion) et le compte ne sont pas modifiables ici. */
+    /**
+     * Mise à jour partielle : seuls les champs renseignés sont modifiés.
+     * Le numéro d'assuré, l'e-mail (identifiant de connexion) et le compte ne sont pas modifiables ici.
+     */
     @Transactional
     public Assure modifier(Long id, Assure donnees) {
         Assure assure = trouver(id);
-        if (donnees.getNomAssure() == null || donnees.getNomAssure().isBlank()) {
+        if (vide(donnees.getNomAssure())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le nom est obligatoire");
         }
         assure.setNomAssure(donnees.getNomAssure().trim());
-        assure.setPrenomAssure(donnees.getPrenomAssure());
-        assure.setPersonneMorale(donnees.getPersonneMorale());
-        assure.setDateNaissance(donnees.getDateNaissance());
-        assure.setSexe(donnees.getSexe());
-        assure.setCivilite(donnees.getCivilite());
-        assure.setNationalite(donnees.getNationalite());
-        assure.setPaysResidence(donnees.getPaysResidence());
-        assure.setAdresse(donnees.getAdresse());
-        assure.setContact(donnees.getContact());
+        if (!vide(donnees.getPrenomAssure())) assure.setPrenomAssure(donnees.getPrenomAssure().trim());
+        if (donnees.getPersonneMorale() != null) assure.setPersonneMorale(donnees.getPersonneMorale());
+        if (donnees.getDateNaissance() != null) assure.setDateNaissance(donnees.getDateNaissance());
+        if (!vide(donnees.getSexe())) assure.setSexe(donnees.getSexe().trim());
+        if (!vide(donnees.getCivilite())) assure.setCivilite(donnees.getCivilite().trim());
+        if (!vide(donnees.getNationalite())) assure.setNationalite(donnees.getNationalite().trim());
+        if (!vide(donnees.getPaysResidence())) assure.setPaysResidence(donnees.getPaysResidence().trim());
+        if (!vide(donnees.getAdresse())) assure.setAdresse(donnees.getAdresse().trim());
+        if (!vide(donnees.getContact())) assure.setContact(donnees.getContact().trim());
         return assure;
+    }
+
+    private boolean vide(String s) {
+        return s == null || s.isBlank();
     }
 }
