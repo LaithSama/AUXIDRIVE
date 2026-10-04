@@ -1,18 +1,33 @@
 package mg.auxidrive.api.controller;
 
-import mg.auxidrive.api.model.*;
-import mg.auxidrive.api.service.InscriptionService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import mg.auxidrive.api.model.Assure;
+import mg.auxidrive.api.model.AssureIdentifiantsLegaux;
+import mg.auxidrive.api.model.AssureProfession;
+import mg.auxidrive.api.model.Inscription;
+import mg.auxidrive.api.model.StatutInscription;
+import mg.auxidrive.api.service.InscriptionService;
+
+/**
+ * POST /api/inscriptions est public (le client n'a pas encore de compte) ;
+ * toutes les autres routes sont réservées aux agents et administrateurs.
+ */
 @RestController
 @RequestMapping("/api/inscriptions")
 public class InscriptionController {
@@ -51,28 +66,28 @@ public class InscriptionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(reponse);
     }
 
-    // GET /api/inscriptions?statut=EN_ATTENTE (sans paramètre : toutes les demandes).
+    /** GET /api/inscriptions?statut=EN_ATTENTE (sans paramètre : toutes les demandes). */
     @GetMapping
     public List<Inscription> lister(@RequestParam(required = false) StatutInscription statut) {
         return inscriptionService.lister(statut);
     }
 
-    // Dossier complet : demande, professions, identifiants légaux, documents.
+    /** Dossier complet : demande, professions, identifiants légaux, documents. */
     @GetMapping("/{id}")
-    public Map<String, Object> dossier(@PathVariable Long idInscription) {
-        return inscriptionService.dossier(idInscription);
+    public Map<String, Object> dossier(@PathVariable Long id) {
+        return inscriptionService.dossier(id);
     }
 
     @PostMapping("/{id}/valider")
-    public Inscription valider(@PathVariable Long idInscription, @RequestParam String numerosAssure,
+    public Inscription valider(@PathVariable Long id, @RequestParam String numerosAssure,
                                Authentication authentication) {
-        return inscriptionService.valider(idInscription, numerosAssure, authentication.getName());
+        return inscriptionService.valider(id, numerosAssure, authentication.getName());
     }
 
     @PostMapping("/{id}/refuser")
-    public Inscription refuser(@PathVariable Long idInscription, @RequestParam String motif,
+    public Inscription refuser(@PathVariable Long id, @RequestParam String motif,
                                Authentication authentication) {
-        return inscriptionService.refuser(idInscription, motif, authentication.getName());
+        return inscriptionService.refuser(id, motif, authentication.getName());
     }
 
     private void ajouter(Map<String, MultipartFile> fichiers, String type, MultipartFile fichier) {

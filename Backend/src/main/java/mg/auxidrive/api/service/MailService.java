@@ -1,5 +1,6 @@
 package mg.auxidrive.api.service;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,12 +8,10 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import java.util.logging.Logger;
-
 @Service
 public class MailService {
 
-    private static final Logger log = (Logger) LoggerFactory.getLogger(MailService.class);
+    private static final Logger log = LoggerFactory.getLogger(MailService.class);
 
     private final ObjectProvider<JavaMailSender> mailSender;
     private final boolean actif;
@@ -32,8 +31,8 @@ public class MailService {
      */
     public void envoyerIdentifiants(String destinataire, String motDePasseTemporaire) {
         if (!actif) {
-            log.warning("[DEV] Mail désactivé. Identifiants de {} : mot de passe temporaire = {}"
-            );
+            log.warn("[DEV] Mail désactivé. Identifiants de {} : mot de passe temporaire = {}",
+                    destinataire, motDePasseTemporaire);
             return;
         }
         JavaMailSender sender = mailSender.getIfAvailable();

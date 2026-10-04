@@ -1,11 +1,7 @@
 package mg.auxidrive.api.service;
 
-import mg.auxidrive.api.model.CompteClient;
-import mg.auxidrive.api.model.StatutCompte;
-import mg.auxidrive.api.model.StatutUtilisateur;
-import mg.auxidrive.api.model.Utilisateur;
-import mg.auxidrive.api.repository.CompteClientRepository;
-import mg.auxidrive.api.repository.UtilisateurRepository;
+import java.util.Optional;
+
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,8 +9,17 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import mg.auxidrive.api.model.CompteClient;
+import mg.auxidrive.api.model.StatutCompte;
+import mg.auxidrive.api.model.StatutUtilisateur;
+import mg.auxidrive.api.model.Utilisateur;
+import mg.auxidrive.api.repository.CompteClientRepository;
+import mg.auxidrive.api.repository.UtilisateurRepository;
 
+/**
+ * Charge un compte par e-mail pour Spring Security : d'abord les agents/administrateurs (table Utilisateurs),
+ * puis les clients (table Comptes_clients). Le rôle vient de la colonne id_role des deux tables.
+ */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 

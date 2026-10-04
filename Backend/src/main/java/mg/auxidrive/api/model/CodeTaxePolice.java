@@ -3,60 +3,37 @@ package mg.auxidrive.api.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "codesTaxePolice")
+@Table(name = "Codes_taxe_police")
 public class CodeTaxePolice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idCodeTaxe")
+    @Column(name = "id_code_taxe")
     private Long idCodeTaxe;
 
-    @Column(name = "codeTaxe", length = 1)
+    @Column(name = "code_taxe", length = 1)
     private String codeTaxe;
 
-    @Column(name = "libelleCodeTaxe", length = 50)
+    @Column(name = "libelle_code_taxe", length = 50)
     private String libelleCodeTaxe;
 
-    @Column(name = "tauxTaxe")
+    @Column(name = "taux_taxe")
     private Double tauxTaxe;
 
-    @Column(name = "appliquerTva")
+    @Column(name = "appliquer_tva")
     private Boolean appliquerTva;
 
-    @Column(name = "appliquerTe")
+    @Column(name = "appliquer_te")
     private Boolean appliquerTe;
 
-    @Column(name = "appliquerTacava")
+    @Column(name = "appliquer_tacava")
     private Boolean appliquerTacava;
 
-    @Column(name = "tauxTe")
+    @Column(name = "taux_te")
     private Double tauxTe;
 
-    @Column(name = "tauxTacava")
+    @Column(name = "taux_tacava")
     private Double tauxTacava;
-
-    public CodeTaxePolice(String codeTaxe, String libelleCodeTaxe, Double tauxTaxe, Boolean appliquerTva, Boolean appliquerTe, Boolean appliquerTacava, Double tauxTe, Double tauxTacava) {
-        this.codeTaxe = codeTaxe;
-        this.libelleCodeTaxe = libelleCodeTaxe;
-        this.tauxTaxe = tauxTaxe;
-        this.appliquerTva = appliquerTva;
-        this.appliquerTe = appliquerTe;
-        this.appliquerTacava = appliquerTacava;
-        this.tauxTe = tauxTe;
-        this.tauxTacava = tauxTacava;
-    }
-
-    public CodeTaxePolice(Long idCodeTaxe, String codeTaxe, String libelleCodeTaxe, Double tauxTaxe, Boolean appliquerTva, Boolean appliquerTe, Boolean appliquerTacava, Double tauxTe, Double tauxTacava) {
-        this.idCodeTaxe = idCodeTaxe;
-        this.codeTaxe = codeTaxe;
-        this.libelleCodeTaxe = libelleCodeTaxe;
-        this.tauxTaxe = tauxTaxe;
-        this.appliquerTva = appliquerTva;
-        this.appliquerTe = appliquerTe;
-        this.appliquerTacava = appliquerTacava;
-        this.tauxTe = tauxTe;
-        this.tauxTacava = tauxTacava;
-    }
 
     public Long getIdCodeTaxe() {
         return idCodeTaxe;

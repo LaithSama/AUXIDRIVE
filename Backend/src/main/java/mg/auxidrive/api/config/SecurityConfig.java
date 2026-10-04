@@ -23,25 +23,25 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(e -> e.authenticationEntryPoint(
-                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-                .authorizeHttpRequests(auth -> auth
-                        // /error doit rester public, sinon les erreurs (400, 409...) des routes publiques deviennent des 401
-                        .requestMatchers("/error").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        // le client soumet sa demande d'inscription sans être connecté
-                        .requestMatchers(HttpMethod.POST, "/api/inscriptions").permitAll()
-                        // catalogue d'offres : lecture publique, modification réservée à l'administrateur
-                        .requestMatchers(HttpMethod.GET, "/api/offres/**").permitAll()
-                        .requestMatchers("/api/offres/**").hasRole("ADMIN")
-                        .requestMatchers("/api/utilisateurs/**").hasRole("ADMIN")
-                        .requestMatchers("/api/inscriptions/**", "/api/assures/**", "/api/documents/**", "/api/comptes-clients/**")
-                        .hasAnyRole("AGENT", "ADMIN")
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .exceptionHandling(e -> e.authenticationEntryPoint(
+                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+            .authorizeHttpRequests(auth -> auth
+                // /error doit rester public, sinon les erreurs (400, 409...) des routes publiques deviennent des 401
+                .requestMatchers("/error").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                // le client soumet sa demande d'inscription sans être connecté
+                .requestMatchers(HttpMethod.POST, "/api/inscriptions").permitAll()
+                // catalogue d'offres : lecture publique, modification réservée à l'administrateur
+                .requestMatchers(HttpMethod.GET, "/api/offres/**").permitAll()
+                .requestMatchers("/api/offres/**").hasRole("ADMIN")
+                .requestMatchers("/api/utilisateurs/**").hasRole("ADMIN")
+                .requestMatchers("/api/inscriptions/**", "/api/assures/**", "/api/documents/**", "/api/comptes-clients/**")
+                    .hasAnyRole("AGENT", "ADMIN")
+                .anyRequest().authenticated())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

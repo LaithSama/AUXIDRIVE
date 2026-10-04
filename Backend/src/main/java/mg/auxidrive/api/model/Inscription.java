@@ -1,63 +1,39 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "inscriptions")
+@Table(name = "Inscriptions")
 public class Inscription {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idInscription")
+    @Column(name = "id_inscription")
     private Long idInscription;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "idAssure", unique = true)
+    @JoinColumn(name = "id_assure", unique = true)
     private Assure assure;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "statutInscription")
+    @Column(name = "statut_inscription")
     private StatutInscription statutInscription;
 
-    @Column(name = "dateDemande")
+    @Column(name = "date_demande")
     private LocalDateTime dateDemande;
 
-    @Column(name = "dateDecision")
+    @Column(name = "date_decision")
     private LocalDateTime dateDecision;
 
-    @Column(name = "motifRefus", length = 255)
+    @Column(name = "motif_refus", length = 255)
     private String motifRefus;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idUtil")
+    @JoinColumn(name = "id_agent")
     private Utilisateur agent;
-
-    public Inscription(Assure assure, StatutInscription statutInscription, LocalDateTime dateDemande, LocalDateTime dateDecision, String motifRefus, Utilisateur agent) {
-        this.assure = assure;
-        this.statutInscription = statutInscription;
-        this.dateDemande = dateDemande;
-        this.dateDecision = dateDecision;
-        this.motifRefus = motifRefus;
-        this.agent = agent;
-    }
-
-    public Inscription(Long idInscription, Assure assure, StatutInscription statutInscription, LocalDateTime dateDemande, LocalDateTime dateDecision, String motifRefus, Utilisateur agent) {
-        this.idInscription = idInscription;
-        this.assure = assure;
-        this.statutInscription = statutInscription;
-        this.dateDemande = dateDemande;
-        this.dateDecision = dateDecision;
-        this.motifRefus = motifRefus;
-        this.agent = agent;
-    }
-
-    public Inscription() {
-
-    }
 
     public Long getIdInscription() {
         return idInscription;

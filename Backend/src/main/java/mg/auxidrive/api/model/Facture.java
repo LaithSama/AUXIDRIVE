@@ -1,69 +1,50 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "factures")
+@Table(name = "Factures")
 public class Facture {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idFacture")
+    @Column(name = "id_facture")
     private Long idFacture;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idContrat")
+    @JoinColumn(name = "id_contrat")
     private Contrat contrat;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "typeFacture")
+    @Column(name = "type_facture")
     private TypeFacture typeFacture;
 
-    @Column(name = "primeNette")
+    @Column(name = "prime_nette")
     private Double primeNette;
 
-    @Column(name = "montantTaxes")
+    @Column(name = "montant_taxes")
     private Double montantTaxes;
 
-    @Column(name = "montantTtc")
+    @Column(name = "montant_ttc")
     private Double montantTtc;
 
-    @Column(name = "dateEmission")
+    @Column(name = "date_emission")
     private LocalDate dateEmission;
 
-    @Column(name = "cheminFichierPdf", length = 100)
+    @Column(name = "chemin_fichier_pdf", length = 100)
     private String cheminFichierPdf;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "statutFacture")
+    @Column(name = "statut_facture")
     private StatutFacture statutFacture;
 
-    public Facture(Contrat contrat, TypeFacture typeFacture, Double primeNette, Double montantTaxes, Double montantTtc, LocalDate dateEmission, String cheminFichierPdf, StatutFacture statutFacture) {
-        this.contrat = contrat;
-        this.typeFacture = typeFacture;
-        this.primeNette = primeNette;
-        this.montantTaxes = montantTaxes;
-        this.montantTtc = montantTtc;
-        this.dateEmission = dateEmission;
-        this.cheminFichierPdf = cheminFichierPdf;
-        this.statutFacture = statutFacture;
-    }
-
-    public Facture(Long idFacture, Contrat contrat, TypeFacture typeFacture, Double primeNette, Double montantTaxes, Double montantTtc, LocalDate dateEmission, String cheminFichierPdf, StatutFacture statutFacture) {
-        this.idFacture = idFacture;
-        this.contrat = contrat;
-        this.typeFacture = typeFacture;
-        this.primeNette = primeNette;
-        this.montantTaxes = montantTaxes;
-        this.montantTtc = montantTtc;
-        this.dateEmission = dateEmission;
-        this.cheminFichierPdf = cheminFichierPdf;
-        this.statutFacture = statutFacture;
-    }
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_facture_liee")
+    private Facture factureLiee;
 
     public Long getIdFacture() {
         return idFacture;
@@ -135,5 +116,13 @@ public class Facture {
 
     public void setStatutFacture(StatutFacture statutFacture) {
         this.statutFacture = statutFacture;
+    }
+
+    public Facture getFactureLiee() {
+        return factureLiee;
+    }
+
+    public void setFactureLiee(Facture factureLiee) {
+        this.factureLiee = factureLiee;
     }
 }

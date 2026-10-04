@@ -1,11 +1,8 @@
 package mg.auxidrive.api.service;
 
-import mg.auxidrive.api.model.Role;
-import mg.auxidrive.api.model.StatutUtilisateur;
-import mg.auxidrive.api.model.Utilisateur;
-import mg.auxidrive.api.repository.CompteClientRepository;
-import mg.auxidrive.api.repository.RoleRepository;
-import mg.auxidrive.api.repository.UtilisateurRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,9 +10,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import mg.auxidrive.api.model.Role;
+import mg.auxidrive.api.model.StatutUtilisateur;
+import mg.auxidrive.api.model.Utilisateur;
+import mg.auxidrive.api.repository.CompteClientRepository;
+import mg.auxidrive.api.repository.RoleRepository;
+import mg.auxidrive.api.repository.UtilisateurRepository;
 
+/**
+ * Gestion des agents et administrateurs (réservée à l'administrateur).
+ * Les comptes clients (table Comptes_clients) ne se créent pas ici : ils sont créés par la validation d'une inscription.
+ */
 @Service
 public class UtilisateurService {
 
@@ -40,8 +45,8 @@ public class UtilisateurService {
     }
 
     @Transactional(readOnly = true)
-    public Utilisateur trouverUtilisateur(Long idUtil) {
-        return utilisateurRepository.findById(idUtil)
+    public Utilisateur trouver(Long id) {
+        return utilisateurRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
     }
 
@@ -65,10 +70,10 @@ public class UtilisateurService {
         return utilisateurRepository.save(utilisateur);
     }
 
-    // Seuls les champs renseignés sont modifiés. Le mot de passe n'est ré-encodé que s'il est fourni.
+    /** Seuls les champs renseignés sont modifiés. Le mot de passe n'est ré-encodé que s'il est fourni. */
     @Transactional
-    public Utilisateur modifierUtilisateur(Long idUtil, Utilisateur donnees) {
-        Utilisateur utilisateur = trouverUtilisateur(idUtil);
+    public Utilisateur modifier(Long id, Utilisateur donnees) {
+        Utilisateur utilisateur = trouver(id);
         if (donnees.getNomUtil() != null && !donnees.getNomUtil().isBlank()) {
             utilisateur.setNomUtil(donnees.getNomUtil().trim());
         }
@@ -95,8 +100,8 @@ public class UtilisateurService {
     }
 
     @Transactional
-    public void supprimer(Long idUtil, String emailCourant) {
-        Utilisateur utilisateur = trouverUtilisateur(idUtil);
+    public void supprimer(Long id, String emailCourant) {
+        Utilisateur utilisateur = trouver(id);
         if (utilisateur.getEmail().equalsIgnoreCase(emailCourant)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Vous ne pouvez pas supprimer votre propre compte");
         }
@@ -109,8 +114,9 @@ public class UtilisateurService {
         }
     }
 
-    // utilitaires
-    // Retrouve le rôle à partir de son libellé (AGENT ou ADMIN).
+    // ------------------------------------------------------------------ utilitaires
+
+    /** Retrouve le rôle à partir de son libellé (AGENT ou ADMIN). */
     private Role trouverRoleInterne(Utilisateur donnees) {
         if (donnees.getRole() == null || donnees.getRole().getLibRole() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rôle obligatoire (AGENT ou ADMIN)");

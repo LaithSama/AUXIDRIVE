@@ -1,53 +1,26 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "modesReglement")
+@Table(name = "Modes_reglement")
 public class ModeReglement {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idReglement")
-    private Long idReglement;
-
-    @Column(name = "codeRegl", length = 2)
+    @Column(name = "code_regl", length = 2)
     private String codeRegl;
 
-    @Column(name = "modeRegl", length = 30)
+    @Column(name = "mode_regl", length = 30)
     private String modeRegl;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idModePaie")
+    @JoinColumn(name = "id_mode_paie")
     private ModePaiement modePaiement;
 
-    @Column(name = "oldCodeRegl", length = 2)
+    @Column(name = "old_code_regl", length = 2)
     private String oldCodeRegl;
-
-    public ModeReglement(String codeRegl, String modeRegl, ModePaiement modePaiement, String oldCodeRegl) {
-        this.codeRegl = codeRegl;
-        this.modeRegl = modeRegl;
-        this.modePaiement = modePaiement;
-        this.oldCodeRegl = oldCodeRegl;
-    }
-
-    public ModeReglement(Long idReglement, String codeRegl, String modeRegl, ModePaiement modePaiement, String oldCodeRegl) {
-        this.idReglement = idReglement;
-        this.codeRegl = codeRegl;
-        this.modeRegl = modeRegl;
-        this.modePaiement = modePaiement;
-        this.oldCodeRegl = oldCodeRegl;
-    }
-
-    public Long getIdReglement() {
-        return idReglement;
-    }
-
-    public void setIdReglement(Long idReglement) {
-        this.idReglement = idReglement;
-    }
 
     public String getCodeRegl() {
         return codeRegl;

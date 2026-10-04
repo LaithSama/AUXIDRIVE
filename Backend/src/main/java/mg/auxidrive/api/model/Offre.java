@@ -3,51 +3,32 @@ package mg.auxidrive.api.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "offres")
+@Table(name = "Offres")
 public class Offre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idOffre")
+    @Column(name = "id_offre")
     private Long idOffre;
 
-    @Column(name = "libelleOffre", length = 50)
+    @Column(name = "libelle_offre", length = 50)
     private String libelleOffre;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "typeOffre")
+    @Column(name = "type_offre")
     private TypeOffre typeOffre;
 
-    @Column(name = "dureeMinMois")
+    @Column(name = "duree_min_mois")
     private Integer dureeMinMois;
 
-    @Column(name = "nbVehiculesMin")
+    @Column(name = "nb_vehicules_min")
     private Integer nbVehiculesMin;
 
-    @Column(name = "tauxRemise")
+    @Column(name = "taux_remise")
     private Double tauxRemise;
 
     @Column(name = "description", length = 255)
     private String description;
-
-    public Offre(String libelleOffre, TypeOffre typeOffre, Integer dureeMinMois, Integer nbVehiculesMin, Double tauxRemise, String description) {
-        this.libelleOffre = libelleOffre;
-        this.typeOffre = typeOffre;
-        this.dureeMinMois = dureeMinMois;
-        this.nbVehiculesMin = nbVehiculesMin;
-        this.tauxRemise = tauxRemise;
-        this.description = description;
-    }
-
-    public Offre(Long idOffre, String libelleOffre, TypeOffre typeOffre, Integer dureeMinMois, Integer nbVehiculesMin, Double tauxRemise, String description) {
-        this.idOffre = idOffre;
-        this.libelleOffre = libelleOffre;
-        this.typeOffre = typeOffre;
-        this.dureeMinMois = dureeMinMois;
-        this.nbVehiculesMin = nbVehiculesMin;
-        this.tauxRemise = tauxRemise;
-        this.description = description;
-    }
 
     public Long getIdOffre() {
         return idOffre;

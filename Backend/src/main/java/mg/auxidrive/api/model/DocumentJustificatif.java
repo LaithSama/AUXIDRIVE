@@ -1,106 +1,68 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "documentsJustificatif")
+@Table(name = "Documents_justificatifs")
 public class DocumentJustificatif {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idDocument")
+    @Column(name = "id_document")
     private Long idDocument;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idAssure")
+    @JoinColumn(name = "id_assure")
     private Assure assure;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idInscription")
+    @JoinColumn(name = "id_inscription")
     private Inscription inscription;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idVehicule")
+    @JoinColumn(name = "id_vehicule")
     private Vehicule vehicule;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idContrat")
+    @JoinColumn(name = "id_contrat")
     private Contrat contrat;
 
-    @Column(name = "typeDocument", length = 30)
+    @Column(name = "type_document", length = 30)
     private String typeDocument;
 
     @JsonIgnore
-    @Column(name = "cheminFichier", length = 100)
+    @Column(name = "chemin_fichier", length = 100)
     private String cheminFichier;
 
-    @Column(name = "formatFichier", length = 5)
+    @Column(name = "format_fichier", length = 5)
     private String formatFichier;
 
-    @Column(name = "tailleKo")
+    @Column(name = "taille_ko")
     private Integer tailleKo;
 
-    @Column(name = "dateTeleversement")
+    @Column(name = "date_televersement")
     private LocalDateTime dateTeleversement;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "statutDocuments")
+    @Column(name = "statut_documents")
     private StatutDocument statutDocuments;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idUtil")
+    @JoinColumn(name = "id_util")
     private Utilisateur utilisateur;
 
-    @Column(name = "dateValidation")
+    @Column(name = "date_validation")
     private LocalDateTime dateValidation;
 
-    @Column(name = "motifRejet", length = 255)
+    @Column(name = "motif_rejet", length = 255)
     private String motifRejet;
-
-    public DocumentJustificatif(Assure assure, Inscription inscription, Vehicule vehicule, Contrat contrat, String typeDocument, String cheminFichier, String formatFichier, Integer tailleKo, LocalDateTime dateTeleversement, StatutDocument statutDocuments, Utilisateur utilisateur, LocalDateTime dateValidation, String motifRejet) {
-        this.assure = assure;
-        this.inscription = inscription;
-        this.vehicule = vehicule;
-        this.contrat = contrat;
-        this.typeDocument = typeDocument;
-        this.cheminFichier = cheminFichier;
-        this.formatFichier = formatFichier;
-        this.tailleKo = tailleKo;
-        this.dateTeleversement = dateTeleversement;
-        this.statutDocuments = statutDocuments;
-        this.utilisateur = utilisateur;
-        this.dateValidation = dateValidation;
-        this.motifRejet = motifRejet;
-    }
-
-    public DocumentJustificatif(Long idDocument, Assure assure, Inscription inscription, Vehicule vehicule, Contrat contrat, String typeDocument, String cheminFichier, String formatFichier, Integer tailleKo, LocalDateTime dateTeleversement, StatutDocument statutDocuments, Utilisateur utilisateur, LocalDateTime dateValidation, String motifRejet) {
-        this.idDocument = idDocument;
-        this.assure = assure;
-        this.inscription = inscription;
-        this.vehicule = vehicule;
-        this.contrat = contrat;
-        this.typeDocument = typeDocument;
-        this.cheminFichier = cheminFichier;
-        this.formatFichier = formatFichier;
-        this.tailleKo = tailleKo;
-        this.dateTeleversement = dateTeleversement;
-        this.statutDocuments = statutDocuments;
-        this.utilisateur = utilisateur;
-        this.dateValidation = dateValidation;
-        this.motifRejet = motifRejet;
-    }
-
-    public DocumentJustificatif() {
-
-    }
 
     public Long getIdDocument() {
         return idDocument;

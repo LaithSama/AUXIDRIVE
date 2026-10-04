@@ -1,12 +1,19 @@
 package mg.auxidrive.api.controller;
 
-import mg.auxidrive.api.model.Assure;
-import mg.auxidrive.api.service.AssureService;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import mg.auxidrive.api.model.Assure;
+import mg.auxidrive.api.service.AssureService;
+
+/** Consultation et mise à jour des assurés (création par inscription, pas de suppression). */
 @RestController
 @RequestMapping("/api/assures")
 public class AssureController {
@@ -19,17 +26,17 @@ public class AssureController {
 
     @GetMapping
     public List<Assure> lister() {
-        return assureService.listerAssure();
+        return assureService.lister();
     }
 
-    // Fiche complète : assuré, professions, identifiants légaux
+    /** Fiche complète : assuré, professions, identifiants légaux. */
     @GetMapping("/{id}")
-    public Map<String, Object> fiche(@PathVariable Long idAssure) {
-        return assureService.fiche(idAssure);
+    public Map<String, Object> fiche(@PathVariable Long id) {
+        return assureService.fiche(id);
     }
 
     @PutMapping("/{id}")
-    public Assure modifier(@PathVariable Long idAssure, @RequestBody Assure assure) {
-        return assureService.modifierAssure(idAssure, assure);
+    public Assure modifier(@PathVariable Long id, @RequestBody Assure assure) {
+        return assureService.modifier(id, assure);
     }
 }

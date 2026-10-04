@@ -1,15 +1,5 @@
 package mg.auxidrive.api.service;
 
-import mg.auxidrive.api.model.*;
-import mg.auxidrive.api.repository.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.mail.MailException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,10 +8,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.mail.MailException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+import mg.auxidrive.api.model.Assure;
+import mg.auxidrive.api.model.AssureIdentifiantsLegaux;
+import mg.auxidrive.api.model.AssureProfession;
+import mg.auxidrive.api.model.CompteClient;
+import mg.auxidrive.api.model.DocumentJustificatif;
+import mg.auxidrive.api.model.Inscription;
+import mg.auxidrive.api.model.Role;
+import mg.auxidrive.api.model.StatutCompte;
+import mg.auxidrive.api.model.StatutDocument;
+import mg.auxidrive.api.model.StatutInscription;
+import mg.auxidrive.api.model.Utilisateur;
+import mg.auxidrive.api.repository.AssureIdentifiantsLegauxRepository;
+import mg.auxidrive.api.repository.AssureProfessionRepository;
+import mg.auxidrive.api.repository.AssureRepository;
+import mg.auxidrive.api.repository.CompteClientRepository;
+import mg.auxidrive.api.repository.DocumentJustificatifRepository;
+import mg.auxidrive.api.repository.InscriptionRepository;
+import mg.auxidrive.api.repository.RoleRepository;
+import mg.auxidrive.api.repository.UtilisateurRepository;
+
+/**
+ * Workflow d'inscription :
+ * 1. le client envoie sa demande (assuré, profession, identifiants légaux, documents facultatifs) -> EN_ATTENTE.
+ *    Aucun compte utilisateur n'est créé à ce stade ;
+ * 2. un agent valide (compte client CompteClient créé avec le rôle CLIENT, lié à l'assuré,
+ *    identifiants envoyés par e-mail) -> VALIDEE ;
+ * 3. ou refuse (avec un motif) -> REFUSEE, aucun compte créé.
+ */
 @Service
 public class InscriptionService {
 
-    // Types de documents que le client peut importer (tous facultatifs).
+    /** Types de documents que le client peut importer (tous facultatifs). */
     public static final List<String> TYPES_DOCUMENTS = List.of("CIN", "CARTE_GRISE", "CARTE_ROSE", "MODELE_N1");
 
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
@@ -64,7 +90,7 @@ public class InscriptionService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // côté client
+    // ------------------------------------------------------------------ côté client
 
     /**
      * Enregistre la demande. Les informations légales peuvent être saisies à la main (identifiants),
@@ -78,7 +104,7 @@ public class InscriptionService {
         verifierAssure(assure);
         String email = assure.getMail().trim().toLowerCase();
         if (emailDejaUtilise(email)
-                || inscriptionRepository.existsByAssureMailAndStatutInscription(email, StatutInscription.EN_ATTENTE)) {
+                || inscriptionRepository.existsByAssure_MailAndStatutInscription(email, StatutInscription.EN_ATTENTE)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cette adresse e-mail est déjà utilisée ou une demande est déjà en attente");
         }
@@ -91,11 +117,11 @@ public class InscriptionService {
         Map<String, FichierService.Fichier> stockes = new LinkedHashMap<>();
         try {
             for (Map.Entry<String, MultipartFile> e : fichiers.entrySet()) {
-                stockes.put(e.getKey(), fichierService.stockerFichier(e.getValue()));
+                stockes.put(e.getKey(), fichierService.stocker(e.getValue()));
             }
             return enregistrer(assure, email, profession, identifiants, stockes);
         } catch (RuntimeException e) {
-            stockes.values().forEach(f -> fichierService.supprimerFichier(f.chemin()));
+            stockes.values().forEach(f -> fichierService.supprimer(f.chemin()));
             throw e;
         }
     }
@@ -143,31 +169,31 @@ public class InscriptionService {
         return inscription;
     }
 
-    // côté agent
+    // ------------------------------------------------------------------ côté agent
 
     @Transactional(readOnly = true)
     public List<Inscription> lister(StatutInscription statut) {
         return statut == null
-                ? inscriptionRepository.findByAllOrderByDateDemandeDesc()
+                ? inscriptionRepository.findAllByOrderByDateDemandeDesc()
                 : inscriptionRepository.findByStatutInscriptionOrderByDateDemandeDesc(statut);
     }
 
     @Transactional(readOnly = true)
-    public Inscription trouver(Long idInscription) {
-        return inscriptionRepository.findById(idInscription)
+    public Inscription trouver(Long id) {
+        return inscriptionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Inscription introuvable"));
     }
 
     /** Dossier complet pour l'agent : demande, professions, identifiants légaux et documents. */
     @Transactional(readOnly = true)
-    public Map<String, Object> dossier(Long idInscription) {
-        Inscription inscription = trouver(idInscription);
+    public Map<String, Object> dossier(Long id) {
+        Inscription inscription = trouver(id);
         Long idAssure = inscription.getAssure().getIdAssure();
         Map<String, Object> dossier = new LinkedHashMap<>();
         dossier.put("inscription", inscription);
-        dossier.put("professions", professionRepository.findByAssureId(idAssure));
-        dossier.put("identifiants", legauxRepository.findByAssureId(idAssure).orElse(null));
-        dossier.put("documents", documentRepository.findByInscriptionId(idInscription));
+        dossier.put("professions", professionRepository.findByAssure_IdAssure(idAssure));
+        dossier.put("identifiants", legauxRepository.findByAssure_IdAssure(idAssure).orElse(null));
+        dossier.put("documents", documentRepository.findByInscription_IdInscription(id));
         return dossier;
     }
 
@@ -216,7 +242,7 @@ public class InscriptionService {
         inscription.setMotifRefus(null);
 
         // les documents que l'agent n'a pas encore examinés sont validés avec la demande
-        for (DocumentJustificatif d : documentRepository.findByInscriptionId(id)) {
+        for (DocumentJustificatif d : documentRepository.findByInscription_IdInscription(id)) {
             if (d.getStatutDocuments() == StatutDocument.EN_ATTENTE) {
                 d.setStatutDocuments(StatutDocument.VALIDE);
                 d.setDateValidation(maintenant);
@@ -232,7 +258,7 @@ public class InscriptionService {
         return inscription;
     }
 
-    // Refuse la demande : aucun compte n'est créé, le motif est conservé.
+    /** Refuse la demande : aucun compte n'est créé, le motif est conservé. */
     @Transactional
     public Inscription refuser(Long id, String motif, String emailAgent) {
         if (motif == null || motif.isBlank()) {
@@ -247,7 +273,7 @@ public class InscriptionService {
         inscription.setAgent(agent);
         inscription.setMotifRefus(motif.trim());
 
-        for (DocumentJustificatif d : documentRepository.findByInscriptionId(id)) {
+        for (DocumentJustificatif d : documentRepository.findByInscription_IdInscription(id)) {
             if (d.getStatutDocuments() == StatutDocument.EN_ATTENTE) {
                 d.setStatutDocuments(StatutDocument.REJETE);
                 d.setMotifRejet("Inscription refusée");
@@ -258,7 +284,7 @@ public class InscriptionService {
         return inscription;
     }
 
-    // utilitaires
+    // ------------------------------------------------------------------ utilitaires
 
     private void verifierAssure(Assure a) {
         if (a == null || vide(a.getNomAssure()) || vide(a.getMail()) || vide(a.getContact()) || vide(a.getAdresse())) {
@@ -273,17 +299,17 @@ public class InscriptionService {
         }
     }
 
-    private boolean contientUnIdentifiant(AssureIdentifiantsLegaux identifiantsLegaux) {
-        return identifiantsLegaux != null && (!vide(identifiantsLegaux.getCin()) || !vide(identifiantsLegaux.getNif()) || !vide(identifiantsLegaux.getCif())
-                || !vide(identifiantsLegaux.getNumPasseport()) || !vide(identifiantsLegaux.getnCarteProf()));
+    private boolean contientUnIdentifiant(AssureIdentifiantsLegaux i) {
+        return i != null && (!vide(i.getCin()) || !vide(i.getNif()) || !vide(i.getCif())
+                || !vide(i.getNumPasseport()) || !vide(i.getNCarteProf()));
     }
 
     private boolean vide(String s) {
         return s == null || s.isBlank();
     }
 
-    private Inscription trouverEnAttente(Long idInscription) {
-        Inscription inscription = trouver(idInscription);
+    private Inscription trouverEnAttente(Long id) {
+        Inscription inscription = trouver(id);
         if (inscription.getStatutInscription() != StatutInscription.EN_ATTENTE) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette inscription a déjà été traitée");
         }

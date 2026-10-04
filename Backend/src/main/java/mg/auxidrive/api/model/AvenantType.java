@@ -1,34 +1,20 @@
 package mg.auxidrive.api.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "avenantsType")
+@Table(name = "Avenants_type")
 public class AvenantType {
 
     @Id
-    @Column(name = "natureAvenantCode", length = 5)
+    @Column(name = "nature_avenant_code", length = 5)
     private String natureAvenantCode;
 
-    @Column(name = "natureAvenantNum")
+    @Column(name = "nature_avenant_num")
     private Integer natureAvenantNum;
 
-    @Column(name = "natureAvenant", length = 50)
+    @Column(name = "nature_avenant", length = 50)
     private String natureAvenant;
-
-    public AvenantType(Integer natureAvenantNum, String natureAvenant) {
-        this.natureAvenantNum = natureAvenantNum;
-        this.natureAvenant = natureAvenant;
-    }
-
-    public AvenantType(String natureAvenantCode, Integer natureAvenantNum, String natureAvenant) {
-        this.natureAvenantCode = natureAvenantCode;
-        this.natureAvenantNum = natureAvenantNum;
-        this.natureAvenant = natureAvenant;
-    }
 
     public String getNatureAvenantCode() {
         return natureAvenantCode;

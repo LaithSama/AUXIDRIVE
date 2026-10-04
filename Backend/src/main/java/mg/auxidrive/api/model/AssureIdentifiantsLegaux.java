@@ -1,22 +1,21 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "assuresIdentifiantsLegaux")
+@Table(name = "Assures_identifiants_legaux")
 public class AssureIdentifiantsLegaux {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idLegaux")
+    @Column(name = "id_legaux")
     private Long idLegaux;
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idAssure", unique = true)
+    @JoinColumn(name = "id_assure", unique = true)
     private Assure assure;
 
     @Column(name = "cin", length = 20)
@@ -28,40 +27,17 @@ public class AssureIdentifiantsLegaux {
     @Column(name = "cif", length = 30)
     private String cif;
 
-    @Column(name = "numPasseport", length = 30)
+    @Column(name = "num_passeport", length = 30)
     private String numPasseport;
 
-    @Column(name = "nCarteProf", length = 30)
+    @Column(name = "n_carte_prof", length = 30)
     private String nCarteProf;
 
-    @Column(name = "dateNif")
+    @Column(name = "date_nif")
     private LocalDate dateNif;
 
-    @Column(name = "dateCif")
+    @Column(name = "date_cif")
     private LocalDate dateCif;
-
-    public AssureIdentifiantsLegaux(LocalDate dateCif, LocalDate dateNif, String nCarteProf, String numPasseport, String cif, String nif, String cin, Assure assure) {
-        this.dateCif = dateCif;
-        this.dateNif = dateNif;
-        this.nCarteProf = nCarteProf;
-        this.numPasseport = numPasseport;
-        this.cif = cif;
-        this.nif = nif;
-        this.cin = cin;
-        this.assure = assure;
-    }
-
-    public AssureIdentifiantsLegaux(Long idLegaux, Assure assure, String cin, String nif, String cif, String numPasseport, String nCarteProf, LocalDate dateNif, LocalDate dateCif) {
-        this.idLegaux = idLegaux;
-        this.assure = assure;
-        this.cin = cin;
-        this.nif = nif;
-        this.cif = cif;
-        this.numPasseport = numPasseport;
-        this.nCarteProf = nCarteProf;
-        this.dateNif = dateNif;
-        this.dateCif = dateCif;
-    }
 
     public Long getIdLegaux() {
         return idLegaux;
@@ -111,11 +87,11 @@ public class AssureIdentifiantsLegaux {
         this.numPasseport = numPasseport;
     }
 
-    public String getnCarteProf() {
+    public String getNCarteProf() {
         return nCarteProf;
     }
 
-    public void setnCarteProf(String nCarteProf) {
+    public void setNCarteProf(String nCarteProf) {
         this.nCarteProf = nCarteProf;
     }
 

@@ -1,70 +1,43 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "comptesClients")
+@Table(name = "Comptes_clients")
 public class CompteClient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idCompteClient")
+    @Column(name = "id_compte_client")
     private Long idCompteClient;
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idAssure", unique = true)
+    @JoinColumn(name = "id_assure", unique = true)
     private Assure assure;
 
     @Column(name = "email", length = 50, unique = true)
     private String email;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Column(name = "motDePasse", length = 255)
+    @Column(name = "mot_de_passe", length = 255)
     private String motDePasse;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "statutCompte")
+    @Column(name = "statut_compte")
     private StatutCompte statutCompte;
 
-    @Column(name = "dateCreation")
+    @Column(name = "date_creation")
     private LocalDateTime dateCreation;
 
-    @Column(name = "dateDerniereConnexion")
+    @Column(name = "date_derniere_connexion")
     private LocalDateTime dateDerniereConnexion;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "idRole")
+    @JoinColumn(name = "id_role")
     private Role role;
-
-    public CompteClient(Assure assure, String email, String motDePasse, StatutCompte statutCompte, LocalDateTime dateCreation, LocalDateTime dateDerniereConnexion, Role role) {
-        this.assure = assure;
-        this.email = email;
-        this.motDePasse = motDePasse;
-        this.statutCompte = statutCompte;
-        this.dateCreation = dateCreation;
-        this.dateDerniereConnexion = dateDerniereConnexion;
-        this.role = role;
-    }
-
-    public CompteClient(Long idCompteClient, Assure assure, String email, String motDePasse, StatutCompte statutCompte, LocalDateTime dateCreation, LocalDateTime dateDerniereConnexion, Role role) {
-        this.idCompteClient = idCompteClient;
-        this.assure = assure;
-        this.email = email;
-        this.motDePasse = motDePasse;
-        this.statutCompte = statutCompte;
-        this.dateCreation = dateCreation;
-        this.dateDerniereConnexion = dateDerniereConnexion;
-        this.role = role;
-    }
-
-    public CompteClient() {
-
-    }
 
     public Long getIdCompteClient() {
         return idCompteClient;

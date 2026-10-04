@@ -3,35 +3,22 @@ package mg.auxidrive.api.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "modesPaiement")
+@Table(name = "Modes_paiement")
 public class ModePaiement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idModePaie")
+    @Column(name = "id_mode_paie")
     private Long idModePaie;
 
-    @Column(name = "codePaiement", length = 10)
+    @Column(name = "code_paiement", length = 10)
     private String codePaiement;
 
-    @Column(name = "libelleMode", length = 30)
+    @Column(name = "libelle_mode", length = 30)
     private String libelleMode;
 
     @Column(name = "description", length = 100)
     private String description;
-
-    public ModePaiement(String codePaiement, String libelleMode, String description) {
-        this.codePaiement = codePaiement;
-        this.libelleMode = libelleMode;
-        this.description = description;
-    }
-
-    public ModePaiement(Long idModePaie, String codePaiement, String libelleMode, String description) {
-        this.idModePaie = idModePaie;
-        this.codePaiement = codePaiement;
-        this.libelleMode = libelleMode;
-        this.description = description;
-    }
 
     public Long getIdModePaie() {
         return idModePaie;

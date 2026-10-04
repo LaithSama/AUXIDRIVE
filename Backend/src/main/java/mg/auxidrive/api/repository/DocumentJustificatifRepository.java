@@ -1,13 +1,17 @@
 package mg.auxidrive.api.repository;
 
-import mg.auxidrive.api.model.DocumentJustificatif;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import mg.auxidrive.api.model.*;
 
 @Repository
 public interface DocumentJustificatifRepository extends JpaRepository<DocumentJustificatif, Long> {
-    public List<DocumentJustificatif> findByAssureId(Long idAssure);
-    public List<DocumentJustificatif> findByInscriptionId(Long idInscription);
+
+    List<DocumentJustificatif> findByAssure_IdAssure(Long idAssure);
+
+    List<DocumentJustificatif> findByInscription_IdInscription(Long idInscription);
 }

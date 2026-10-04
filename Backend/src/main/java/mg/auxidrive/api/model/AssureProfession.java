@@ -1,70 +1,45 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "assuresProfession")
+@Table(name = "Assures_profession")
 public class AssureProfession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idProf")
+    @Column(name = "id_prof")
     private Long idProf;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idAssure")
+    @JoinColumn(name = "id_assure")
     private Assure assure;
 
-    @Column(name = "professionAssure", length = 30)
+    @Column(name = "profession_assure", length = 30)
     private String professionAssure;
 
-    @Column(name = "numMle", length = 10)
+    @Column(name = "num_mle", length = 10)
     private String numMle;
 
-    @Column(name = "numMleAncien", length = 50)
+    @Column(name = "num_mle_ancien", length = 50)
     private String numMleAncien;
 
-    @Column(name = "steFacturation", length = 50)
+    @Column(name = "ste_facturation", length = 50)
     private String steFacturation;
 
-    @Column(name = "steAdresse", length = 50)
+    @Column(name = "ste_adresse", length = 50)
     private String steAdresse;
 
-    @Column(name = "steTel", length = 13)
+    @Column(name = "ste_tel", length = 13)
     private String steTel;
 
-    @Column(name = "steMail", length = 50)
+    @Column(name = "ste_mail", length = 50)
     private String steMail;
 
-    @Column(name = "nomResponsable", length = 40)
+    @Column(name = "nom_responsable", length = 40)
     private String nomResponsable;
-
-    public AssureProfession(Assure assure, String professionAssure, String numMle, String numMleAncien, String steFacturation, String steAdresse, String steTel, String steMail, String nomResponsable) {
-        this.assure = assure;
-        this.professionAssure = professionAssure;
-        this.numMle = numMle;
-        this.numMleAncien = numMleAncien;
-        this.steFacturation = steFacturation;
-        this.steAdresse = steAdresse;
-        this.steTel = steTel;
-        this.steMail = steMail;
-        this.nomResponsable = nomResponsable;
-    }
-
-    public AssureProfession(Long idProf, Assure assure, String professionAssure, String numMle, String numMleAncien, String steFacturation, String steAdresse, String steTel, String steMail, String nomResponsable) {
-        this.idProf = idProf;
-        this.assure = assure;
-        this.professionAssure = professionAssure;
-        this.numMle = numMle;
-        this.numMleAncien = numMleAncien;
-        this.steFacturation = steFacturation;
-        this.steAdresse = steAdresse;
-        this.steTel = steTel;
-        this.steMail = steMail;
-        this.nomResponsable = nomResponsable;
-    }
 
     public Long getIdProf() {
         return idProf;

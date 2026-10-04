@@ -1,38 +1,37 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "contrats")
+@Table(name = "Contrats")
 public class Contrat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idContrat")
+    @Column(name = "id_contrat")
     private Long idContrat;
 
-    @Column(name = "numPolice", length = 10)
+    @Column(name = "num_police", length = 10)
     private String numPolice;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idAssure")
+    @JoinColumn(name = "id_assure")
     private Assure assure;
 
-    @Column(name = "codeAgence", length = 2)
+    @Column(name = "code_agence", length = 2)
     private String codeAgence;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idOffre")
+    @JoinColumn(name = "id_offre")
     private Offre offre;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cdBranche")
+    @JoinColumn(name = "cd_branche")
     private Branche branche;
 
     @JsonIgnore
@@ -40,71 +39,34 @@ public class Contrat {
     @JoinColumn(name = "mode_de_rnvlt")
     private ModeRenouvellement modeRenouvellement;
 
-    @Column(name = "dateSouscription")
+    @Column(name = "date_souscription")
     private LocalDate dateSouscription;
 
-    @Column(name = "dateEffet")
+    @Column(name = "date_effet")
     private LocalDate dateEffet;
 
-    @Column(name = "dateExpiration")
+    @Column(name = "date_expiration")
     private LocalDate dateExpiration;
 
-    @Column(name = "statutContrat", length = 20)
+    @Column(name = "statut_contrat", length = 20)
     private String statutContrat;
 
-    @Column(name = "coefficientBonusMalus")
+    @Column(name = "coefficient_bonus_malus")
     private Double coefficientBonusMalus;
 
-    @Column(name = "primeNetteCourante")
+    @Column(name = "prime_nette_courante")
     private Double primeNetteCourante;
 
-    @Column(name = "primeTtcCourante")
+    @Column(name = "prime_ttc_courante")
     private Double primeTtcCourante;
 
-    @Column(name = "canalSouscription", length = 15)
+    @Column(name = "canal_souscription", length = 15)
     private String canalSouscription;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idUtil")
+    @JoinColumn(name = "id_util")
     private Utilisateur utilisateur;
-
-    public Contrat(String numPolice, Assure assure, String codeAgence, Offre offre, Branche branche, ModeRenouvellement modeRenouvellement, LocalDate dateSouscription, LocalDate dateEffet, LocalDate dateExpiration, String statutContrat, Double coefficientBonusMalus, Double primeNetteCourante, Double primeTtcCourante, String canalSouscription, Utilisateur utilisateur) {
-        this.numPolice = numPolice;
-        this.assure = assure;
-        this.codeAgence = codeAgence;
-        this.offre = offre;
-        this.branche = branche;
-        this.modeRenouvellement = modeRenouvellement;
-        this.dateSouscription = dateSouscription;
-        this.dateEffet = dateEffet;
-        this.dateExpiration = dateExpiration;
-        this.statutContrat = statutContrat;
-        this.coefficientBonusMalus = coefficientBonusMalus;
-        this.primeNetteCourante = primeNetteCourante;
-        this.primeTtcCourante = primeTtcCourante;
-        this.canalSouscription = canalSouscription;
-        this.utilisateur = utilisateur;
-    }
-
-    public Contrat(Long idContrat, String numPolice, Assure assure, String codeAgence, Offre offre, Branche branche, ModeRenouvellement modeRenouvellement, LocalDate dateSouscription, LocalDate dateEffet, LocalDate dateExpiration, String statutContrat, Double coefficientBonusMalus, Double primeNetteCourante, Double primeTtcCourante, String canalSouscription, Utilisateur utilisateur) {
-        this.idContrat = idContrat;
-        this.numPolice = numPolice;
-        this.assure = assure;
-        this.codeAgence = codeAgence;
-        this.offre = offre;
-        this.branche = branche;
-        this.modeRenouvellement = modeRenouvellement;
-        this.dateSouscription = dateSouscription;
-        this.dateEffet = dateEffet;
-        this.dateExpiration = dateExpiration;
-        this.statutContrat = statutContrat;
-        this.coefficientBonusMalus = coefficientBonusMalus;
-        this.primeNetteCourante = primeNetteCourante;
-        this.primeTtcCourante = primeTtcCourante;
-        this.canalSouscription = canalSouscription;
-        this.utilisateur = utilisateur;
-    }
 
     public Long getIdContrat() {
         return idContrat;

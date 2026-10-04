@@ -1,29 +1,17 @@
 package mg.auxidrive.api.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "modesRenouvellement")
+@Table(name = "Modes_renouvellement")
 public class ModeRenouvellement {
 
     @Id
-    @Column(name = "modeDeRnvlt", length = 5)
+    @Column(name = "mode_de_rnvlt", length = 5)
     private String modeDeRnvlt;
 
-    @Column(name = "modeDeRnvltLib", length = 50)
+    @Column(name = "mode_de_rnvlt_lib", length = 50)
     private String modeDeRnvltLib;
-
-    public ModeRenouvellement(String modeDeRnvltLib) {
-        this.modeDeRnvltLib = modeDeRnvltLib;
-    }
-
-    public ModeRenouvellement(String modeDeRnvlt, String modeDeRnvltLib) {
-        this.modeDeRnvlt = modeDeRnvlt;
-        this.modeDeRnvltLib = modeDeRnvltLib;
-    }
 
     public String getModeDeRnvlt() {
         return modeDeRnvlt;

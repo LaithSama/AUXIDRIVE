@@ -1,15 +1,19 @@
 package mg.auxidrive.api.repository;
 
-import mg.auxidrive.api.model.Inscription;
-import mg.auxidrive.api.model.StatutInscription;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import mg.auxidrive.api.model.*;
 
 @Repository
 public interface InscriptionRepository extends JpaRepository<Inscription, Long> {
-    public List<Inscription> findByAllOrderByDateDemandeDesc();
-    public List<Inscription> findByStatutInscriptionOrderByDateDemandeDesc(StatutInscription statutInscription);
-    public boolean existsByAssureMailAndStatutInscription(String email, StatutInscription statutInscription);
+
+    List<Inscription> findAllByOrderByDateDemandeDesc();
+
+    List<Inscription> findByStatutInscriptionOrderByDateDemandeDesc(StatutInscription statutInscription);
+
+    boolean existsByAssure_MailAndStatutInscription(String mail, StatutInscription statutInscription);
 }

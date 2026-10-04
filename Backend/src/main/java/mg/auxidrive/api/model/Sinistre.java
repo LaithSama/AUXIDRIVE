@@ -1,106 +1,68 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "sinistres")
+@Table(name = "Sinistres")
 public class Sinistre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idSinistre")
+    @Column(name = "id_sinistre")
     private Long idSinistre;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idContrat")
+    @JoinColumn(name = "id_contrat")
     private Contrat contrat;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idVehicule")
+    @JoinColumn(name = "id_vehicule")
     private Vehicule vehicule;
 
-    @Column(name = "dateSinistre")
+    @Column(name = "date_sinistre")
     private LocalDate dateSinistre;
 
-    @Column(name = "dateDeclaration")
+    @Column(name = "date_declaration")
     private LocalDate dateDeclaration;
 
-    @Column(name = "lieuSinistre", length = 100)
+    @Column(name = "lieu_sinistre", length = 100)
     private String lieuSinistre;
 
     @Column(name = "circonstances", length = 255)
     private String circonstances;
 
-    @Column(name = "statutSinistre", length = 30)
+    @Column(name = "statut_sinistre", length = 30)
     private String statutSinistre;
 
-    @Column(name = "numRapportPolice", length = 30)
+    @Column(name = "num_rapport_police", length = 30)
     private String numRapportPolice;
 
-    @Column(name = "dateRapportPolice")
+    @Column(name = "date_rapport_police")
     private LocalDate dateRapportPolice;
 
-    @Column(name = "rapportPolicier", columnDefinition = "text")
+    @Column(name = "rapport_policier", columnDefinition = "text")
     private String rapportPolicier;
 
-    @Column(name = "responsabiliteAssure")
+    @Column(name = "responsabilite_assure")
     private Boolean responsabiliteAssure;
 
-    @Column(name = "montantDommagesEstime")
+    @Column(name = "montant_dommages_estime")
     private Double montantDommagesEstime;
 
-    @Column(name = "montantIndemnisation")
+    @Column(name = "montant_indemnisation")
     private Double montantIndemnisation;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idUtil")
+    @JoinColumn(name = "id_util")
     private Utilisateur utilisateur;
 
-    @Column(name = "dateCloture")
+    @Column(name = "date_cloture")
     private LocalDate dateCloture;
-
-    public Sinistre(Contrat contrat, Vehicule vehicule, LocalDate dateSinistre, LocalDate dateDeclaration, String lieuSinistre, String circonstances, String statutSinistre, String numRapportPolice, LocalDate dateRapportPolice, String rapportPolicier, Boolean responsabiliteAssure, Double montantDommagesEstime, Double montantIndemnisation, Utilisateur utilisateur, LocalDate dateCloture) {
-        this.contrat = contrat;
-        this.vehicule = vehicule;
-        this.dateSinistre = dateSinistre;
-        this.dateDeclaration = dateDeclaration;
-        this.lieuSinistre = lieuSinistre;
-        this.circonstances = circonstances;
-        this.statutSinistre = statutSinistre;
-        this.numRapportPolice = numRapportPolice;
-        this.dateRapportPolice = dateRapportPolice;
-        this.rapportPolicier = rapportPolicier;
-        this.responsabiliteAssure = responsabiliteAssure;
-        this.montantDommagesEstime = montantDommagesEstime;
-        this.montantIndemnisation = montantIndemnisation;
-        this.utilisateur = utilisateur;
-        this.dateCloture = dateCloture;
-    }
-
-    public Sinistre(Long idSinistre, Contrat contrat, Vehicule vehicule, LocalDate dateSinistre, LocalDate dateDeclaration, String lieuSinistre, String circonstances, String statutSinistre, String numRapportPolice, LocalDate dateRapportPolice, String rapportPolicier, Boolean responsabiliteAssure, Double montantDommagesEstime, Double montantIndemnisation, Utilisateur utilisateur, LocalDate dateCloture) {
-        this.idSinistre = idSinistre;
-        this.contrat = contrat;
-        this.vehicule = vehicule;
-        this.dateSinistre = dateSinistre;
-        this.dateDeclaration = dateDeclaration;
-        this.lieuSinistre = lieuSinistre;
-        this.circonstances = circonstances;
-        this.statutSinistre = statutSinistre;
-        this.numRapportPolice = numRapportPolice;
-        this.dateRapportPolice = dateRapportPolice;
-        this.rapportPolicier = rapportPolicier;
-        this.responsabiliteAssure = responsabiliteAssure;
-        this.montantDommagesEstime = montantDommagesEstime;
-        this.montantIndemnisation = montantIndemnisation;
-        this.utilisateur = utilisateur;
-        this.dateCloture = dateCloture;
-    }
 
     public Long getIdSinistre() {
         return idSinistre;

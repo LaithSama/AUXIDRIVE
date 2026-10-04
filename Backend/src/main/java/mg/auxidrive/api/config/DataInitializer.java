@@ -1,10 +1,8 @@
 package mg.auxidrive.api.config;
 
-import mg.auxidrive.api.model.Role;
-import mg.auxidrive.api.model.StatutUtilisateur;
-import mg.auxidrive.api.model.Utilisateur;
-import mg.auxidrive.api.repository.RoleRepository;
-import mg.auxidrive.api.repository.UtilisateurRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,8 +11,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import mg.auxidrive.api.model.Role;
+import mg.auxidrive.api.model.StatutUtilisateur;
+import mg.auxidrive.api.model.Utilisateur;
+import mg.auxidrive.api.repository.RoleRepository;
+import mg.auxidrive.api.repository.UtilisateurRepository;
 
+/** Au démarrage : crée les rôles CLIENT, AGENT, ADMIN et le premier administrateur s'ils n'existent pas. */
 @Component
 public class DataInitializer implements CommandLineRunner {
 

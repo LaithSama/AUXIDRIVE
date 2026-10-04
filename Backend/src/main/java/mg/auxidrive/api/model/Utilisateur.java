@@ -1,8 +1,7 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,7 +11,7 @@ public class Utilisateur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_util")
-    private Integer idUtil;
+    private Long idUtil;
 
     @Column(name = "email", length = 100, unique = true)
     private String email;
@@ -38,36 +37,11 @@ public class Utilisateur {
     @Column(name = "derniere_connexion")
     private LocalDateTime derniereConnexion;
 
-    public Utilisateur(String email, String nomUtil, String motDePasse, Role role, StatutUtilisateur statutUtilisateur, LocalDateTime dateCreation, LocalDateTime derniereConnexion) {
-        this.email = email;
-        this.nomUtil = nomUtil;
-        this.motDePasse = motDePasse;
-        this.role = role;
-        this.statutUtilisateur = statutUtilisateur;
-        this.dateCreation = dateCreation;
-        this.derniereConnexion = derniereConnexion;
-    }
-
-    public Utilisateur(Integer idUtil, String email, String nomUtil, String motDePasse, Role role, StatutUtilisateur statutUtilisateur, LocalDateTime dateCreation, LocalDateTime derniereConnexion) {
-        this.idUtil = idUtil;
-        this.email = email;
-        this.nomUtil = nomUtil;
-        this.motDePasse = motDePasse;
-        this.role = role;
-        this.statutUtilisateur = statutUtilisateur;
-        this.dateCreation = dateCreation;
-        this.derniereConnexion = derniereConnexion;
-    }
-
-    public Utilisateur() {
-
-    }
-
-    public Integer getIdUtil() {
+    public Long getIdUtil() {
         return idUtil;
     }
 
-    public void setIdUtil(Integer idUtil) {
+    public void setIdUtil(Long idUtil) {
         this.idUtil = idUtil;
     }
 

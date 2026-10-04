@@ -1,44 +1,30 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "contratsAuto")
+@Table(name = "Contrats_auto")
 public class ContratAuto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idContratAuto")
+    @Column(name = "id_contrat_auto")
     private Long idContratAuto;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idContrat")
+    @JoinColumn(name = "id_contrat")
     private Contrat contrat;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idVehicule")
+    @JoinColumn(name = "id_vehicule")
     private Vehicule vehicule;
 
-    @Column(name = "dateAjout")
+    @Column(name = "date_ajout")
     private LocalDate dateAjout;
-
-    public ContratAuto(Contrat contrat, Vehicule vehicule, LocalDate dateAjout) {
-        this.contrat = contrat;
-        this.vehicule = vehicule;
-        this.dateAjout = dateAjout;
-    }
-
-    public ContratAuto(Long idContratAuto, Contrat contrat, Vehicule vehicule, LocalDate dateAjout) {
-        this.idContratAuto = idContratAuto;
-        this.contrat = contrat;
-        this.vehicule = vehicule;
-        this.dateAjout = dateAjout;
-    }
 
     public Long getIdContratAuto() {
         return idContratAuto;

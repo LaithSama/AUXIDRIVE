@@ -1,12 +1,15 @@
 package mg.auxidrive.api.repository;
 
-import mg.auxidrive.api.model.AssureIdentifiantsLegaux;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import mg.auxidrive.api.model.*;
 
 @Repository
 public interface AssureIdentifiantsLegauxRepository extends JpaRepository<AssureIdentifiantsLegaux, Long> {
-    public Optional<AssureIdentifiantsLegaux> findByAssureId(Long idAssure);
+
+    Optional<AssureIdentifiantsLegaux> findByAssure_IdAssure(Long idAssure);
 }

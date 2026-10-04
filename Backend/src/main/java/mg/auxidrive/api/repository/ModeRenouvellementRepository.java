@@ -1,9 +1,13 @@
 package mg.auxidrive.api.repository;
 
-import mg.auxidrive.api.model.ModeRenouvellement;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import mg.auxidrive.api.model.*;
+
 @Repository
-public interface ModeRenouvellementRepository extends JpaRepository<ModeRenouvellement, Long> {
+public interface ModeRenouvellementRepository extends JpaRepository<ModeRenouvellement, String> {
 }

@@ -1,34 +1,23 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "garantiesType")
+@Table(name = "Garanties_type")
 public class GarantieType {
 
     @Id
-    @Column(name = "cdGarantie", length = 2)
+    @Column(name = "cd_garantie", length = 2)
     private String cdGarantie;
 
-    @Column(name = "libelleGarantie", length = 100)
+    @Column(name = "libelle_garantie", length = 100)
     private String libelleGarantie;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cdBranche")
+    @JoinColumn(name = "cd_branche")
     private Branche branche;
-
-    public GarantieType(String libelleGarantie, Branche branche) {
-        this.libelleGarantie = libelleGarantie;
-        this.branche = branche;
-    }
-
-    public GarantieType(String cdGarantie, String libelleGarantie, Branche branche) {
-        this.cdGarantie = cdGarantie;
-        this.libelleGarantie = libelleGarantie;
-        this.branche = branche;
-    }
 
     public String getCdGarantie() {
         return cdGarantie;

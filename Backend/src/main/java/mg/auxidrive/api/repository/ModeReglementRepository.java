@@ -1,9 +1,13 @@
 package mg.auxidrive.api.repository;
 
-import mg.auxidrive.api.model.ModeReglement;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import mg.auxidrive.api.model.*;
+
 @Repository
-public interface ModeReglementRepository extends JpaRepository<ModeReglement, Long> {
+public interface ModeReglementRepository extends JpaRepository<ModeReglement, String> {
 }

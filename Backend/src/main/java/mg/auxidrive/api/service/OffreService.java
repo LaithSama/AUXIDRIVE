@@ -1,15 +1,17 @@
 package mg.auxidrive.api.service;
 
-import mg.auxidrive.api.model.Offre;
-import mg.auxidrive.api.repository.OffreRepository;
+import java.util.List;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import mg.auxidrive.api.model.Offre;
+import mg.auxidrive.api.repository.OffreRepository;
 
+/** Catalogue d'offres (Monovéhicule, Flotte...) : CRUD complet. */
 @Service
 public class OffreService {
 
@@ -20,27 +22,27 @@ public class OffreService {
     }
 
     @Transactional(readOnly = true)
-    public List<Offre> listerOffre() {
+    public List<Offre> lister() {
         return offreRepository.findAll();
     }
 
     @Transactional(readOnly = true)
-    public Offre trouverOffre(Long idOffre) {
-        return offreRepository.findById(idOffre)
+    public Offre trouver(Long id) {
+        return offreRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Offre introuvable"));
     }
 
     @Transactional
-    public Offre creerOffre(Offre offre) {
-        verifierOffre(offre);
+    public Offre creer(Offre offre) {
+        verifier(offre);
         offre.setIdOffre(null); // l'identifiant est généré par la base
         return offreRepository.save(offre);
     }
 
     @Transactional
-    public Offre modifierOffre(Long idOffre, Offre donnees) {
-        verifierOffre(donnees);
-        Offre offre = trouverOffre(idOffre);
+    public Offre modifier(Long id, Offre donnees) {
+        verifier(donnees);
+        Offre offre = trouver(id);
         offre.setLibelleOffre(donnees.getLibelleOffre());
         offre.setTypeOffre(donnees.getTypeOffre());
         offre.setDureeMinMois(donnees.getDureeMinMois());
@@ -51,8 +53,8 @@ public class OffreService {
     }
 
     @Transactional
-    public void supprimerOffre(Long idOffre) {
-        Offre offre = trouverOffre(idOffre);
+    public void supprimer(Long id) {
+        Offre offre = trouver(id);
         try {
             offreRepository.delete(offre);
             offreRepository.flush();
@@ -61,7 +63,7 @@ public class OffreService {
         }
     }
 
-    private void verifierOffre(Offre offre) {
+    private void verifier(Offre offre) {
         if (offre.getLibelleOffre() == null || offre.getLibelleOffre().isBlank() || offre.getTypeOffre() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le libellé et le type d'offre sont obligatoires");
         }

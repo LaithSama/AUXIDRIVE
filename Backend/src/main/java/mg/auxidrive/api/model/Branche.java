@@ -1,54 +1,32 @@
 package mg.auxidrive.api.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "branches")
+@Table(name = "Branches")
 public class Branche {
 
     @Id
-    @Column(name = "cdBranche", length = 2)
+    @Column(name = "cd_branche", length = 2)
     private String cdBranche;
 
     @Column(name = "branches", length = 100)
     private String branches;
 
-    @Column(name = "cdAstype", length = 2)
+    @Column(name = "cd_astype", length = 2)
     private String cdAstype;
 
-    @Column(name = "cdGdbranche", length = 2)
+    @Column(name = "cd_gdbranche", length = 2)
     private String cdGdbranche;
 
-    @Column(name = "lblTacava", length = 5)
+    @Column(name = "lbl_tacava", length = 5)
     private String lblTacava;
 
-    @Column(name = "cdAsattest", length = 2)
+    @Column(name = "cd_asattest", length = 2)
     private String cdAsattest;
 
-    @Column(name = "libAs", length = 50)
+    @Column(name = "lib_as", length = 50)
     private String libAs;
-
-    public Branche(String branches, String cdAstype, String cdGdbranche, String lblTacava, String cdAsattest, String libAs) {
-        this.branches = branches;
-        this.cdAstype = cdAstype;
-        this.cdGdbranche = cdGdbranche;
-        this.lblTacava = lblTacava;
-        this.cdAsattest = cdAsattest;
-        this.libAs = libAs;
-    }
-
-    public Branche(String cdBranche, String branches, String cdAstype, String cdGdbranche, String lblTacava, String cdAsattest, String libAs) {
-        this.cdBranche = cdBranche;
-        this.branches = branches;
-        this.cdAstype = cdAstype;
-        this.cdGdbranche = cdGdbranche;
-        this.lblTacava = lblTacava;
-        this.cdAsattest = cdAsattest;
-        this.libAs = libAs;
-    }
 
     public String getCdBranche() {
         return cdBranche;

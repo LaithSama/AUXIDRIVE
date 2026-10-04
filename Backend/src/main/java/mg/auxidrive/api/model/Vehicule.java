@@ -1,27 +1,26 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "vehicules")
+@Table(name = "Vehicules")
 public class Vehicule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idVehicule")
+    @Column(name = "id_vehicule")
     private Long idVehicule;
 
-    @Column(name = "numImmatriculation", length = 15, nullable = false, unique = true)
+    @Column(name = "num_immatriculation", length = 15, nullable = false, unique = true)
     private String numImmatriculation;
 
-    @Column(name = "numChassis", length = 17, nullable = false, unique = true)
+    @Column(name = "num_chassis", length = 17, nullable = false, unique = true)
     private String numChassis;
 
-    @Column(name = "numMoteur", length = 30)
+    @Column(name = "num_moteur", length = 30)
     private String numMoteur;
 
     @Column(name = "marque", length = 50, nullable = false)
@@ -30,89 +29,46 @@ public class Vehicule {
     @Column(name = "modele", length = 50, nullable = false)
     private String modele;
 
-    @Column(name = "typeVehicule", length = 50)
+    @Column(name = "type_vehicule", length = 50)
     private String typeVehicule;
 
-    @Column(name = "usageVehicule", length = 50)
+    @Column(name = "usage_vehicule", length = 50)
     private String usageVehicule;
 
-    @Column(name = "puissanceFiscale", nullable = false)
+    @Column(name = "puissance_fiscale", nullable = false)
     private Integer puissanceFiscale;
 
     @Column(name = "energie", length = 20, nullable = false)
     private String energie;
 
-    @Column(name = "nombrePlaces", nullable = false)
+    @Column(name = "nombre_places", nullable = false)
     private Integer nombrePlaces;
 
-    @Column(name = "poidsAVide", precision = 8, scale = 2)
+    @Column(name = "poids_a_vide", precision = 8, scale = 2)
     private BigDecimal poidsAVide;
 
     @Column(name = "ptac", precision = 8, scale = 2)
     private BigDecimal ptac;
 
-    @Column(name = "chargeUtile", precision = 8, scale = 2)
+    @Column(name = "charge_utile", precision = 8, scale = 2)
     private BigDecimal chargeUtile;
 
-    @Column(name = "periodiciteVisiteMois")
+    @Column(name = "periodicite_visite_mois")
     private Integer periodiciteVisiteMois = 12;
 
-    @Column(name = "dateDerniereVisite")
+    @Column(name = "date_derniere_visite")
     private LocalDate dateDerniereVisite;
 
-    @Column(name = "datePremierMiseCirculation")
+    @Column(name = "date_premier_mise_circulation")
     private LocalDate datePremierMiseCirculation;
 
-    @Column(name = "dateAjout")
+    @Column(name = "date_ajout")
     private LocalDate dateAjout = LocalDate.now();
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idAssure", nullable = false)
+    @JoinColumn(name = "id_assure", nullable = false)
     private Assure assure;
-
-    public Vehicule(String numImmatriculation, String numChassis, String numMoteur, String marque, String modele, String typeVehicule, String usageVehicule, Integer puissanceFiscale, String energie, Integer nombrePlaces, BigDecimal poidsAVide, BigDecimal ptac, BigDecimal chargeUtile, Integer periodiciteVisiteMois, LocalDate dateDerniereVisite, LocalDate datePremierMiseCirculation, LocalDate dateAjout, Assure assure) {
-        this.numImmatriculation = numImmatriculation;
-        this.numChassis = numChassis;
-        this.numMoteur = numMoteur;
-        this.marque = marque;
-        this.modele = modele;
-        this.typeVehicule = typeVehicule;
-        this.usageVehicule = usageVehicule;
-        this.puissanceFiscale = puissanceFiscale;
-        this.energie = energie;
-        this.nombrePlaces = nombrePlaces;
-        this.poidsAVide = poidsAVide;
-        this.ptac = ptac;
-        this.chargeUtile = chargeUtile;
-        this.periodiciteVisiteMois = periodiciteVisiteMois;
-        this.dateDerniereVisite = dateDerniereVisite;
-        this.datePremierMiseCirculation = datePremierMiseCirculation;
-        this.dateAjout = dateAjout;
-        this.assure = assure;
-    }
-
-    public Vehicule(Long idVehicule, String numImmatriculation, String numChassis, String numMoteur, String marque, String modele, String typeVehicule, String usageVehicule, Integer puissanceFiscale, String energie, Integer nombrePlaces, BigDecimal poidsAVide, BigDecimal ptac, BigDecimal chargeUtile, Integer periodiciteVisiteMois, LocalDate dateDerniereVisite, LocalDate datePremierMiseCirculation, LocalDate dateAjout, Assure assure) {
-        this.idVehicule = idVehicule;
-        this.numImmatriculation = numImmatriculation;
-        this.numChassis = numChassis;
-        this.numMoteur = numMoteur;
-        this.marque = marque;
-        this.modele = modele;
-        this.typeVehicule = typeVehicule;
-        this.usageVehicule = usageVehicule;
-        this.puissanceFiscale = puissanceFiscale;
-        this.energie = energie;
-        this.nombrePlaces = nombrePlaces;
-        this.poidsAVide = poidsAVide;
-        this.ptac = ptac;
-        this.chargeUtile = chargeUtile;
-        this.periodiciteVisiteMois = periodiciteVisiteMois;
-        this.dateDerniereVisite = dateDerniereVisite;
-        this.datePremierMiseCirculation = datePremierMiseCirculation;
-        this.dateAjout = dateAjout;
-        this.assure = assure;
-    }
 
     public Long getIdVehicule() {
         return idVehicule;

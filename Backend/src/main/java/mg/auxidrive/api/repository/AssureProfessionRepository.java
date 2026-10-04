@@ -1,12 +1,15 @@
 package mg.auxidrive.api.repository;
 
-import mg.auxidrive.api.model.AssureProfession;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import mg.auxidrive.api.model.*;
 
 @Repository
 public interface AssureProfessionRepository extends JpaRepository<AssureProfession, Long> {
-    public List<AssureProfession> findByAssureId(Long idAssure);
+
+    List<AssureProfession> findByAssure_IdAssure(Long idAssure);
 }

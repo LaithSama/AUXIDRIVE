@@ -1,50 +1,33 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "autosCodeTarif")
+@Table(name = "Autos_code_tarif")
 public class AutoCodeTarif {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idCodeAuto")
+    @Column(name = "id_code_auto")
     private Long idCodeAuto;
 
-    @Column(name = "tarifCode", length = 15)
+    @Column(name = "tarif_code", length = 15)
     private String tarifCode;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idCodeTaxe")
+    @JoinColumn(name = "id_code_taxe")
     private CodeTaxePolice codeTaxePolice;
 
-    @Column(name = "tarifLibelle", length = 100)
+    @Column(name = "tarif_libelle", length = 100)
     private String tarifLibelle;
 
-    @Column(name = "avecTacava")
+    @Column(name = "avec_tacava")
     private Boolean avecTacava;
 
-    @Column(name = "tauxTe")
+    @Column(name = "taux_te")
     private Double tauxTe;
-
-    public AutoCodeTarif(String tarifCode, CodeTaxePolice codeTaxePolice, String tarifLibelle, Boolean avecTacava, Double tauxTe) {
-        this.tarifCode = tarifCode;
-        this.codeTaxePolice = codeTaxePolice;
-        this.tarifLibelle = tarifLibelle;
-        this.avecTacava = avecTacava;
-        this.tauxTe = tauxTe;
-    }
-
-    public AutoCodeTarif(Long idCodeAuto, String tarifCode, CodeTaxePolice codeTaxePolice, String tarifLibelle, Boolean avecTacava, Double tauxTe) {
-        this.idCodeAuto = idCodeAuto;
-        this.tarifCode = tarifCode;
-        this.codeTaxePolice = codeTaxePolice;
-        this.tarifLibelle = tarifLibelle;
-        this.avecTacava = avecTacava;
-        this.tauxTe = tauxTe;
-    }
 
     public Long getIdCodeAuto() {
         return idCodeAuto;

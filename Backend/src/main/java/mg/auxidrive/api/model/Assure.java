@@ -1,32 +1,31 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "assures")
+@Table(name = "Assures")
 public class Assure {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idAssure")
+    @Column(name = "id_assure")
     private Long idAssure;
 
-    @Column(name = "numerosAssure", length = 8, unique = true)
+    @Column(name = "numeros_assure", length = 8, unique = true)
     private String numerosAssure;
 
-    @Column(name = "nomAssure", length = 50)
+    @Column(name = "nom_assure", length = 50)
     private String nomAssure;
 
-    @Column(name = "prenomAssure", length = 50)
+    @Column(name = "prenom_assure", length = 50)
     private String prenomAssure;
 
-    @Column(name = "personneMorale")
+    @Column(name = "personne_morale")
     private Boolean personneMorale;
 
-    @Column(name = "dateNaissance")
+    @Column(name = "date_naissance")
     private LocalDate dateNaissance;
 
     @Column(name = "sexe", length = 1)
@@ -38,7 +37,7 @@ public class Assure {
     @Column(name = "nationalite", length = 50)
     private String nationalite;
 
-    @Column(name = "paysResidence", length = 50)
+    @Column(name = "pays_residence", length = 50)
     private String paysResidence;
 
     @Column(name = "adresse", length = 50)
@@ -51,47 +50,12 @@ public class Assure {
     private String mail;
 
     @JsonIgnore
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_util", unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_util")
     private Utilisateur utilisateur;
 
     @Column(name = "date_creation")
     private LocalDate dateCreation;
-
-    public Assure(LocalDate dateCreation, Utilisateur utilisateur, String mail, String contact, String adresse, String paysResidence, String nationalite, String civilite, String sexe, LocalDate dateNaissance, Boolean personneMorale, String prenomAssure, String nomAssure, String numerosAssure) {
-        this.dateCreation = dateCreation;
-        this.utilisateur = utilisateur;
-        this.mail = mail;
-        this.contact = contact;
-        this.adresse = adresse;
-        this.paysResidence = paysResidence;
-        this.nationalite = nationalite;
-        this.civilite = civilite;
-        this.sexe = sexe;
-        this.dateNaissance = dateNaissance;
-        this.personneMorale = personneMorale;
-        this.prenomAssure = prenomAssure;
-        this.nomAssure = nomAssure;
-        this.numerosAssure = numerosAssure;
-    }
-
-    public Assure(Long idAssure, String numerosAssure, String nomAssure, String prenomAssure, Boolean personneMorale, LocalDate dateNaissance, String sexe, String civilite, String nationalite, String paysResidence, String adresse, String contact, String mail, Utilisateur utilisateur, LocalDate dateCreation) {
-        this.idAssure = idAssure;
-        this.numerosAssure = numerosAssure;
-        this.nomAssure = nomAssure;
-        this.prenomAssure = prenomAssure;
-        this.personneMorale = personneMorale;
-        this.dateNaissance = dateNaissance;
-        this.sexe = sexe;
-        this.civilite = civilite;
-        this.nationalite = nationalite;
-        this.paysResidence = paysResidence;
-        this.adresse = adresse;
-        this.contact = contact;
-        this.mail = mail;
-        this.utilisateur = utilisateur;
-        this.dateCreation = dateCreation;
-    }
 
     public Long getIdAssure() {
         return idAssure;

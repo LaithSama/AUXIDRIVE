@@ -1,7 +1,8 @@
 package mg.auxidrive.api.service;
 
-import mg.auxidrive.api.repository.CompteClientRepository;
-import mg.auxidrive.api.repository.UtilisateurRepository;
+import java.time.LocalDateTime;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,11 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import mg.auxidrive.api.repository.CompteClientRepository;
+import mg.auxidrive.api.repository.UtilisateurRepository;
 
 @Service
 public class AuthService {
+
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UtilisateurRepository utilisateurRepository;
@@ -31,6 +33,10 @@ public class AuthService {
         this.compteClientRepository = compteClientRepository;
     }
 
+    /**
+     * Retourne le token et le rôle. Lève une AuthenticationException si les identifiants sont faux
+     * et une DisabledException si le compte n'est pas actif.
+     */
     @Transactional
     public Map<String, String> login(String email, String motDePasse) {
         if (email == null || email.isBlank() || motDePasse == null || motDePasse.isBlank()) {

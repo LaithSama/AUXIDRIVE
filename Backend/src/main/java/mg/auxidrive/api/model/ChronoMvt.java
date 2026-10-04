@@ -1,6 +1,6 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 @Entity
@@ -9,47 +9,28 @@ public class ChronoMvt {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idChrono")
+    @Column(name = "id_chrono")
     private Long idChrono;
 
-    @Column(name = "anneeMvt")
+    @Column(name = "annee_mvt")
     private Integer anneeMvt;
 
-    @Column(name = "moisMvt")
+    @Column(name = "mois_mvt")
     private Integer moisMvt;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idMvtType")
+    @JoinColumn(name = "id_mvt_type")
     private MvtType mvtType;
 
-    @Column(name = "dernierChrono")
+    @Column(name = "dernier_chrono")
     private Integer dernierChrono;
 
-    @Column(name = "estDernier")
+    @Column(name = "est_dernier")
     private Boolean estDernier;
 
-    @Column(name = "estClotureExercice")
+    @Column(name = "est_cloture_exercice")
     private Boolean estClotureExercice;
-
-    public ChronoMvt(Integer anneeMvt, Integer moisMvt, MvtType mvtType, Integer dernierChrono, Boolean estDernier, Boolean estClotureExercice) {
-        this.anneeMvt = anneeMvt;
-        this.moisMvt = moisMvt;
-        this.mvtType = mvtType;
-        this.dernierChrono = dernierChrono;
-        this.estDernier = estDernier;
-        this.estClotureExercice = estClotureExercice;
-    }
-
-    public ChronoMvt(Long idChrono, Integer anneeMvt, Integer moisMvt, MvtType mvtType, Integer dernierChrono, Boolean estDernier, Boolean estClotureExercice) {
-        this.idChrono = idChrono;
-        this.anneeMvt = anneeMvt;
-        this.moisMvt = moisMvt;
-        this.mvtType = mvtType;
-        this.dernierChrono = dernierChrono;
-        this.estDernier = estDernier;
-        this.estClotureExercice = estClotureExercice;
-    }
 
     public Long getIdChrono() {
         return idChrono;

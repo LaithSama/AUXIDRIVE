@@ -1,70 +1,45 @@
 package mg.auxidrive.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "branchesParametresCalcul")
+@Table(name = "Branches_parametres_calcul")
 public class BrancheParametresCalcul {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idParam")
+    @Column(name = "id_param")
     private Long idParam;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cdBranche")
+    @JoinColumn(name = "cd_branche")
     private Branche branche;
 
     @Column(name = "accessoires")
     private Double accessoires;
 
-    @Column(name = "tauxTe")
+    @Column(name = "taux_te")
     private Double tauxTe;
 
-    @Column(name = "tauxTva")
+    @Column(name = "taux_tva")
     private Double tauxTva;
 
-    @Column(name = "commissionTotale")
+    @Column(name = "commission_totale")
     private Double commissionTotale;
 
-    @Column(name = "commApp")
+    @Column(name = "comm_app")
     private Double commApp;
 
-    @Column(name = "commGes")
+    @Column(name = "comm_ges")
     private Double commGes;
 
-    @Column(name = "ventilationBe", length = 50)
+    @Column(name = "ventilation_be", length = 50)
     private String ventilationBe;
 
-    @Column(name = "ventilationCa", length = 50)
+    @Column(name = "ventilation_ca", length = 50)
     private String ventilationCa;
-
-    public BrancheParametresCalcul(Branche branche, Double accessoires, Double tauxTe, Double tauxTva, Double commissionTotale, Double commApp, Double commGes, String ventilationBe, String ventilationCa) {
-        this.branche = branche;
-        this.accessoires = accessoires;
-        this.tauxTe = tauxTe;
-        this.tauxTva = tauxTva;
-        this.commissionTotale = commissionTotale;
-        this.commApp = commApp;
-        this.commGes = commGes;
-        this.ventilationBe = ventilationBe;
-        this.ventilationCa = ventilationCa;
-    }
-
-    public BrancheParametresCalcul(Long idParam, Branche branche, Double accessoires, Double tauxTe, Double tauxTva, Double commissionTotale, Double commApp, Double commGes, String ventilationBe, String ventilationCa) {
-        this.idParam = idParam;
-        this.branche = branche;
-        this.accessoires = accessoires;
-        this.tauxTe = tauxTe;
-        this.tauxTva = tauxTva;
-        this.commissionTotale = commissionTotale;
-        this.commApp = commApp;
-        this.commGes = commGes;
-        this.ventilationBe = ventilationBe;
-        this.ventilationCa = ventilationCa;
-    }
 
     public Long getIdParam() {
         return idParam;
