@@ -48,8 +48,9 @@ public class Contrat {
     @Column(name = "date_expiration")
     private LocalDate dateExpiration;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "statut_contrat", length = 20)
-    private String statutContrat;
+    private StatutContrat statutContrat;
 
     @Column(name = "coefficient_bonus_malus")
     private Double coefficientBonusMalus;
@@ -59,6 +60,18 @@ public class Contrat {
 
     @Column(name = "prime_ttc_courante")
     private Double primeTtcCourante;
+
+    /**
+     * Taux de commission saisi lors de la souscription : il porte la rémunération de l'intermédiaire
+     * et n'entre pas dans le montant TTC payé par l'assuré. La valeur proposée par défaut vient de la
+     * branche (commission_totale) mais reste modifiable contrat par contrat.
+     */
+    @Column(name = "taux_commission")
+    private Double tauxCommission;
+
+    /** Commission calculée sur la base taxable du contrat : (prime nette + accessoires) x taux. */
+    @Column(name = "montant_commission")
+    private Double montantCommission;
 
     @Column(name = "canal_souscription", length = 15)
     private String canalSouscription;
@@ -148,12 +161,28 @@ public class Contrat {
         this.dateExpiration = dateExpiration;
     }
 
-    public String getStatutContrat() {
+    public StatutContrat getStatutContrat() {
         return statutContrat;
     }
 
-    public void setStatutContrat(String statutContrat) {
+    public void setStatutContrat(StatutContrat statutContrat) {
         this.statutContrat = statutContrat;
+    }
+
+    public Double getTauxCommission() {
+        return tauxCommission;
+    }
+
+    public void setTauxCommission(Double tauxCommission) {
+        this.tauxCommission = tauxCommission;
+    }
+
+    public Double getMontantCommission() {
+        return montantCommission;
+    }
+
+    public void setMontantCommission(Double montantCommission) {
+        this.montantCommission = montantCommission;
     }
 
     public Double getCoefficientBonusMalus() {

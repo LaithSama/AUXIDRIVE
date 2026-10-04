@@ -35,6 +35,12 @@ public class Vehicule {
     @Column(name = "usage_vehicule", length = 50)
     private String usageVehicule;
 
+    // Volontairement sérialisable : le formulaire transmet {"codeTarif":{"idCodeAuto":1}}
+    // et la réponse renvoie le libellé du tarif, indispensable pour afficher si le TACAVA s'applique.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tarif_code")
+    private AutoCodeTarif codeTarif;
+
     @Column(name = "puissance_fiscale", nullable = false)
     private Integer puissanceFiscale;
 
@@ -132,6 +138,14 @@ public class Vehicule {
 
     public void setUsageVehicule(String usageVehicule) {
         this.usageVehicule = usageVehicule;
+    }
+
+    public AutoCodeTarif getCodeTarif() {
+        return codeTarif;
+    }
+
+    public void setCodeTarif(AutoCodeTarif codeTarif) {
+        this.codeTarif = codeTarif;
     }
 
     public Integer getPuissanceFiscale() {

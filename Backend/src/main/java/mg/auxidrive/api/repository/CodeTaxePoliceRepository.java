@@ -10,4 +10,8 @@ import mg.auxidrive.api.model.*;
 
 @Repository
 public interface CodeTaxePoliceRepository extends JpaRepository<CodeTaxePolice, Long> {
+
+    Optional<CodeTaxePolice> findByCodeTaxeIgnoreCase(String codeTaxe);
+
+    boolean existsByCodeTaxeIgnoreCase(String codeTaxe);
 }

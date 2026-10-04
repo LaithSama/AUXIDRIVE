@@ -10,4 +10,8 @@ import mg.auxidrive.api.model.*;
 
 @Repository
 public interface AutoCodeTarifRepository extends JpaRepository<AutoCodeTarif, Long> {
+
+    Optional<AutoCodeTarif> findByTarifCodeIgnoreCase(String tarifCode);
+
+    boolean existsByTarifCodeIgnoreCase(String tarifCode);
 }

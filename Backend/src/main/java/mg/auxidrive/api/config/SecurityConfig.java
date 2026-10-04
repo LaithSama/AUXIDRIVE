@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -40,6 +42,27 @@ public class SecurityConfig {
                 .requestMatchers("/api/utilisateurs/**").hasRole("ADMIN")
                 .requestMatchers("/api/inscriptions/**", "/api/assures/**", "/api/documents/**", "/api/comptes-clients/**")
                     .hasAnyRole("AGENT", "ADMIN")
+                // véhicules : l'agent et l'administrateur ont tous les droits, le client seulement les siens.
+                // Les routes staff sont déclarées avant les routes client pour que le premier motif qui
+                // correspond gagne ; sans cela un client pourrait lister les véhicules d'un autre assuré.
+                .requestMatchers(HttpMethod.GET, "/api/vehicules").hasAnyRole("AGENT", "ADMIN")
+                .requestMatchers("/api/vehicules/assure/**").hasAnyRole("AGENT", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/vehicules/**").hasAnyRole("AGENT", "ADMIN")
+                .requestMatchers("/api/vehicules/**").hasAnyRole("CLIENT", "AGENT", "ADMIN")
+                // contrats : le client souscrit et suit les siens, l'agent valide ou refuse.
+                // La validation et le refus engagent la compagnie, ils sont donc réservés au staff.
+                // L'ordre compte : les routes staff sont déclarées avant les routes client.
+                .requestMatchers("/api/contrats/assure/**", "/api/contrats/*/valider", "/api/contrats/*/refuser")
+                    .hasAnyRole("AGENT", "ADMIN")
+                .requestMatchers("/api/contrats/**").hasAnyRole("CLIENT", "AGENT", "ADMIN")
+                // factures : mêmes règles que les contrats, l'agent y accède globalement
+                .requestMatchers("/api/factures/contrat/**").hasAnyRole("AGENT", "ADMIN")
+                .requestMatchers("/api/factures/**").hasAnyRole("CLIENT", "AGENT", "ADMIN")
+                // sinistres : l'assuré déclare et suit, l'agent instruit et clôt
+                .requestMatchers("/api/sinistres/contrat/**", "/api/sinistres/*/rapport",
+                                 "/api/sinistres/*/estimation", "/api/sinistres/*/indemniser",
+                                 "/api/sinistres/*/refuser").hasAnyRole("AGENT", "ADMIN")
+                .requestMatchers("/api/sinistres/**").hasAnyRole("CLIENT", "AGENT", "ADMIN")
                 .anyRequest().authenticated())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

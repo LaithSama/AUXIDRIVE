@@ -50,6 +50,13 @@ public class UtilisateurService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
     }
 
+    /** Retrouve l'agent ou l'administrateur connecté par son e-mail, pour tracer ses acts. */
+    @Transactional(readOnly = true)
+    public Utilisateur trouverParEmail(String email) {
+        return utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utilisateur introuvable"));
+    }
+
     @Transactional
     public Utilisateur creer(Utilisateur donnees) {
         String email = donnees.getEmail() == null ? "" : donnees.getEmail().trim().toLowerCase();

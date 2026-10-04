@@ -31,6 +31,23 @@ public class Facture {
     @Column(name = "montant_ttc")
     private Double montantTtc;
 
+    /**
+     * Détail du calcul, indispensable au PDF : sans ces quatre montants, la facture ne peut montrer
+     * ni la base taxable ni la part de chaque taxe. primeNette vaut la base taxable, c'est-à-dire
+     * la prime nette plus les accessoires, et montantTaxes la somme de TE, TACAVA et TVA.
+     */
+    @Column(name = "accessoires")
+    private Double accessoires;
+
+    @Column(name = "montant_te")
+    private Double montantTe;
+
+    @Column(name = "montant_tacava")
+    private Double montantTacava;
+
+    @Column(name = "montant_tva")
+    private Double montantTva;
+
     @Column(name = "date_emission")
     private LocalDate dateEmission;
 
@@ -92,6 +109,38 @@ public class Facture {
 
     public void setMontantTtc(Double montantTtc) {
         this.montantTtc = montantTtc;
+    }
+
+    public Double getAccessoires() {
+        return accessoires;
+    }
+
+    public void setAccessoires(Double accessoires) {
+        this.accessoires = accessoires;
+    }
+
+    public Double getMontantTe() {
+        return montantTe;
+    }
+
+    public void setMontantTe(Double montantTe) {
+        this.montantTe = montantTe;
+    }
+
+    public Double getMontantTacava() {
+        return montantTacava;
+    }
+
+    public void setMontantTacava(Double montantTacava) {
+        this.montantTacava = montantTacava;
+    }
+
+    public Double getMontantTva() {
+        return montantTva;
+    }
+
+    public void setMontantTva(Double montantTva) {
+        this.montantTva = montantTva;
     }
 
     public LocalDate getDateEmission() {

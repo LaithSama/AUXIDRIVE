@@ -35,8 +35,9 @@ public class Sinistre {
     @Column(name = "circonstances", length = 255)
     private String circonstances;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "statut_sinistre", length = 30)
-    private String statutSinistre;
+    private StatutSinistre statutSinistre;
 
     @Column(name = "num_rapport_police", length = 30)
     private String numRapportPolice;
@@ -120,11 +121,11 @@ public class Sinistre {
         this.circonstances = circonstances;
     }
 
-    public String getStatutSinistre() {
+    public StatutSinistre getStatutSinistre() {
         return statutSinistre;
     }
 
-    public void setStatutSinistre(String statutSinistre) {
+    public void setStatutSinistre(StatutSinistre statutSinistre) {
         this.statutSinistre = statutSinistre;
     }
 

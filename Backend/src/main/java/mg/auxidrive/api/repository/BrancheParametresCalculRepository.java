@@ -10,4 +10,6 @@ import mg.auxidrive.api.model.*;
 
 @Repository
 public interface BrancheParametresCalculRepository extends JpaRepository<BrancheParametresCalcul, Long> {
+
+    Optional<BrancheParametresCalcul> findByBranche_CdBranche(String cdBranche);
 }

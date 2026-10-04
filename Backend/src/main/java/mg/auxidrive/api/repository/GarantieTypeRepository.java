@@ -10,4 +10,6 @@ import mg.auxidrive.api.model.*;
 
 @Repository
 public interface GarantieTypeRepository extends JpaRepository<GarantieType, String> {
+
+    List<GarantieType> findByBranche_CdBrancheOrderByCdGarantie(String cdBranche);
 }

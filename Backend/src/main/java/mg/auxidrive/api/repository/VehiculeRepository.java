@@ -10,4 +10,14 @@ import mg.auxidrive.api.model.*;
 
 @Repository
 public interface VehiculeRepository extends JpaRepository<Vehicule, Long> {
+
+    List<Vehicule> findByAssure_IdAssureOrderByIdVehicule(Long idAssure);
+
+    Optional<Vehicule> findByNumImmatriculationIgnoreCase(String numImmatriculation);
+
+    Optional<Vehicule> findByNumChassisIgnoreCase(String numChassis);
+
+    boolean existsByNumImmatriculationIgnoreCase(String numImmatriculation);
+
+    boolean existsByNumChassisIgnoreCase(String numChassis);
 }

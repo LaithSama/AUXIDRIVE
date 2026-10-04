@@ -10,4 +10,12 @@ import mg.auxidrive.api.model.*;
 
 @Repository
 public interface ContratRepository extends JpaRepository<Contrat, Long> {
+
+    List<Contrat> findByAssure_IdAssureOrderByIdContrat(Long idAssure);
+
+    List<Contrat> findByStatutContratOrderByIdContrat(StatutContrat statutContrat);
+
+    Optional<Contrat> findByNumPolice(String numPolice);
+
+    boolean existsByNumPolice(String numPolice);
 }

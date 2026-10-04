@@ -1,0 +1,43 @@
+<section class="connexion motif-points">
+  <span class="oeil-vert connexion__oeil" aria-hidden="true"></span>
+
+  <div class="container position-relative">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="carte-connexion p-4 p-md-5 text-center my-5">
+
+          <img src="assets/img/auxiassur-logo.jpg" [alt]="marque.service + ' logo'" height="52" class="mb-3" />
+
+          <span class="surtitre mb-2 d-inline-block">Espace client</span>
+          <h1 class="section-titre h3 mb-3">Votre espace {{ marque.service }}</h1>
+
+          <p class="section-texte mx-auto mb-4">
+            Le service en ligne arrive bientôt. En attendant, notre équipe reste disponible
+            pour répondre à toutes vos demandes d'assurance.
+          </p>
+
+          <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+            <a class="btn btn-vert px-4" [href]="contact.bouton.lien">
+              <i class="bi bi-telephone-fill me-2" aria-hidden="true"></i>{{ contact.bouton.libelle }}
+            </a>
+            <a class="btn btn-outline-success px-4" routerLink="/">
+              <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Retour à l'accueil
+            </a>
+          </div>
+
+          <div class="connexion__contacts border-top pt-4">
+            @for (tel of contact.telephone; track tel.lien) {
+              <div class="mb-1">
+                <a [href]="tel.lien">{{ tel.numero }}</a>
+              </div>
+            }
+            <div class="small text-secondary mt-3">
+              {{ contact.horaires[0].jour }} : {{ contact.horaires[0].plage }} ·
+              {{ contact.horaires[1].jour }} : {{ contact.horaires[1].plage }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

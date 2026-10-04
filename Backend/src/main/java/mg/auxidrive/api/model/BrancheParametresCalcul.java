@@ -26,6 +26,9 @@ public class BrancheParametresCalcul {
     @Column(name = "taux_tva")
     private Double tauxTva;
 
+    @Column(name = "taux_tacava")
+    private Double tauxTacava;
+
     @Column(name = "commission_totale")
     private Double commissionTotale;
 
@@ -79,6 +82,14 @@ public class BrancheParametresCalcul {
 
     public void setTauxTva(Double tauxTva) {
         this.tauxTva = tauxTva;
+    }
+
+    public Double getTauxTacava() {
+        return tauxTacava;
+    }
+
+    public void setTauxTacava(Double tauxTacava) {
+        this.tauxTacava = tauxTacava;
     }
 
     public Double getCommissionTotale() {

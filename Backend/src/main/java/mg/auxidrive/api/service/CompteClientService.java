@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import mg.auxidrive.api.model.Assure;
 import mg.auxidrive.api.model.CompteClient;
 import mg.auxidrive.api.model.StatutCompte;
 import mg.auxidrive.api.repository.CompteClientRepository;
@@ -40,5 +41,20 @@ public class CompteClientService {
         CompteClient compte = trouver(id);
         compte.setStatutCompte(statut);
         return compte;
+    }
+
+    /**
+     * Assuré correspondant au compte connecté : c'est le point d'entrée du portail client.
+     * L'e-mail de connexion identifie le compte, et donc l'assuré dont les données sont accessibles.
+     */
+    @Transactional(readOnly = true)
+    public Assure assureCourant(String email) {
+        CompteClient compte = compteClientRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Compte client introuvable"));
+        Assure assure = compte.getAssure();
+        if (assure == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assuré introuvable");
+        }
+        return assure;
     }
 }

@@ -1,5 +1,6 @@
 package mg.auxidrive.api.model;
 
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,6 +18,15 @@ public class Offre {
     @Enumerated(EnumType.STRING)
     @Column(name = "type_offre")
     private TypeOffre typeOffre;
+
+    /**
+     * Branche de rattachement de l'offre. Elle détermine les garanties incluses et, par l'intermédiaire
+     * des paramètres de calcul de la branche, les taux de TE, de TVA et de TACAVA ainsi que le
+     * montant des accessoires appliqués au contrat.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cd_branche")
+    private Branche branche;
 
     @Column(name = "duree_min_mois")
     private Integer dureeMinMois;
@@ -52,6 +62,14 @@ public class Offre {
 
     public void setTypeOffre(TypeOffre typeOffre) {
         this.typeOffre = typeOffre;
+    }
+
+    public Branche getBranche() {
+        return branche;
+    }
+
+    public void setBranche(Branche branche) {
+        this.branche = branche;
     }
 
     public Integer getDureeMinMois() {
