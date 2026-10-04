@@ -50,7 +50,7 @@ public class AssureService {
     }
 
     @Transactional
-    public Assure modifier(Long idAssure, Assure donnees) {
+    public Assure modifierAssure(Long idAssure, Assure donnees) {
         Assure assure = trouverAssure(idAssure);
         if (donnees.getNomAssure() == null || donnees.getNomAssure().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le nom est obligatoire");
