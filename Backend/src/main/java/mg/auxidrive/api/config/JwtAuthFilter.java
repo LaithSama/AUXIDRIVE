@@ -1,4 +1,4 @@
-package mg.auxidrive.api.security;
+package mg.auxidrive.api.config;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
