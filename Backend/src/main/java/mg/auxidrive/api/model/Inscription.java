@@ -55,6 +55,10 @@ public class Inscription {
         this.agent = agent;
     }
 
+    public Inscription() {
+
+    }
+
     public Long getIdInscription() {
         return idInscription;
     }

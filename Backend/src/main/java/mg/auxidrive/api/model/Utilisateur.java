@@ -59,6 +59,10 @@ public class Utilisateur {
         this.derniereConnexion = derniereConnexion;
     }
 
+    public Utilisateur() {
+
+    }
+
     public Integer getIdUtil() {
         return idUtil;
     }

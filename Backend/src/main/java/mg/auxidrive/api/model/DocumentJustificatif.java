@@ -98,6 +98,10 @@ public class DocumentJustificatif {
         this.motifRejet = motifRejet;
     }
 
+    public DocumentJustificatif() {
+
+    }
+
     public Long getIdDocument() {
         return idDocument;
     }

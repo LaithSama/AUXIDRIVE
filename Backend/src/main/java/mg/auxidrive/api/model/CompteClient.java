@@ -62,6 +62,10 @@ public class CompteClient {
         this.role = role;
     }
 
+    public CompteClient() {
+
+    }
+
     public Long getIdCompteClient() {
         return idCompteClient;
     }
