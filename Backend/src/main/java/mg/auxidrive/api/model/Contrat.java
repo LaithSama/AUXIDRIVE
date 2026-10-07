@@ -224,4 +224,21 @@ public class Contrat {
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
     }
+
+    /* Vues enrichies pour l'agent : la FK assuré est ignorée, on expose l'identité. */
+
+    @JsonProperty("idAssure")
+    public Long getIdAssure() {
+        return assure == null ? null : assure.getIdAssure();
+    }
+
+    @JsonProperty("nomAssure")
+    public String getNomAssure() {
+        return assure == null ? null : assure.getNomAssure();
+    }
+
+    @JsonProperty("prenomAssure")
+    public String getPrenomAssure() {
+        return assure == null ? null : assure.getPrenomAssure();
+    }
 }

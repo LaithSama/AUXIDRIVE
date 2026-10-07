@@ -1,0 +1,65 @@
+.dashboard-entete {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.marque-suffixe {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--signal);
+  margin-left: 0.35rem;
+}
+
+.dashboard-profil {
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-radius: 6px;
+  color: #d3dde5;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.8rem;
+  margin-right: 0.75rem;
+}
+
+/* ---------- sidebar ---------- */
+.sidebar {
+  background: var(--nuit);
+  min-height: calc(100vh - 62px);
+}
+
+.sidebar-lien {
+  color: #c5d2dc;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--nuit-2);
+    color: #fff;
+  }
+}
+
+.sidebar-lien-actif {
+  background: var(--nuit-2);
+  color: #fff;
+  box-shadow: inset 4px 0 0 var(--signal);
+}
+
+/* ---------- contenu ---------- */
+.dashboard-contenu {
+  min-height: calc(100vh - 62px);
+}
+
+@media (max-width: 767.98px) {
+  .sidebar {
+    min-height: auto;
+  }
+}

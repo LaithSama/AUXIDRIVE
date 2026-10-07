@@ -1,43 +1,65 @@
-<section class="connexion motif-points">
-  <span class="oeil-vert connexion__oeil" aria-hidden="true"></span>
+<header class="entete">
+  <nav class="container d-flex align-items-center justify-content-between py-3">
+    <a routerLink="/" class="marque">Auxiassur</a>
+    <a routerLink="/inscription" class="btn-contour">Créer un compte</a>
+  </nav>
+</header>
 
-  <div class="container position-relative">
-    <div class="row justify-content-center">
-      <div class="col-lg-6">
-        <div class="carte-connexion p-4 p-md-5 text-center my-5">
+<main class="page-auth connexion-main">
+  <div class="carte connexion-carte">
+    <h1 class="connexion-titre">Espace Client</h1>
+    <p class="chapeau connexion-chapeau">Connectez-vous pour accéder à votre espace assurance.</p>
 
-          <img src="assets/img/auxiassur-logo.jpg" [alt]="marque.service + ' logo'" height="52" class="mb-3" />
-
-          <span class="surtitre mb-2 d-inline-block">Espace client</span>
-          <h1 class="section-titre h3 mb-3">Votre espace {{ marque.service }}</h1>
-
-          <p class="section-texte mx-auto mb-4">
-            Le service en ligne arrive bientôt. En attendant, notre équipe reste disponible
-            pour répondre à toutes vos demandes d'assurance.
-          </p>
-
-          <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
-            <a class="btn btn-vert px-4" [href]="contact.bouton.lien">
-              <i class="bi bi-telephone-fill me-2" aria-hidden="true"></i>{{ contact.bouton.libelle }}
-            </a>
-            <a class="btn btn-outline-success px-4" routerLink="/">
-              <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Retour à l'accueil
-            </a>
-          </div>
-
-          <div class="connexion__contacts border-top pt-4">
-            @for (tel of contact.telephone; track tel.lien) {
-              <div class="mb-1">
-                <a [href]="tel.lien">{{ tel.numero }}</a>
-              </div>
-            }
-            <div class="small text-secondary mt-3">
-              {{ contact.horaires[0].jour }} : {{ contact.horaires[0].plage }} ·
-              {{ contact.horaires[1].jour }} : {{ contact.horaires[1].plage }}
-            </div>
-          </div>
-        </div>
+    <form (ngSubmit)="onSubmit()">
+      <!-- Champ Email -->
+      <div class="champ">
+        <label for="email">Adresse e-mail</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="exemple@email.com"
+          [(ngModel)]="email"
+          required
+        />
       </div>
-    </div>
+
+      <!-- Champ Mot de passe -->
+      <div class="champ">
+        <label for="password">Mot de passe</label>
+        <input
+          type="password"
+          id="password"
+          name="motDePasse"
+          placeholder="••••••••"
+          [(ngModel)]="motDePasse"
+          required
+        />
+      </div>
+
+      <!-- Affichage dynamique du message d'erreur backend -->
+      @if (errorMessage) {
+        <div class="message-erreur text-center" role="alert">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <!-- Bouton de soumission -->
+      <button type="submit" class="btn-signal connexion-envoi">
+        Se connecter
+      </button>
+    </form>
+
+    <p class="connexion-pied-texte">
+      Pas encore inscrit ?
+      <a routerLink="/inscription" class="lien-discret">Faire une demande</a>
+    </p>
   </div>
-</section>
+</main>
+
+<footer class="pied">
+  <div class="container d-flex justify-content-between flex-wrap gap-2">
+    <span>Auxiassur — Assurance automobile</span>
+    <span>Tous droits réservés</span>
+  </div>
+</footer>

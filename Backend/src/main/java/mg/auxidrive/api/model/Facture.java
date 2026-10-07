@@ -13,6 +13,9 @@ public class Facture {
     @Column(name = "id_facture")
     private Long idFacture;
 
+    @Column(name = "num_police", length = 6)
+    private String numPolice;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_contrat")

@@ -1,0 +1,68 @@
+<header class="entete dashboard-entete">
+  <div class="container d-flex align-items-center justify-content-between py-3">
+    <a routerLink="/dashboard" class="marque">Auxiassur <span class="marque-suffixe">Espace</span></a>
+    <div class="d-flex align-items-center">
+      <span class="dashboard-profil">{{ userRole }}</span>
+      <button type="button" class="btn-contour" (click)="deconnexion()">Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- Barre latérale de navigation (Sidebar) -->
+    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar py-4">
+      <ul class="nav flex-column gap-1">
+        <li class="nav-item">
+          <a class="nav-link sidebar-lien" routerLink="/dashboard"
+             routerLinkActive="sidebar-lien-actif" [routerLinkActiveOptions]="{exact: true}">
+            📊 Tableau de bord
+          </a>
+        </li>
+
+        <!-- Liens visibles uniquement pour les clients -->
+        @if (userRole === 'ROLE_CLIENT' || userRole === 'CLIENT') {
+          <li class="nav-item">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/vehicules" routerLinkActive="sidebar-lien-actif">
+              🚙 Mes véhicules
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/contrats" routerLinkActive="sidebar-lien-actif">
+              🚗 Mes contrats
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/sinistres" routerLinkActive="sidebar-lien-actif">
+              ⚠️ Déclarer un sinistre
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/factures" routerLinkActive="sidebar-lien-actif">
+              📄 Mes factures
+            </a>
+          </li>
+        }
+
+        <!-- Liens visibles uniquement pour les agents ou administrateurs -->
+        @if (userRole === 'ROLE_AGENT' || userRole === 'ROLE_ADMIN') {
+          <li class="nav-item">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/demandes" routerLinkActive="sidebar-lien-actif">
+              📂 Demandes d'inscription
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/clients" routerLinkActive="sidebar-lien-actif">
+              👥 Gestion des clients
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <!-- Contenu principal (pages enfants) -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-5 dashboard-contenu">
+      <router-outlet />
+    </main>
+  </div>
+</div>

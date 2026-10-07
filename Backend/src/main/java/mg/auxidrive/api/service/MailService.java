@@ -4,8 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,6 +31,7 @@ public class MailService {
      * Envoie les identifiants au client. Tant que app.mail.enabled vaut false (développement),
      * le mot de passe temporaire est affiché dans la console au lieu d'être envoyé.
      */
+    @Async
     public void envoyerIdentifiants(String destinataire, String motDePasseTemporaire) {
         if (!actif) {
             log.warn("[DEV] Mail désactivé. Identifiants de {} : mot de passe temporaire = {}",
@@ -50,6 +53,11 @@ public class MailService {
                 + "Identifiant : " + destinataire + "\n"
                 + "Mot de passe temporaire : " + motDePasseTemporaire + "\n\n"
                 + "Cordialement,\nAUXIASSUR");
-        sender.send(message);
+        try {
+            sender.send(message);
+            log.info("Mail d'identifiants envoyé à {}", destinataire);
+        } catch (MailException e) {
+            log.error("Envoi du mail d'identifiants à {} impossible (validation maintenue)", destinataire, e);
+        }
     }
 }

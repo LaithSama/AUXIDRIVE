@@ -1,0 +1,168 @@
+<div class="entete-contenu">
+  <div>
+    <h1 class="titre-section">Mes véhicules</h1>
+    <p class="chapeau mb-0">
+      Ajoutez vos véhicules pour pouvoir ensuite souscrire une offre d'assurance.
+    </p>
+  </div>
+</div>
+
+@if (chargement) {
+  <p class="text-muted">Chargement…</p>
+}
+
+@if (!chargement) {
+  <div class="row g-4">
+    <!-- Formulaire d'ajout -->
+    <div class="col-lg-5">
+      <div class="carte carte-bande veh-formulaire">
+        <h2 class="veh-formulaire-titre">Ajouter un véhicule</h2>
+
+        @if (erreur) {
+          <div class="message-erreur">{{ erreur }}</div>
+        }
+        @if (messageSucces) {
+          <div class="message-ok">{{ messageSucces }}</div>
+        }
+
+        <form (ngSubmit)="ajouter()">
+          <div class="champ">
+            <label for="immatriculation">Numéro d'immatriculation *</label>
+            <input type="text" id="immatriculation" name="immatriculation"
+                   placeholder="1234 ABC" [(ngModel)]="formImmatriculation" required />
+          </div>
+
+          <div class="champ">
+            <label for="chassis">Numéro de châssis *</label>
+            <input type="text" id="chassis" name="chassis"
+                   placeholder="VF1..." [(ngModel)]="formChassis" required />
+          </div>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="marque">Marque *</label>
+                <input type="text" id="marque" name="marque"
+                       placeholder="Toyota" [(ngModel)]="formMarque" required />
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="modele">Modèle *</label>
+                <input type="text" id="modele" name="modele"
+                       placeholder="Corolla" [(ngModel)]="formModele" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="champ">
+            <label for="codeTarif">Code tarifaire *</label>
+            <select id="codeTarif" name="codeTarif" [(ngModel)]="formCodeTarif" required>
+              <option [ngValue]="null" disabled>—</option>
+              @for (c of codesTarifaires; track c.idCodeAuto) {
+                <option [ngValue]="c.idCodeAuto">{{ c.tarifCode }} — {{ c.tarifLibelle }}</option>
+              }
+            </select>
+            <small class="text-muted">Utilisé pour calculer la prime (TACAVA inclus selon le tarif).</small>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="energie">Énergie *</label>
+                <select id="energie" name="energie" [(ngModel)]="formEnergie" required>
+                  <option value="" disabled>—</option>
+                  @for (e of energies; track e) {
+                    <option [value]="e">{{ e }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="places">Nombre de places *</label>
+                <input type="number" id="places" name="places" min="1"
+                       [(ngModel)]="formPlaces" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="puissance">Puissance fiscale (CV) *</label>
+                <input type="number" id="puissance" name="puissance" min="1"
+                       [(ngModel)]="formPuissance" required />
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="moteur">Numéro de moteur</label>
+                <input type="text" id="moteur" name="moteur"
+                       [(ngModel)]="formMoteur" />
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="type">Type de véhicule</label>
+                <input type="text" id="type" name="type" placeholder="Berline…"
+                       [(ngModel)]="formType" />
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="usage">Usage</label>
+                <input type="text" id="usage" name="usage" placeholder="Personnel…"
+                       [(ngModel)]="formUsage" />
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-signal veh-ajouter" [disabled]="!formulairePret || enCours">
+            {{ enCours ? 'Ajout en cours…' : 'Ajouter le véhicule' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Liste des véhicules -->
+    <div class="col-lg-7">
+      <div class="carte p-0 overflow-hidden veh-liste">
+        <div class="table-responsive">
+          <table class="tableau">
+            <thead>
+              <tr>
+                <th>Immatriculation</th>
+                <th>Véhicule</th>
+                <th>Énergie</th>
+                <th class="text-end">Places</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of vehicules; track v.idVehicule) {
+                <tr>
+                  <td class="veh-plaque">{{ v.numImmatriculation }}</td>
+                  <td>
+                    <strong>{{ v.marque }} {{ v.modele }}</strong>
+                    <span class="veh-detail">{{ v.typeVehicule || 'Véhicule' }} · {{ v.puissanceFiscale }} CV@if (v.codeTarif?.tarifCode) { · {{ v.codeTarif!.tarifCode }}}</span>
+                  </td>
+                  <td>{{ v.energie }}</td>
+                  <td class="text-end">{{ v.nombrePlaces }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="veh-vide">
+                    Aucun véhicule enregistré. Ajoutez-en un à gauche pour pouvoir souscrire.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+}

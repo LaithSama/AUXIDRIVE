@@ -1,0 +1,127 @@
+<div class="entete-contenu">
+  <div>
+    <h1 class="titre-section">Mes sinistres</h1>
+    <p class="chapeau mb-0">Déclarez un sinistre et suivez l'avancement de vos dossiers.</p>
+  </div>
+</div>
+
+@if (chargement) {
+  <p class="text-muted">Chargement…</p>
+}
+
+@if (!chargement) {
+  <div class="row g-4">
+    <!-- Formulaire de déclaration -->
+    <div class="col-lg-5">
+      <div class="carte carte-bande sin-formulaire">
+        <h2 class="sin-formulaire-titre">Déclarer un sinistre</h2>
+
+        @if (erreur) {
+          <div class="message-erreur">{{ erreur }}</div>
+        }
+        @if (messageSucces) {
+          <div class="message-ok">{{ messageSucces }}</div>
+        }
+
+        @if (contratsValides.length === 0) {
+          <div class="message-info">
+            La déclaration sera possible dès qu'au moins un de vos contrats sera validé par un agent.
+            @if (contratsEnAttente > 0) {
+              <strong>{{ contratsEnAttente }} contrat(s)</strong> sont actuellement en attente de validation.
+            }
+          </div>
+        }
+        <form (ngSubmit)="declarer()">
+            <div class="champ">
+              <label for="contrat">Contrat concerné</label>
+              <select id="contrat" name="contrat" [(ngModel)]="formIdContrat" required>
+                <option [ngValue]="null" disabled>— Choisir un contrat —</option>
+                @for (c of contratsValides; track c.idContrat) {
+                  <option [ngValue]="c.idContrat">
+                    {{ c.numPolice || 'Contrat n°' + c.idContrat }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="champ">
+              <label for="vehicule">Véhicule (facultatif)</label>
+              <select id="vehicule" name="vehicule" [(ngModel)]="formIdVehicule">
+                <option [ngValue]="null">— Indifférent —</option>
+                @for (v of vehicules; track v.idVehicule) {
+                  <option [ngValue]="v.idVehicule">
+                    {{ v.marque }} {{ v.modele }} — {{ v.numImmatriculation }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="champ">
+              <label for="dateSinistre">Date du sinistre</label>
+              <input type="date" id="dateSinistre" name="dateSinistre" [(ngModel)]="formDate" required />
+            </div>
+
+            <div class="champ">
+              <label for="lieu">Lieu</label>
+              <input type="text" id="lieu" name="lieu" placeholder="Antananarivo..."
+                     [(ngModel)]="formLieu" />
+            </div>
+
+            <div class="champ">
+              <label for="circonstances">Circonstances</label>
+              <textarea id="circonstances" name="circonstances" rows="3"
+                        placeholder="Décrivez brièvement l'accident…"
+                        [(ngModel)]="formCirconstances"></textarea>
+            </div>
+
+            <button type="submit" class="btn-signal sin-envoi" [disabled]="!formulairePret || enCours">
+              Déclarer le sinistre
+            </button>
+          </form>
+      </div>
+    </div>
+
+    <!-- Liste des sinistres -->
+    <div class="col-lg-7">
+      <div class="carte p-0 overflow-hidden sin-liste">
+        <div class="table-responsive">
+          <table class="tableau">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Date</th>
+                <th>Lieu</th>
+                <th>Statut</th>
+                <th class="text-end">Indemnisation</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of sinistres; track s.idSinistre) {
+                <tr>
+                  <td class="sin-num">#{{ s.idSinistre }}</td>
+                  <td>{{ s.dateSinistre | dateFr }}</td>
+                  <td>{{ s.lieuSinistre || '—' }}</td>
+                  <td>
+                    @switch (s.statutSinistre) {
+                      @case ('DECLARE') { <span class="pastille">Déclaré</span> }
+                      @case ('RAPPORT_EN_COURS') { <span class="pastille">Rapport en cours</span> }
+                      @case ('INDEMNISE') { <span class="pastille pastille-lagon">Indemnisé</span> }
+                      @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+                    }
+                  </td>
+                  <td class="text-end fw-medium">{{ s.montantIndemnisation | montant }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="sin-vide">
+                    Aucun sinistre déclaré.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+}

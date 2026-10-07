@@ -1,0 +1,125 @@
+<header class="entete">
+  <nav class="container d-flex align-items-center justify-content-between py-3" aria-label="Navigation principale">
+    <a routerLink="/" class="marque">Auxiassur</a>
+    <div class="d-flex align-items-center gap-2 gap-md-4">
+      <a href="#formules" class="lien d-none d-md-inline">Nos formules</a>
+      <a href="#demarches" class="lien d-none d-md-inline">Comment ça marche</a>
+      <a routerLink="/connexion" class="btn btn-outline-light btn-sm px-3">Se connecter</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <!-- Accueil : la plaque d'immatriculation est le point d'entrée -->
+  <section class="accueil">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-9 col-xl-8">
+          <h1>Assurez votre voiture sans passer par l'agence.</h1>
+          <p class="chapeau">
+            Faites votre demande en ligne, un agent Auximad la valide, puis gérez vos contrats,
+            vos factures et vos sinistres depuis votre espace.
+          </p>
+
+          <form class="plaque-form" (ngSubmit)="commencer()" aria-labelledby="titre-plaque">
+            <label id="titre-plaque" for="immat" class="plaque-aide">Entrez l'immatriculation de votre véhicule</label>
+            <div class="d-flex flex-column flex-sm-row align-items-sm-stretch gap-3">
+              <div class="plaque">
+                <span class="plaque-bande" aria-hidden="true">MG</span>
+                <input
+                  id="immat"
+                  name="immatriculation"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  placeholder="1234 TAA"
+                  maxlength="10"
+                  [ngModel]="immatriculation"
+                  (ngModelChange)="normaliser($event)"
+                />
+              </div>
+              <button type="submit" class="btn-signal">Faire ma demande</button>
+            </div>
+            <p class="plaque-note">Vous pouvez aussi <a routerLink="/inscription">vous inscrire sans immatriculation</a>.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Formules : lues depuis le catalogue du backend -->
+  <section id="formules" class="bloc">
+    <div class="container">
+      <h2>Deux formules selon votre parc</h2>
+      <div class="row g-4 mt-1">
+        @for (o of offres(); track o.libelleOffre) {
+          <div class="col-md-6">
+            <article class="formule" [class.formule-flotte]="o.typeOffre === 'FLOTTE'">
+              <h3>{{ o.libelleOffre }}</h3>
+              <p class="formule-detail">{{ details(o) }}</p>
+              @if (remise(o); as r) {
+                <p class="formule-remise">{{ r }}</p>
+              }
+              <p class="formule-texte">
+                @if (o.typeOffre === 'MONOVEHICULE') {
+                  Pour un particulier ou un professionnel qui assure sa voiture, avec la durée qui lui convient.
+                } @else {
+                  Pour une entreprise ou une famille qui assure plusieurs véhicules sous un seul contrat.
+                }
+              </p>
+              <a routerLink="/inscription" class="formule-lien">Choisir cette formule</a>
+            </article>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Démarches : c'est une vraie séquence, d'où la numérotation -->
+  <section id="demarches" class="bloc bloc-sombre">
+    <div class="container">
+      <h2>De votre demande à votre police</h2>
+      <ol class="etapes">
+        @for (e of etapes; track e.titre; let i = $index) {
+          <li>
+            <span class="etape-num" aria-hidden="true">{{ i + 1 }}</span>
+            <div>
+              <h3>{{ e.titre }}</h3>
+              <p>{{ e.texte }}</p>
+            </div>
+          </li>
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="bloc">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <h2>Votre espace client</h2>
+          <p class="chapeau-clair">Une fois votre compte validé, tout se fait en ligne.</p>
+          <ul class="liste-espace">
+            @for (t of espaceClient; track t) {
+              <li>{{ t }}</li>
+            }
+          </ul>
+        </div>
+        <div class="col-lg-6">
+          <div class="appel">
+            <p class="appel-titre">Déjà inscrit ?</p>
+            <p>Connectez-vous avec l'adresse e-mail et le mot de passe reçus après la validation de votre dossier.</p>
+            <a routerLink="/connexion" class="btn-signal btn-signal-clair">Se connecter</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="pied">
+  <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
+    <span>Auxiassur, l'assurance automobile d'Auximad.</span>
+    <span>Antananarivo, Madagascar</span>
+  </div>
+</footer>

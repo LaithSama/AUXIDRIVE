@@ -1,0 +1,42 @@
+.entete-contenu {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(28, 34, 39, 0.12);
+
+  h1 { margin: 0 0 0.35rem; }
+}
+
+.fac-liste {
+  box-shadow: 6px 6px 0 rgba(16, 40, 60, 0.07);
+}
+
+.fac-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--nuit);
+}
+
+.fac-id {
+  display: block;
+  font-family: 'Public Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--gris);
+}
+
+.fac-pdf {
+  padding: 0.3rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.fac-vide {
+  text-align: center;
+  color: var(--gris);
+  padding: 2rem 1rem;
+}

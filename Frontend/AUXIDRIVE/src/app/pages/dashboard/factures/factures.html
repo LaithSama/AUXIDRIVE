@@ -1,0 +1,66 @@
+<div class="entete-contenu">
+  <div>
+    <h1 class="titre-section">Mes factures</h1>
+    <p class="chapeau mb-0">Consultez vos factures et téléchargez-les au format PDF.</p>
+  </div>
+</div>
+
+@if (chargement) {
+  <p class="text-muted">Chargement…</p>
+}
+
+@if (erreur) {
+  <div class="message-erreur">{{ erreur }}</div>
+}
+
+@if (!chargement) {
+  <div class="carte p-0 overflow-hidden fac-liste">
+    <div class="table-responsive">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>N° Facture</th>
+            <th>Type</th>
+            <th>Émission</th>
+            <th>Statut</th>
+            <th class="text-end">Montant TTC</th>
+            <th class="text-end">PDF</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of factures; track f.idFacture) {
+            <tr>
+              <td class="fac-num">
+                {{ f.numPolice || '—' }}
+                <span class="fac-id">n°{{ f.idFacture }}</span>
+              </td>
+              <td>{{ f.typeFacture }}</td>
+              <td>{{ f.dateEmission | dateFr }}</td>
+              <td>
+                @switch (f.statutFacture) {
+                  @case ('EMISE') { <span class="pastille">Émise</span> }
+                  @case ('PAYEE') { <span class="pastille pastille-lagon">Payée</span> }
+                  @case ('ANNULEE') { <span class="pastille pastille-rouge">Annulée</span> }
+                }
+              </td>
+              <td class="text-end fw-medium">{{ f.montantTtc | montant }}</td>
+              <td class="text-end">
+                <button type="button" class="btn-contour-sombre fac-pdf"
+                        [disabled]="telechargementId === f.idFacture"
+                        (click)="telechargerPdf(f)">
+                  {{ telechargementId === f.idFacture ? '…' : 'Télécharger' }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="fac-vide">
+                Aucune facture pour le moment.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

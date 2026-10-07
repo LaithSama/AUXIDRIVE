@@ -1,0 +1,44 @@
+.entete-contenu {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(28, 34, 39, 0.12);
+
+  h1 { margin: 0 0 0.35rem; }
+}
+
+.sin-formulaire {
+  box-shadow: 6px 6px 0 rgba(16, 40, 60, 0.07);
+}
+
+.sin-formulaire-titre {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 1.25rem;
+}
+
+.sin-envoi {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.sin-liste {
+  box-shadow: 6px 6px 0 rgba(16, 40, 60, 0.07);
+}
+
+.sin-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--nuit);
+}
+
+.sin-vide {
+  text-align: center;
+  color: var(--gris);
+  padding: 2rem 1rem;
+}

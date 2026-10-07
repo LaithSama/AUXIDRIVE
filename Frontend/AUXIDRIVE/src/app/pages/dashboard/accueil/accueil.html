@@ -1,0 +1,67 @@
+<div class="entete-contenu">
+  <div>
+    <h1 class="titre-section">Bienvenue sur votre espace</h1>
+    <p class="chapeau mb-0">Retrouvez vos contrats, sinistres et factures en un coup d'œil.</p>
+  </div>
+</div>
+
+@if (chargement) {
+  <p class="text-muted">Chargement…</p>
+}
+
+@if (erreur) {
+  <div class="message-erreur">{{ erreur }}</div>
+}
+
+@if (!chargement && !erreur) {
+  <div class="row g-4">
+    <div class="col-md-6 col-xl-4">
+      <div class="carte carte-bande accueil-carte">
+        <p class="accueil-carte-label">Contrats actifs</p>
+        <p class="accueil-carte-valeur">{{ contratsActifs }}</p>
+        <small class="accueil-carte-aide">
+          @if (contratsEnAttente > 0) {
+            {{ contratsEnAttente }} en attente de validation
+          } @else {
+            Aucun dossier en attente
+          }
+        </small>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+      <a routerLink="/dashboard/sinistres" class="carte carte-bande accueil-carte accueil-carte-lien">
+        <p class="accueil-carte-label">Sinistres en cours</p>
+        <p class="accueil-carte-valeur">{{ sinistresEnCours }}</p>
+        <small class="accueil-carte-aide">Déclarer ou suivre un sinistre →</small>
+      </a>
+    </div>
+
+    <div class="col-md-6 col-xl-4">
+      <a routerLink="/dashboard/factures" class="carte carte-bande-lagon accueil-carte accueil-carte-lien">
+        <p class="accueil-carte-label">Factures</p>
+        <p class="accueil-carte-valeur">{{ facturesEmises }}</p>
+        <small class="accueil-carte-aide">
+          {{ facturesEmises === 0 ? 'Aucune' : 'À régler' }} — {{ totalFactures }} au total
+        </small>
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-md-6">
+      <div class="carte carte-bande-lagon accueil-raccourci">
+        <h2 class="accueil-raccourci-titre">Mes contrats</h2>
+        <p class="chapeau">Consultez le statut de vos contrats et souscrivez une nouvelle offre.</p>
+        <a routerLink="/dashboard/contrats" class="btn-signal">Accéder à mes contrats</a>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="carte accueil-raccourci">
+        <h2 class="accueil-raccourci-titre">Déclarer un sinistre</h2>
+        <p class="chapeau">Un accident, un dommage ? Déclarez-le en quelques clics.</p>
+        <a routerLink="/dashboard/sinistres" class="btn-signal">Déclarer un sinistre</a>
+      </div>
+    </div>
+  </div>
+}

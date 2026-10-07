@@ -1,15 +1,36 @@
 import { Routes } from '@angular/router';
+import { AcceuilClient } from './pages/acceuil-client/acceuil-client';
+import { Connexion } from './pages/connexion/connexion';
+import { Inscription } from './pages/inscription/inscription';
+import { Dashboard } from './pages/dashboard/dashboard';
+import { DashboardAccueil } from './pages/dashboard/accueil/accueil';
+import { DashboardContrats } from './pages/dashboard/contrats/contrats';
+import { DashboardSinistres } from './pages/dashboard/sinistres/sinistres';
+import { DashboardFactures } from './pages/dashboard/factures/factures';
+import { DashboardVehicules } from './pages/dashboard/vehicules/vehicules';
+import { AgentDashboard } from './pages/agent-dashboard/agent-dashboard';
+import { roleGuard } from './core/guards/role-guard';
 
 export const routes: Routes = [
-  {
-    path: '',
-    loadComponent: () => import('./pages/home/home').then((m) => m.Home),
-    title: 'AUXIASSUR — Assurance automobile | AUXIMAD',
-  },
-  {
-    path: 'connexion',
-    loadComponent: () => import('./pages/connexion/connexion').then((m) => m.Connexion),
-    title: 'Espace client — AUXIASSUR',
-  },
-  { path: '**', redirectTo: '' },
+    {path: '', redirectTo: 'acceuil-client', pathMatch: 'full'},
+
+    {path: 'acceuil-client', component: AcceuilClient},
+
+    {path: 'connexion', component: Connexion},
+
+    {path: 'inscription', component: Inscription},
+
+    {
+        path: 'dashboard',
+        component: Dashboard,
+        children: [
+            {path: '', component: DashboardAccueil},
+            {path: 'contrats', component: DashboardContrats},
+            {path: 'sinistres', component: DashboardSinistres},
+            {path: 'factures', component: DashboardFactures},
+            {path: 'vehicules', component: DashboardVehicules},
+        ],
+    },
+
+    {path: 'agent-dashboard', component: AgentDashboard, canActivate: [roleGuard]},
 ];

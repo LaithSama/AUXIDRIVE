@@ -1,0 +1,664 @@
+<header class="entete">
+  <div class="container d-flex align-items-center justify-content-between py-3">
+    <span class="marque">Auxiassur <span class="marque-suffixe">Espace Gestion</span></span>
+    <button type="button" class="btn-contour" (click)="deconnexion()">Déconnexion</button>
+  </div>
+</header>
+
+<div class="container py-5">
+  <!-- En-tête du tableau de bord -->
+  <div class="agent-entete">
+    <div>
+      @if (vue() === 'inscriptions') {
+        <h1 class="titre-section agent-titre">Suivi des dossiers d'inscription</h1>
+        <p class="chapeau mb-0">Consultez, validez ou suivez l'historique des requêtes de souscription.</p>
+      } @else if (vue() === 'contrats') {
+        <h1 class="titre-section agent-titre">Validation des contrats</h1>
+        <p class="chapeau mb-0">Validez les demandes de souscription : la validation attribue le numéro de police et émet la facture.</p>
+      } @else {
+        <h1 class="titre-section agent-titre">Instruction des sinistres</h1>
+        <p class="chapeau mb-0">Rédigez le rapport policier, puis validez (indemnisation) ou refusez chaque dossier.</p>
+      }
+    </div>
+  </div>
+
+  <!-- Navigation entre les espaces -->
+  <nav class="agent-nav" aria-label="Espaces de gestion">
+    <button type="button" class="agent-nav-lien"
+            [class.agent-nav-actif]="vue() === 'inscriptions'"
+            (click)="changerVue('inscriptions')">
+      📋 Inscriptions
+      @if (demandesEnAttente().length > 0) {
+        <span class="agent-nav-badge">{{ demandesEnAttente().length }}</span>
+      }
+    </button>
+    <button type="button" class="agent-nav-lien"
+            [class.agent-nav-actif]="vue() === 'contrats'"
+            (click)="changerVue('contrats')">
+      📄 Contrats
+      @if (contratsAttente().length > 0) {
+        <span class="agent-nav-badge">{{ contratsAttente().length }}</span>
+      }
+    </button>
+    <button type="button" class="agent-nav-lien"
+            [class.agent-nav-actif]="vue() === 'sinistres'"
+            (click)="changerVue('sinistres')">
+      🚗 Sinistres
+      @if (sinistresDeclares().length > 0) {
+        <span class="agent-nav-badge">{{ sinistresDeclares().length }}</span>
+      }
+    </button>
+  </nav>
+
+  <!-- ==================== INSCRIPTIONS ==================== -->
+  @if (vue() === 'inscriptions') {
+    <ul class="onglets">
+      <li>
+        <button type="button" class="onglet onglet-attente"
+                [class.onglet-actif]="ongletActif() === 'EN_ATTENTE'"
+                (click)="changerOnglet('EN_ATTENTE')">
+          📥 À vérifier ({{ demandesEnAttente().length }})
+        </button>
+      </li>
+      <li>
+        <button type="button" class="onglet onglet-valide"
+                [class.onglet-actif]="ongletActif() === 'VALIDEE'"
+                (click)="changerOnglet('VALIDEE')">
+          ✓ Validés ({{ demandesValidees().length }})
+        </button>
+      </li>
+      <li>
+        <button type="button" class="onglet onglet-refuse"
+                [class.onglet-actif]="ongletActif() === 'REFUSEE'"
+                (click)="changerOnglet('REFUSEE')">
+          ✗ Refusés ({{ demandesRefusees().length }})
+        </button>
+      </li>
+    </ul>
+
+    <div class="carte agent-tableau-carte p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table agent-tableau align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4">N° Dossier</th>
+              <th>Nom & Prénom</th>
+              <th>Contact / E-mail</th>
+
+              @if (ongletActif() === 'EN_ATTENTE') { <th>Identifiant (CIN)</th> }
+              @if (ongletActif() === 'VALIDEE') { <th>N° Assuré Attribué</th> }
+              @if (ongletActif() === 'REFUSEE') { <th>Raison du Rejet</th> }
+
+              <th class="text-end pe-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- CAS 1 : EN ATTENTE -->
+            @if (ongletActif() === 'EN_ATTENTE') {
+              @for (d of demandesEnAttente(); track d.idInscription) {
+                <tr>
+                  <td class="ps-4 agent-num">#{{ d.idInscription }}</td>
+                  <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
+                  <td>
+                    <div class="fw-semibold small">{{ d.assure?.contact }}</div>
+                    <small class="text-muted font-monospace">{{ d.assure?.mail }}</small>
+                  </td>
+                  <td><span class="pastille pastille-sombre font-monospace">{{ d.identifiants?.cin || 'Absent' }}</span></td>
+                  <td class="text-end pe-4">
+                    <div class="d-inline-flex gap-2">
+                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')">✓ Valider</button>
+                      <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')">✗ Refuser</button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-center py-4 text-muted">🎉 Aucun dossier en attente d'approbation.</td></tr>
+              }
+            }
+
+            <!-- CAS 2 : VALIDÉS -->
+            @if (ongletActif() === 'VALIDEE') {
+              @for (d of demandesValidees(); track d.idInscription) {
+                <tr>
+                  <td class="ps-4 agent-num agent-num-ok">#{{ d.idInscription }}</td>
+                  <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
+                  <td>
+                    <div class="small">{{ d.assure?.contact }}</div>
+                    <small class="text-muted font-monospace">{{ d.assure?.mail }}</small>
+                  </td>
+                  <td>
+                    <span class="pastille pastille-lagon font-monospace">
+                      {{ d.assure?.numerosAssure || 'N/A' }}
+                    </span>
+                  </td>
+                  <td class="text-end pe-4 text-muted small fst-italic">Approuvé</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-center py-4 text-muted">Aucun dossier validé pour l'instant.</td></tr>
+              }
+            }
+
+            <!-- CAS 3 : REFUSÉS -->
+            @if (ongletActif() === 'REFUSEE') {
+              @for (d of demandesRefusees(); track d.idInscription) {
+                <tr>
+                  <td class="ps-4 agent-num agent-num-ko">#{{ d.idInscription }}</td>
+                  <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
+                  <td>
+                    <div class="small">{{ d.assure?.contact }}</div>
+                    <small class="text-muted font-monospace">{{ d.assure?.mail }}</small>
+                  </td>
+                  <td>
+                    <span class="agent-refus text-truncate d-inline-block" [title]="d.motifRefus || d.motif">
+                      ⚠️ {{ d.motifRefus || d.motif || 'Aucun motif renseigné' }}
+                    </span>
+                  </td>
+                  <td class="text-end pe-4 text-muted small fst-italic">Rejeté</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-center py-4 text-muted">Aucun historique de refus enregistré.</td></tr>
+              }
+            }
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== CONTRATS ==================== -->
+  @if (vue() === 'contrats') {
+    <ul class="onglets">
+      <li>
+        <button type="button" class="onglet onglet-attente"
+                [class.onglet-actif]="ongletContrat() === 'EN_ATTENTE'"
+                (click)="changerOngletContrat('EN_ATTENTE')">
+          📥 À valider ({{ contratsAttente().length }})
+        </button>
+      </li>
+      <li>
+        <button type="button" class="onglet onglet-valide"
+                [class.onglet-actif]="ongletContrat() === 'VALIDE'"
+                (click)="changerOngletContrat('VALIDE')">
+          ✓ Validés ({{ contratsValides().length }})
+        </button>
+      </li>
+      <li>
+        <button type="button" class="onglet onglet-refuse"
+                [class.onglet-actif]="ongletContrat() === 'REFUSE'"
+                (click)="changerOngletContrat('REFUSE')">
+          ✗ Refusés ({{ contratsRefuses().length }})
+        </button>
+      </li>
+    </ul>
+
+    <div class="carte agent-tableau-carte p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table agent-tableau align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4">N° Contrat</th>
+              <th>Client</th>
+              <th>Souscription</th>
+              <th class="text-end">Prime TTC</th>
+              <th>Statut / N° police</th>
+              @if (ongletContrat() === 'EN_ATTENTE') { <th class="text-end pe-4">Actions</th> }
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- EN ATTENTE -->
+            @if (ongletContrat() === 'EN_ATTENTE') {
+              @for (c of contratsAttente(); track c.idContrat) {
+                <tr>
+                  <td class="ps-4 agent-num">#{{ c.idContrat }}</td>
+                  <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
+                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
+                  <td><span class="pastille">En attente</span></td>
+                  <td class="text-end pe-4">
+                    <div class="d-inline-flex gap-2">
+                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModaleContrat(c, 'VALIDER')">✓ Valider</button>
+                      <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModaleContrat(c, 'REFUSER')">✗ Refuser</button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="text-center py-4 text-muted">🎉 Aucune demande de contrat en attente.</td></tr>
+              }
+            }
+
+            <!-- VALIDÉS -->
+            @if (ongletContrat() === 'VALIDE') {
+              @for (c of contratsValides(); track c.idContrat) {
+                <tr>
+                  <td class="ps-4 agent-num agent-num-ok">#{{ c.idContrat }}</td>
+                  <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
+                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
+                  <td><span class="pastille pastille-lagon font-monospace">{{ c.numPolice || '—' }}</span></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="text-center py-4 text-muted">Aucun contrat validé pour l'instant.</td></tr>
+              }
+            }
+
+            <!-- REFUSÉS -->
+            @if (ongletContrat() === 'REFUSE') {
+              @for (c of contratsRefuses(); track c.idContrat) {
+                <tr>
+                  <td class="ps-4 agent-num agent-num-ko">#{{ c.idContrat }}</td>
+                  <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
+                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
+                  <td><span class="pastille pastille-rouge">Refusé</span></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="text-center py-4 text-muted">Aucun contrat refusé.</td></tr>
+              }
+            }
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== SINISTRES ==================== -->
+  @if (vue() === 'sinistres') {
+    <ul class="onglets">
+      <li>
+        <button type="button" class="onglet onglet-attente"
+                [class.onglet-actif]="ongletSinistre() === 'DECLARE'"
+                (click)="changerOngletSinistre('DECLARE')">
+          📥 À instruire ({{ sinistresDeclares().length }})
+        </button>
+      </li>
+      <li>
+        <button type="button" class="onglet onglet-attente"
+                [class.onglet-actif]="ongletSinistre() === 'RAPPORT_EN_COURS'"
+                (click)="changerOngletSinistre('RAPPORT_EN_COURS')">
+          📝 Rapport en cours ({{ sinistresEnCours().length }})
+        </button>
+      </li>
+      <li>
+        <button type="button" class="onglet onglet-valide"
+                [class.onglet-actif]="ongletSinistre() === 'CLOTURES'"
+                (click)="changerOngletSinistre('CLOTURES')">
+          ✓ Clôturés ({{ sinistresClotures().length }})
+        </button>
+      </li>
+    </ul>
+
+    <div class="carte agent-tableau-carte p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table agent-tableau align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4">N°</th>
+              <th>Date</th>
+              <th>Contrat</th>
+              <th>Client</th>
+              <th>Statut</th>
+              <th class="text-end">Indemnisation</th>
+              <th class="text-end pe-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- À INSTRUIRE -->
+            @if (ongletSinistre() === 'DECLARE') {
+              @for (s of sinistresDeclares(); track s.idSinistre) {
+                <tr>
+                  <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
+                  <td>{{ s.dateSinistre | dateFr }}</td>
+                  <td class="font-monospace">{{ s.numPolice || '—' }}</td>
+                  <td class="fw-medium">{{ s.nomAssure }} {{ s.prenomAssure }}</td>
+                  <td><span class="pastille">Déclaré</span></td>
+                  <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
+                  <td class="text-end pe-4">
+                    <button type="button" class="agent-btn" (click)="ouvrirRapport(s)">📋 Rapport</button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="text-center py-4 text-muted">Aucun sinistre en attente d'instruction.</td></tr>
+              }
+            }
+
+            <!-- RAPPORT EN COURS -->
+            @if (ongletSinistre() === 'RAPPORT_EN_COURS') {
+              @for (s of sinistresEnCours(); track s.idSinistre) {
+                <tr>
+                  <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
+                  <td>{{ s.dateSinistre | dateFr }}</td>
+                  <td class="font-monospace">{{ s.numPolice || '—' }}</td>
+                  <td class="fw-medium">{{ s.nomAssure }} {{ s.prenomAssure }}</td>
+                  <td><span class="pastille pastille-sombre">Rapport reçu</span></td>
+                  <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
+                  <td class="text-end pe-4">
+                    <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirCloture(s)">⚖️ Clôturer</button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="text-center py-4 text-muted">Aucun dossier avec rapport en cours.</td></tr>
+              }
+            }
+
+            <!-- CLÔTURÉS -->
+            @if (ongletSinistre() === 'CLOTURES') {
+              @for (s of sinistresClotures(); track s.idSinistre) {
+                <tr>
+                  <td class="ps-4">
+                    <span class="agent-num"
+                          [class.agent-num-ok]="s.statutSinistre === 'INDEMNISE'"
+                          [class.agent-num-ko]="s.statutSinistre === 'REFUSE'">#{{ s.idSinistre }}</span>
+                  </td>
+                  <td>{{ s.dateSinistre | dateFr }}</td>
+                  <td class="font-monospace">{{ s.numPolice || '—' }}</td>
+                  <td class="fw-medium">{{ s.nomAssure }} {{ s.prenomAssure }}</td>
+                  <td>
+                    @if (s.statutSinistre === 'INDEMNISE') {
+                      <span class="pastille pastille-lagon">Indemnisé</span>
+                    } @else {
+                      <span class="pastille pastille-rouge">Refusé</span>
+                    }
+                  </td>
+                  <td class="text-end fw-medium">{{ s.montantIndemnisation | montant }}</td>
+                  <td class="text-end pe-4">
+                    <button type="button" class="agent-btn" (click)="ouvrirDetail(s)">👁 Détail</button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="text-center py-4 text-muted">Aucun dossier clôturé.</td></tr>
+              }
+            }
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== MODALE : INSCRIPTION ==================== -->
+  @if (demandeSelectionnee) {
+    <div class="modal d-block style-modal" tabIndex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content agent-modale">
+
+          <div class="agent-modale-entete" [class.agent-modale-entete-refus]="modeAction === 'REFUSER'">
+            <h5 class="agent-modale-titre">
+              {{ modeAction === 'VALIDER' ? '✓ Approuver la demande' : '✗ Rejeter le dossier' }}
+            </h5>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+          </div>
+
+          <div class="modal-body py-4">
+            <p class="mb-3">
+              Traitement du dossier lié à l'usager : <br>
+              <span class="fs-5 fw-bold">{{ demandeSelectionnee.assure?.nomAssure }} {{ demandeSelectionnee.assure?.prenomAssure }}</span>
+            </p>
+
+            @if (messageSucces) { <div class="message-ok text-center">{{ messageSucces }}</div> }
+            @if (messageErreur) { <div class="message-erreur text-center">{{ messageErreur }}</div> }
+
+            @if (modeAction === 'VALIDER' && !messageSucces) {
+              <div class="champ mb-2">
+                <label for="numAssure">Attribuer un numéro d'assuré obligatoire (8 car. max) :</label>
+                <input type="text" id="numAssure" name="numAssureSaisi" class="font-monospace" placeholder="Ex: ASS00001" [(ngModel)]="numAssureSaisi" maxlength="8" required autocomplete="off" />
+              </div>
+            }
+
+            @if (modeAction === 'REFUSER' && !messageSucces) {
+              <div class="champ mb-2">
+                <label for="motif">Motif du refus (Sera communiqué au client) :</label>
+                <textarea id="motif" name="motifRefusSaisi" rows="3" placeholder="La pièce jointe transmettant la Carte Grise est illisible..." [(ngModel)]="motifRefusSaisi" required></textarea>
+              </div>
+            }
+          </div>
+
+          <div class="agent-modale-piede">
+            <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
+            @if (modeAction === 'VALIDER' && !messageSucces) {
+              <button type="button" class="btn-signal" [disabled]="!numAssureSaisi.trim()" (click)="confirmerValidation()">Valider l'inscription</button>
+            }
+            @if (modeAction === 'REFUSER' && !messageSucces) {
+              <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" [disabled]="!motifRefusSaisi.trim()" (click)="confirmerRefus()">Refuser le dossier</button>
+            }
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== MODALE : CONTRAT ==================== -->
+  @if (contratSelectionne) {
+    <div class="modal d-block" tabIndex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content agent-modale">
+
+          <div class="agent-modale-entete" [class.agent-modale-entete-refus]="modeContrat === 'REFUSER'">
+            <h5 class="agent-modale-titre">
+              {{ modeContrat === 'VALIDER' ? '✓ Valider le contrat' : '✗ Refuser la demande' }}
+            </h5>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+          </div>
+
+          <div class="modal-body py-4">
+            <p class="mb-3">
+              Contrat n°<strong>#{{ contratSelectionne.idContrat }}</strong> —
+              <span class="fs-5 fw-bold">{{ contratSelectionne.nomAssure }} {{ contratSelectionne.prenomAssure }}</span><br>
+              Prime TTC : <strong>{{ contratSelectionne.primeTtcCourante | montant }}</strong>
+              — souscrit le {{ contratSelectionne.dateSouscription | dateFr }}.
+            </p>
+
+            @if (messageSucces) { <div class="message-ok text-center">{{ messageSucces }}</div> }
+            @if (messageErreur) { <div class="message-erreur text-center">{{ messageErreur }}</div> }
+
+            @if (!messageSucces) {
+              @if (modeContrat === 'VALIDER') {
+                <p class="message-info mb-0">
+                  La validation attribue un numéro de police et émet automatiquement la facture de souscription.
+                </p>
+              } @else {
+                <p class="message-info mb-0">
+                  La demande passera en statut refusé et le client la verra dans son espace « Mes contrats ».
+                </p>
+              }
+            }
+          </div>
+
+          <div class="agent-modale-piede">
+            <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
+            @if (!messageSucces) {
+              @if (modeContrat === 'VALIDER') {
+                <button type="button" class="btn-signal" (click)="confirmerContrat()">Valider le contrat</button>
+              } @else {
+                <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" (click)="confirmerContrat()">Refuser la demande</button>
+              }
+            }
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== MODALE : RAPPORT POLICIER ==================== -->
+  @if (sinistreSelectionne && modeSinistre === 'RAPPORT') {
+    <div class="modal d-block" tabIndex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content agent-modale">
+
+          <div class="agent-modale-entete">
+            <h5 class="agent-modale-titre">📋 Rapport policier — sinistre n°{{ sinistreSelectionne.idSinistre }}</h5>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+          </div>
+
+          <div class="modal-body py-4">
+            <p class="mb-2">
+              <span class="fw-bold">{{ sinistreSelectionne.nomAssure }} {{ sinistreSelectionne.prenomAssure }}</span>
+              — contrat <span class="font-monospace">{{ sinistreSelectionne.numPolice || '#' + sinistreSelectionne.idContrat }}</span><br>
+              Sinistre du {{ sinistreSelectionne.dateSinistre | dateFr }} — déclaré le {{ sinistreSelectionne.dateDeclaration | dateFr }}
+            </p>
+            <p class="text-muted small mb-3">
+              Lieu : {{ sinistreSelectionne.lieuSinistre || '—' }}<br>
+              Circonstances : {{ sinistreSelectionne.circonstances || 'Aucune circonstance renseignée.' }}
+            </p>
+
+            @if (messageSucces) { <div class="message-ok text-center">{{ messageSucces }}</div> }
+            @if (messageErreur) { <div class="message-erreur text-center">{{ messageErreur }}</div> }
+
+            @if (!messageSucces) {
+              <div class="champ mb-2">
+                <label for="numRapport">N° du rapport de police *</label>
+                <input type="text" id="numRapport" name="numRapportSaisi" class="font-monospace"
+                       placeholder="Ex : PV-2026-00451" maxlength="30"
+                       [(ngModel)]="numRapportSaisi" autocomplete="off" />
+              </div>
+
+              <div class="champ mb-2">
+                <label for="dateRapport">Date du rapport</label>
+                <input type="date" id="dateRapport" name="dateRapportSaisie"
+                       [(ngModel)]="dateRapportSaisie" />
+              </div>
+
+              <div class="champ mb-2">
+                <label for="responsabilite">Responsabilité de l'assuré</label>
+                <select id="responsabilite" name="responsabiliteSaisie" [(ngModel)]="responsabiliteSaisie">
+                  <option [ngValue]="null">Non déterminée</option>
+                  <option [ngValue]="true">Oui — à l'assuré</option>
+                  <option [ngValue]="false">Non — à un tiers</option>
+                </select>
+              </div>
+
+              <div class="champ mb-2">
+                <label for="rapportPolicier">Rapport policier *</label>
+                <textarea id="rapportPolicier" name="rapportSaisi" rows="4"
+                          placeholder="Constat des dégâts, témoins, circonstances établies…"
+                          [(ngModel)]="rapportSaisi"></textarea>
+              </div>
+            }
+          </div>
+
+          <div class="agent-modale-piede">
+            <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
+            @if (!messageSucces) {
+              <button type="button" class="btn-signal" [disabled]="!rapportPret" (click)="envoyerRapport()">
+                Enregistrer le rapport
+              </button>
+            }
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== MODALE : CLÔTURE ==================== -->
+  @if (sinistreSelectionne && modeSinistre === 'CLOTURE') {
+    <div class="modal d-block" tabIndex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content agent-modale">
+
+          <div class="agent-modale-entete">
+            <h5 class="agent-modale-titre">⚖️ Clôturer le dossier — sinistre n°{{ sinistreSelectionne.idSinistre }}</h5>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+          </div>
+
+          <div class="modal-body py-4">
+            <p class="mb-3">
+              <span class="fw-bold">{{ sinistreSelectionne.nomAssure }} {{ sinistreSelectionne.prenomAssure }}</span>
+              — contrat <span class="font-monospace">{{ sinistreSelectionne.numPolice || '#' + sinistreSelectionne.idContrat }}</span><br>
+              Rapport <span class="font-monospace">{{ sinistreSelectionne.numRapportPolice || '—' }}</span>
+              du {{ sinistreSelectionne.dateRapportPolice | dateFr }}
+              — responsabilité : {{ responsabiliteLibelle(sinistreSelectionne.responsabiliteAssure) }}
+            </p>
+
+            @if (sinistreSelectionne.rapportPolicier) {
+              <div class="agent-recap agent-recap-rapport mb-3">{{ sinistreSelectionne.rapportPolicier }}</div>
+            }
+
+            @if (messageSucces) { <div class="message-ok text-center">{{ messageSucces }}</div> }
+            @if (messageErreur) { <div class="message-erreur text-center">{{ messageErreur }}</div> }
+
+            @if (!messageSucces) {
+              <div class="champ mb-2">
+                <label for="montantIndemnisation">Montant d'indemnisation (Ar) *</label>
+                <input type="number" id="montantIndemnisation" name="montantSaisi" min="0" step="1"
+                       placeholder="Ex : 1500000"
+                       [(ngModel)]="montantSaisi" />
+              </div>
+              <p class="message-info mb-0">
+                <strong>✓ Indemniser</strong> valide le dossier (statut « Indemnisé » côté client) ;
+                <strong>✗ Refuser</strong> le clôture sans versement.
+              </p>
+            }
+          </div>
+
+          <div class="agent-modale-piede">
+            <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
+            @if (!messageSucces) {
+              <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" (click)="cloturer(false)">
+                ✗ Refuser
+              </button>
+              <button type="button" class="btn-signal" [disabled]="!indemnisationPrete" (click)="cloturer(true)">
+                ✓ Indemniser
+              </button>
+            }
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== MODALE : DÉTAIL SINISTRE ==================== -->
+  @if (sinistreSelectionne && modeSinistre === 'DETAIL') {
+    <div class="modal d-block" tabIndex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content agent-modale">
+
+          <div class="agent-modale-entete" [class.agent-modale-entete-refus]="sinistreSelectionne.statutSinistre === 'REFUSE'">
+            <h5 class="agent-modale-titre">📄 Sinistre n°{{ sinistreSelectionne.idSinistre }} — dossier clôturé</h5>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+          </div>
+
+          <div class="modal-body py-4">
+            <div class="agent-recap mb-3">
+              <strong>{{ sinistreSelectionne.nomAssure }} {{ sinistreSelectionne.prenomAssure }}</strong>
+              — contrat <span class="font-monospace">{{ sinistreSelectionne.numPolice || '#' + sinistreSelectionne.idContrat }}</span><br>
+              Sinistre du {{ sinistreSelectionne.dateSinistre | dateFr }}
+              à {{ sinistreSelectionne.lieuSinistre || '—' }}<br>
+              Circonstances : {{ sinistreSelectionne.circonstances || '—' }}<br>
+              Rapport <span class="font-monospace">{{ sinistreSelectionne.numRapportPolice || '—' }}</span>
+              du {{ sinistreSelectionne.dateRapportPolice | dateFr }}
+              — responsabilité : {{ responsabiliteLibelle(sinistreSelectionne.responsabiliteAssure) }}
+            </div>
+
+            @if (sinistreSelectionne.rapportPolicier) {
+              <div class="agent-recap agent-recap-rapport">{{ sinistreSelectionne.rapportPolicier }}</div>
+            }
+
+            <p class="mb-1">
+              Dommages estimés : <strong>{{ sinistreSelectionne.montantDommagesEstime | montant }}</strong>
+            </p>
+            <p class="mb-1">
+              Indemnisation : <strong>{{ sinistreSelectionne.montantIndemnisation | montant }}</strong>
+            </p>
+            <p class="mb-0 text-muted small">
+              Clôturé le {{ sinistreSelectionne.dateCloture | dateFr }}
+              — {{ sinistreSelectionne.statutSinistre === 'INDEMNISE' ? 'Indemnisé' : 'Refusé' }}
+            </p>
+          </div>
+
+          <div class="agent-modale-piede">
+            <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Fermer</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+</div>

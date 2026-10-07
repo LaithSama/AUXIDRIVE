@@ -9,10 +9,13 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.MailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -46,6 +49,8 @@ import mg.auxidrive.api.repository.UtilisateurRepository;
  */
 @Service
 public class InscriptionService {
+
+    private static final Logger log = LoggerFactory.getLogger(InscriptionService.class);
 
     /** Types de documents que le client peut importer (tous facultatifs). */
     public static final List<String> TYPES_DOCUMENTS = List.of("CIN", "CARTE_GRISE", "CARTE_ROSE", "MODELE_N1");
@@ -199,8 +204,9 @@ public class InscriptionService {
 
     /**
      * Valide la demande : attribue le numéro d'assuré, crée le compte client (rôle CLIENT), le lie à l'assuré,
-     * génère un mot de passe temporaire (stocké haché) et l'envoie par e-mail.
-     * Si l'envoi échoue, toute la validation est annulée et l'agent peut réessayer.
+     * génère un mot de passe temporaire (stocké haché) et l'envoie par e-mail après le commit de la transaction,
+     * afin que le thread @Async de MailService ne s'exécute qu'une fois les données réellement écrites.
+     * Si l'envoi échoue, l'échec est uniquement journalisé et la validation reste effective.
      */
     @Transactional
     public Inscription valider(Long id, String numerosAssure, String emailAgent) {
@@ -250,11 +256,28 @@ public class InscriptionService {
             }
         }
 
-        try {
-            mailService.envoyerIdentifiants(compte.getEmail(), motDePasse);
-        } catch (MailException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Envoi du mail impossible, validation annulée");
+        final String emailDestinataire = compte.getEmail();
+        final String motDePasseTemporaire = motDePasse;
+
+        Runnable envoiIdentifiants = () -> {
+            try {
+                mailService.envoyerIdentifiants(emailDestinataire, motDePasseTemporaire);
+            } catch (RuntimeException e) {
+                log.error("Envoi des identifiants impossible à {} (compte néanmoins créé)", emailDestinataire, e);
+            }
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    envoiIdentifiants.run();
+                }
+            });
+        } else {
+            envoiIdentifiants.run();
         }
+
         return inscription;
     }
 

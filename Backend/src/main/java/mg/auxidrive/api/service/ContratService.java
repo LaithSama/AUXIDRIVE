@@ -367,16 +367,23 @@ public class ContratService {
     /**
      * Numéro de police sur 10 caractères : deux chiffres d'année puis huit chiffres de séquence.
      * La séquence repart du plus grand numéro existant, donc un numéro n'est pas réutilisé.
+     * On ne lit que les huit chiffres de fin : les deux premiers sont l'année, les re-préfixer
+     * produirait un numéro de 12 caractères, trop long pour la colonne.
      */
     private String nextNumPolice() {
-        long max = contratRepository.findAll().stream()
+        long maxSequence = contratRepository.findAll().stream()
                 .map(Contrat::getNumPolice)
                 .filter(n -> n != null && n.matches("\\d+"))
-                .mapToLong(Long::parseLong)
+                .mapToLong(ContratService::sequence)
                 .max()
                 .orElse(0L);
         String annee = String.valueOf(LocalDate.now().getYear() % 100);
-        return annee + String.format("%08d", max + 1);
+        return annee + String.format("%08d", maxSequence + 1);
+    }
+
+    /** Les huit derniers chiffres d'un numéro de police, c'est-à-dire sa séquence. */
+    private static long sequence(String numPolice) {
+        return Long.parseLong(numPolice.length() > 8 ? numPolice.substring(numPolice.length() - 8) : numPolice);
     }
 
     private double arrondir(double valeur) {

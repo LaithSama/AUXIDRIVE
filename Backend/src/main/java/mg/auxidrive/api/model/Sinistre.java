@@ -192,4 +192,31 @@ public class Sinistre {
     public void setDateCloture(LocalDate dateCloture) {
         this.dateCloture = dateCloture;
     }
+
+    /* Vues enrichies pour l'agent : les FK sont ignorées, on expose l'essentiel. */
+
+    @JsonProperty("idContrat")
+    public Long getIdContrat() {
+        return contrat == null ? null : contrat.getIdContrat();
+    }
+
+    @JsonProperty("idVehicule")
+    public Long getIdVehicule() {
+        return vehicule == null ? null : vehicule.getIdVehicule();
+    }
+
+    @JsonProperty("numPolice")
+    public String getNumPolice() {
+        return contrat == null ? null : contrat.getNumPolice();
+    }
+
+    @JsonProperty("nomAssure")
+    public String getNomAssure() {
+        return contrat == null || contrat.getAssure() == null ? null : contrat.getAssure().getNomAssure();
+    }
+
+    @JsonProperty("prenomAssure")
+    public String getPrenomAssure() {
+        return contrat == null || contrat.getAssure() == null ? null : contrat.getAssure().getPrenomAssure();
+    }
 }

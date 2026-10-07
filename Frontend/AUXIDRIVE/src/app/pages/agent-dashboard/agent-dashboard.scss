@@ -1,0 +1,263 @@
+/* ---------- en-tête de page ---------- */
+.marque-suffixe {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--signal);
+  margin-left: 0.35rem;
+}
+
+.agent-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(28, 34, 39, 0.12);
+}
+
+.agent-titre {
+  margin: 0 0 0.35rem;
+}
+
+/* ---------- onglets ---------- */
+.onglets {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0 0 1.75rem;
+}
+
+.onglet {
+  font: inherit;
+  font-weight: 500;
+  background: #fff;
+  color: var(--encre);
+  border: 2px solid var(--encre);
+  border-radius: 10px 10px 10px 4px;
+  padding: 0.6rem 1.4rem;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+
+  &:hover { background: #f0f2f4; }
+}
+
+.onglet-actif {
+  background: var(--nuit);
+  color: #fff;
+
+  &.onglet-valide { background: var(--lagon); border-color: var(--lagon); }
+  &.onglet-refuse { background: var(--erreur); border-color: var(--erreur); }
+  &.onglet-attente { background: var(--nuit); border-color: var(--nuit); }
+}
+
+/* ---------- tableau ---------- */
+.agent-tableau-carte {
+  box-shadow: 6px 6px 0 rgba(16, 40, 60, 0.07);
+}
+
+.agent-tableau {
+  margin-bottom: 0;
+
+  th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gris);
+    background: #eef1f3;
+    border-bottom: 2px solid var(--encre);
+    white-space: nowrap;
+  }
+
+  td {
+    border-color: #e3e7ea;
+    vertical-align: middle;
+  }
+
+  tbody tr:hover { background: #f6f7f5; }
+}
+
+.agent-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--nuit);
+}
+.agent-num-ok { color: var(--lagon); }
+.agent-num-ko { color: var(--erreur); }
+
+.agent-refus {
+  max-width: 250px;
+  color: var(--erreur);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+/* ---------- boutons d'action ---------- */
+.agent-btn {
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  background: #fff;
+  border: 1.5px solid var(--encre);
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) { background: var(--encre); color: #fff; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.agent-btn-valider {
+  border-color: var(--lagon);
+  color: var(--lagon);
+  &:hover:not(:disabled) { background: var(--lagon); color: #fff; }
+}
+
+.agent-btn-refuser {
+  border-color: var(--erreur);
+  color: var(--erreur);
+  &:hover:not(:disabled) { background: var(--erreur); color: #fff; }
+}
+
+.agent-btn-annuler {
+  border-color: #b8c2c9;
+  color: var(--gris);
+  &:hover:not(:disabled) { background: #f0f2f4; color: var(--encre); }
+}
+
+.agent-btn-plein {
+  color: #fff;
+  background: var(--erreur);
+  &:hover:not(:disabled) { background: #8f1e17; border-color: #8f1e17; }
+}
+
+/* ---------- navigation entre espaces ---------- */
+.agent-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.agent-nav-lien {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  color: var(--encre);
+  border: 2px solid rgba(28, 34, 39, 0.18);
+  border-radius: 10px 10px 10px 4px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+
+  &:hover { background: #f0f2f4; }
+}
+
+.agent-nav-actif {
+  background: var(--nuit);
+  border-color: var(--nuit);
+  color: #fff;
+}
+
+.agent-nav-badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-width: 1.5rem;
+  text-align: center;
+  background: var(--signal);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0 0.45rem;
+}
+
+.agent-nav-actif .agent-nav-badge {
+  background: #fff;
+  color: var(--nuit);
+}
+
+/* ---------- récapitulatifs des modales sinistre ---------- */
+.agent-recap {
+  background: #f6f7f5;
+  border: 1px solid rgba(28, 34, 39, 0.12);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.agent-recap-rapport {
+  white-space: pre-wrap;
+  max-height: 9rem;
+  overflow-y: auto;
+}
+
+/* ---------- modale ---------- */
+.modal.d-block {
+  display: block;
+  background-color: rgba(16, 40, 60, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.agent-modale {
+  background: #fff;
+  border: 2px solid var(--encre);
+  border-radius: 18px 18px 18px 4px;
+  overflow: hidden;
+  box-shadow: 10px 10px 0 rgba(16, 40, 60, 0.25);
+}
+
+.agent-modale-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--lagon);
+  color: #fff;
+  padding: 1.1rem 1.5rem;
+}
+
+.agent-modale-entete-refus {
+  background: var(--erreur);
+}
+
+.agent-modale-titre {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin: 0;
+  color: #fff;
+}
+
+.agent-modale-fermer {
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  &:hover { opacity: 0.75; }
+}
+
+.agent-modale-piede {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #f6f7f5;
+  border-top: 2px solid rgba(28, 34, 39, 0.12);
+  padding: 1rem 1.5rem;
+}

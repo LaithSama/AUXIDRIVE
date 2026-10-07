@@ -1,0 +1,164 @@
+<div class="entete-contenu">
+  <div>
+    <h1 class="titre-section">Mes contrats</h1>
+    <p class="chapeau mb-0">Suivez vos contrats et souscrivez une nouvelle offre.</p>
+  </div>
+</div>
+
+@if (chargement) {
+  <p class="text-muted">Chargement…</p>
+}
+
+@if (erreur) {
+  <div class="message-erreur">{{ erreur }}</div>
+}
+@if (messageSucces) {
+  <div class="message-ok">{{ messageSucces }}</div>
+}
+
+@if (!chargement) {
+  <!-- Liste des contrats -->
+  <div class="carte p-0 overflow-hidden contrats-liste">
+    <div class="table-responsive">
+      <table class="tableau">
+        <thead>
+          <tr>
+            <th>N° Police</th>
+            <th>Statut</th>
+            <th>Effet</th>
+            <th>Expiration</th>
+            <th class="text-end">Prime TTC</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of contrats; track c.idContrat) {
+            <tr>
+              <td class="contrat-num">
+                {{ c.numPolice || '—' }}
+                <span class="contrat-id">n°{{ c.idContrat }}</span>
+              </td>
+              <td>
+                @switch (c.statutContrat) {
+                  @case ('VALIDE') { <span class="pastille pastille-lagon">Validé</span> }
+                  @case ('EN_ATTENTE') { <span class="pastille">En attente</span> }
+                  @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+                }
+              </td>
+              <td>{{ c.dateEffet | dateFr }}</td>
+              <td>{{ c.dateExpiration | dateFr }}</td>
+              <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="contrats-vide">
+                Aucun contrat pour le moment. Souscrivez une offre ci-dessous.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Souscription -->
+  <h2 class="titre-section contrats-souscription-titre">Souscrire une offre</h2>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="carte carte-bande">
+        <div class="champ">
+          <label for="offre">Offre</label>
+          <select id="offre" name="offre" [(ngModel)]="formIdOffre" (ngModelChange)="simulation = null">
+            <option [ngValue]="null" disabled>— Choisir une offre —</option>
+            @for (o of offres; track o.idOffre) {
+              <option [ngValue]="o.idOffre">
+                {{ o.libelleOffre }} ({{ o.typeOffre }})
+              </option>
+            }
+          </select>
+          @if (offreSelectionnee?.description) {
+            <span class="aide">{{ offreSelectionnee?.description }}</span>
+          }
+        </div>
+
+        @if (vehicules.length > 0) {
+          <fieldset class="champ contrats-vehicules">
+            <legend>Véhicules à assurer</legend>
+            @if (offreSelectionnee && !vehiculesValides) {
+              <span class="erreur">
+                Cette offre exige au minimum {{ offreSelectionnee.nbVehiculesMin }} véhicule(s).
+              </span>
+            }
+            @for (v of vehicules; track v.idVehicule) {
+              <label class="contrats-vehicule">
+                <input
+                  type="checkbox"
+                  [checked]="formVehicules.includes(v.idVehicule)"
+                  (change)="basculerVehicule(v.idVehicule)"
+                />
+                <span>
+                  <strong>{{ v.marque }} {{ v.modele }}</strong>
+                  <span class="contrats-vehicule-plaque">{{ v.numImmatriculation }}</span>
+                </span>
+              </label>
+            }
+          </fieldset>
+        } @else {
+          <p class="message-info">Aucun véhicule enregistré : contactez un agent pour ajouter votre véhicule.</p>
+        }
+
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="champ mb-0">
+              <label for="primeNette">Prime nette (Ar, hors taxes)</label>
+              <input type="number" id="primeNette" name="primeNette" min="1" step="1000"
+                     [(ngModel)]="formPrimeNette" (ngModelChange)="simulation = null" />
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="champ mb-0">
+              <label for="dateEffet">Date d'effet (facultatif)</label>
+              <input type="date" id="dateEffet" name="dateEffet"
+                     [(ngModel)]="formDateEffet" (ngModelChange)="simulation = null" />
+            </div>
+          </div>
+        </div>
+
+        <div class="contrats-actions">
+          <button type="button" class="btn-contour-sombre" [disabled]="!formulairePret || enCours" (click)="simuler()">
+            Simuler la prime
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Résultat de simulation -->
+    <div class="col-lg-5">
+      @if (simulation) {
+        <div class="carte carte-bande-lagon contrats-simulation">
+          <p class="contrats-simulation-label">Détail de la simulation</p>
+          <p class="contrats-simulation-ttc">{{ simulation.ttc | montant }}</p>
+          <ul class="contrats-simulation-liste">
+            <li><span>Base taxable</span><span>{{ simulation.base | montant }}</span></li>
+            <li><span>TE</span><span>{{ simulation.te | montant }}</span></li>
+            <li><span>TACAVA</span><span>{{ simulation.tacava | montant }}</span></li>
+            <li><span>TVA</span><span>{{ simulation.tva | montant }}</span></li>
+            <li class="contrats-simulation-total"><span>Total TTC</span><span>{{ simulation.ttc | montant }}</span></li>
+          </ul>
+          <button type="button" class="btn-signal contrats-souscrire"
+                  [disabled]="enCours" (click)="souscrire()">
+            Souscrire cette offre
+          </button>
+        </div>
+      } @else {
+        <div class="carte contrats-astuce">
+          <p class="contrats-simulation-label">Simulation</p>
+          <p class="chapeau mb-0">
+            Renseignez l'offre, les véhicules et la prime nette, puis cliquez sur
+            « Simuler la prime » pour obtenir le détail des taxes et le montant TTC.
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+}

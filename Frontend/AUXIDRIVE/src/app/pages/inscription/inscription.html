@@ -1,0 +1,148 @@
+<header class="entete">
+  <nav class="container d-flex align-items-center justify-content-between py-3">
+    <a routerLink="/" class="marque">Auxiassur</a>
+    <a routerLink="/connexion" class="btn-contour">Se connecter</a>
+  </nav>
+</header>
+
+<main class="page-auth inscription-main">
+  <div class="carte inscription-carte">
+    <h1 class="inscription-titre">Demande d'inscription en ligne</h1>
+    <p class="chapeau inscription-chapeau">Créez votre dossier. Un agent procédera à sa vérification.</p>
+
+    @if (immatriculationInitiale) {
+      <div class="message-info">
+        📍 Véhicule à assurer identifié : <strong>{{ immatriculationInitiale }}</strong>
+      </div>
+    }
+
+    @if (messageSucces) {
+      <div class="message-ok text-center">{{ messageSucces }}</div>
+    }
+    @if (messageErreur) {
+      <div class="message-erreur text-center">{{ messageErreur }}</div>
+    }
+
+    <form (ngSubmit)="onSubmit()">
+
+      <!-- Section Civilité & Profil -->
+      <div class="row g-3 mb-2">
+        <div class="col-md-4">
+          <div class="champ mb-0">
+            <label for="civilite">Civilité</label>
+            <select id="civilite" name="civilite" [(ngModel)]="assure.civilite" required>
+              <option value="M.">M.</option>
+              <option value="Mme">Mme</option>
+              <option value="Mlle">Mlle</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="champ mb-0">
+            <label for="sexe">Sexe</label>
+            <select id="sexe" name="sexe" [(ngModel)]="assure.sexe" required>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="champ mb-0">
+            <label for="personneMorale">Type d'entité</label>
+            <select id="personneMorale" name="personneMorale" [(ngModel)]="assure.personneMorale" required>
+              <option [ngValue]="false">Particulier</option>
+              <option [ngValue]="true">Entreprise (Morale)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Identité -->
+      <div class="row g-3 mb-2">
+        <div class="col-md-6">
+          <div class="champ mb-0">
+            <label for="nom">Nom de l'assuré</label>
+            <input type="text" id="nom" name="nomAssure" [(ngModel)]="assure.nomAssure" required />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="champ mb-0">
+            <label for="prenom">Prénom</label>
+            <input type="text" id="prenom" name="prenomAssure" [(ngModel)]="assure.prenomAssure" required />
+          </div>
+        </div>
+      </div>
+
+      <!-- Coordonnées -->
+      <div class="champ">
+        <label for="email">Adresse e-mail</label>
+        <input type="email" id="email" name="mail" placeholder="nom@exemple.com" [(ngModel)]="assure.mail" required />
+      </div>
+
+      <div class="champ">
+        <label for="telephone">Numéro de contact (téléphone)</label>
+        <input type="text" id="telephone" name="contact" placeholder="+261..." [(ngModel)]="assure.contact" required />
+      </div>
+
+      <!-- Adresse et Origine -->
+      <div class="champ">
+        <label for="adresse">Adresse exacte</label>
+        <input type="text" id="adresse" name="adresse" [(ngModel)]="assure.adresse" required />
+      </div>
+
+      <div class="row g-3 mb-2">
+        <div class="col-md-6">
+          <div class="champ mb-0">
+            <label for="dateNaissance">Date de naissance</label>
+            <input type="date" id="dateNaissance" name="dateNaissance" [(ngModel)]="assure.dateNaissance" required />
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="champ mb-0">
+            <label for="nationalite">Nationalité</label>
+            <input type="text" id="nationalite" name="nationalite" [(ngModel)]="assure.nationalite" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="champ">
+        <label for="numCinText">Numéro de CIN (Saisie manuelle)</label>
+        <input type="text" id="numCinText" name="cinText" placeholder="101..." [(ngModel)]="identifiantsLegaux.cin" />
+      </div>
+
+      <hr class="inscription-separateur" />
+      <h2 class="inscription-sous-titre">Pièces justificatives (Facultatives)</h2>
+
+      <div class="champ">
+        <label for="cin">Carte d'Identité Nationale (CIN)</label>
+        <input type="file" id="cin" (change)="onFileChange($event, 'cin')" />
+      </div>
+
+      <div class="champ">
+        <label for="carteGrise">Carte Grise</label>
+        <input type="file" id="carteGrise" (change)="onFileChange($event, 'carteGrise')" />
+      </div>
+
+      <div class="champ">
+        <label for="carteRose">Carte Rose</label>
+        <input type="file" id="carteRose" (change)="onFileChange($event, 'carteRose')" />
+      </div>
+
+      <div class="champ">
+        <label for="modeleN1">Modèle N1</label>
+        <input type="file" id="modeleN1" (change)="onFileChange($event, 'modeleN1')" />
+      </div>
+
+      <button type="submit" class="btn-signal inscription-envoi">
+        Transmettre le dossier
+      </button>
+    </form>
+  </div>
+</main>
+
+<footer class="pied">
+  <div class="container d-flex justify-content-between flex-wrap gap-2">
+    <span>Auxiassur — Assurance automobile</span>
+    <span>Tous droits réservés</span>
+  </div>
+</footer>

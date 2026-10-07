@@ -1,0 +1,34 @@
+.connexion-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+}
+
+.connexion-carte {
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 8px 8px 0 rgba(16, 40, 60, 0.08);
+}
+
+.connexion-titre {
+  font-size: clamp(1.7rem, 3.5vw, 2.25rem);
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+}
+
+.connexion-chapeau {
+  margin: 0 0 1.75rem;
+}
+
+.connexion-envoi {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.connexion-pied-texte {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  color: var(--gris);
+  font-size: 0.95rem;
+}

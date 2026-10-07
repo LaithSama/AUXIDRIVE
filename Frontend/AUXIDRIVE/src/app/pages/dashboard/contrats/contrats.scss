@@ -1,0 +1,133 @@
+.entete-contenu {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(28, 34, 39, 0.12);
+
+  h1 { margin: 0 0 0.35rem; }
+}
+
+.contrats-liste {
+  box-shadow: 6px 6px 0 rgba(16, 40, 60, 0.07);
+  margin-bottom: 2.5rem;
+}
+
+.contrat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--nuit);
+}
+
+.contrat-id {
+  display: block;
+  font-family: 'Public Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--gris);
+}
+
+.contrats-vide {
+  text-align: center;
+  color: var(--gris);
+  padding: 2rem 1rem;
+}
+
+.contrats-souscription-titre {
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  margin: 0 0 1.25rem;
+}
+
+.contrats-vehicules {
+  border: 0;
+  padding: 0;
+  margin: 0 0 1.25rem;
+
+  legend {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    padding: 0;
+  }
+}
+
+.contrats-vehicule {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border: 2px solid #b8c2c9;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+
+  &:hover { border-color: var(--lagon); }
+
+  input { width: auto; accent-color: var(--lagon); }
+}
+
+.contrats-vehicule-plaque {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris);
+}
+
+.contrats-actions {
+  margin-top: 1.25rem;
+}
+
+.contrats-simulation,
+.contrats-astuce {
+  box-shadow: 6px 6px 0 rgba(16, 40, 60, 0.07);
+}
+
+.contrats-simulation-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris);
+  margin-bottom: 0.5rem;
+}
+
+.contrats-simulation-ttc {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 700;
+  margin: 0 0 1rem;
+  line-height: 1;
+}
+
+.contrats-simulation-liste {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.25rem;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px dashed #dfe4e7;
+    color: var(--gris);
+  }
+
+  .contrats-simulation-total {
+    border-bottom: 0;
+    border-top: 2px solid var(--encre);
+    color: var(--encre);
+    font-weight: 500;
+    margin-top: 0.25rem;
+  }
+}
+
+.contrats-souscrire {
+  width: 100%;
+}

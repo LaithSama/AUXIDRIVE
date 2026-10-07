@@ -1,0 +1,255 @@
+/* ==========================================================================
+   Thème commun AUXIDRIVE — importé globalement dans src/styles.scss
+   Inspiré du style de la page acceuil-client (palette, typographie, cartes).
+   ========================================================================== */
+/* Polices Google (Public Sans, Bricolage Grotesque, Barlow Condensed) :
+   chargées via <link> dans src/index.html */
+
+:root {
+  --nuit: #10283c;
+  --nuit-2: #17364f;
+  --lagon: #1f7a8c;
+  --signal: #f2b632;
+  --papier: #f6f7f5;
+  --encre: #1c2227;
+  --gris: #5b6770;
+  --erreur: #b3261e;
+}
+
+/* ---------- base ---------- */
+body {
+  background: var(--papier);
+  color: var(--encre);
+  font-family: 'Public Sans', system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, .marque {
+  font-family: 'Bricolage Grotesque', 'Public Sans', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+
+/* ---------- en-tête ---------- */
+.entete {
+  background: var(--nuit);
+  color: #fff;
+}
+.marque {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
+  text-decoration: none;
+}
+.lien {
+  color: #d3dde5;
+  text-decoration: none;
+  &:hover { color: #fff; text-decoration: underline; }
+}
+
+/* ---------- pied de page ---------- */
+.pied {
+  background: var(--encre);
+  color: #aeb9c1;
+  padding: 1.75rem 0;
+  font-size: 0.95rem;
+}
+
+/* ---------- boutons ---------- */
+.btn-signal {
+  display: inline-block;
+  background: var(--signal);
+  color: var(--encre);
+  border: 0;
+  border-radius: 10px;
+  padding: 0.85rem 1.6rem;
+  font: inherit;
+  font-weight: 500;
+  font-size: 1.05rem;
+  text-decoration: none;
+  cursor: pointer;
+  &:hover:not(:disabled) { background: #ffc94d; color: var(--encre); }
+  &:disabled { opacity: 0.6; cursor: wait; }
+}
+
+.btn-contour {
+  display: inline-block;
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 10px;
+  padding: 0.4rem 1.1rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  &:hover { background: #fff; color: var(--nuit); border-color: #fff; }
+}
+
+.btn-contour-sombre {
+  display: inline-block;
+  background: transparent;
+  color: var(--encre);
+  border: 1.5px solid var(--encre);
+  border-radius: 8px;
+  padding: 0.55rem 1.3rem;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  &:hover:not(:disabled) { background: var(--encre); color: #fff; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.lien-discret {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--lagon);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* ---------- carte signature ---------- */
+.carte {
+  background: #fff;
+  border: 2px solid var(--encre);
+  border-radius: 18px 18px 18px 4px;
+  padding: 2rem;
+}
+.carte-bande {
+  border-left: 6px solid var(--signal);
+}
+.carte-bande-lagon {
+  border-left: 6px solid var(--lagon);
+}
+
+/* ---------- pastilles / badges ---------- */
+.pastille {
+  display: inline-block;
+  background: var(--signal);
+  color: var(--encre);
+  border-radius: 6px;
+  padding: 0.15rem 0.7rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.pastille-lagon { background: var(--lagon); color: #fff; }
+.pastille-rouge { background: var(--erreur); color: #fff; }
+.pastille-sombre {
+  background: transparent;
+  border: 1.5px solid var(--encre);
+  color: var(--encre);
+}
+
+/* ---------- tableau de données ---------- */
+.tableau {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+
+  th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gris);
+    background: #eef1f3;
+    border-bottom: 2px solid var(--encre);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #e3e7ea;
+    vertical-align: middle;
+  }
+
+  tbody tr:hover { background: #f6f7f5; }
+  tbody tr:last-child td { border-bottom: 0; }
+}
+
+/* ---------- messages (succès / erreur / info) ---------- */
+.message-erreur {
+  background: #fdecea;
+  border-left: 6px solid var(--erreur);
+  color: var(--encre);
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.25rem;
+}
+.message-ok {
+  background: #e6f3ee;
+  border-left: 6px solid var(--lagon);
+  color: var(--encre);
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.25rem;
+}
+.message-info {
+  background: #e1f0f3;
+  border-left: 6px solid var(--lagon);
+  color: var(--encre);
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ---------- pages de formulaire ---------- */
+.page-auth {
+  min-height: 100vh;
+  background: var(--papier);
+  color: var(--encre);
+  font-family: 'Public Sans', system-ui, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.champ { margin-bottom: 1.25rem; }
+.champ label, .form-label-th {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+}
+.champ .aide { display: block; color: var(--gris); font-size: 0.9rem; margin-top: 0.25rem; }
+.champ input[type='text'], .champ input[type='email'], .champ input[type='password'],
+.champ input[type='tel'], .champ input[type='date'], .champ input[type='file'],
+.champ select, .champ textarea,
+.saisie {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 2px solid #b8c2c9;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  color: var(--encre);
+  &:focus {
+    border-color: var(--lagon);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(31, 122, 140, 0.25);
+  }
+}
+.champ.invalide input, .champ.invalide select { border-color: var(--erreur); }
+.champ .erreur { display: block; color: var(--erreur); font-size: 0.92rem; margin-top: 0.25rem; }
+
+/* ---------- titres de section ---------- */
+.titre-section {
+  font-weight: 700;
+  font-size: clamp(1.7rem, 3.5vw, 2.5rem);
+  line-height: 1.1;
+}
+.chapeau { color: var(--gris); max-width: 60ch; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn-signal, .btn-contour { transition: background-color 0.15s, color 0.15s; }
+}

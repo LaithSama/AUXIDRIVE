@@ -24,8 +24,10 @@ public class Offre {
      * des paramètres de calcul de la branche, les taux de TE, de TVA et de TACAVA ainsi que le
      * montant des accessoires appliqués au contrat.
      */
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cd_branche")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Branche branche;
 
     @Column(name = "duree_min_mois")
