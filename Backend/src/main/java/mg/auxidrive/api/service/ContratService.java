@@ -203,6 +203,37 @@ public class ContratService {
     }
 
     /**
+     * Reconduction tacite d'un contrat validé à son échéance : le même contrat (donc le même
+     * numéro de police) est prolongé d'une durée, la prime est recalculée à partir des tarifs
+     * du jour et une facture de renouvellement est émise.
+     *
+     * La notification d'échéance est remise à zéro : le rappel J-3 repartira pour la nouvelle
+     * échéance.
+     */
+    @Transactional
+    public Contrat renouveler(Contrat contrat) {
+        if (contrat.getStatutContrat() != StatutContrat.VALIDE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Seul un contrat validé peut être renouvelé");
+        }
+        Detail detail = recalculer(contrat);
+
+        Integer dureeMois = contrat.getOffre() == null || contrat.getOffre().getDureeMinMois() == null
+                ? 12 : contrat.getOffre().getDureeMinMois();
+        LocalDate ancienneExpiration = contrat.getDateExpiration();
+        contrat.setDateEffet(ancienneExpiration == null ? LocalDate.now() : ancienneExpiration);
+        contrat.setDateExpiration(contrat.getDateEffet().plusMonths(dureeMois));
+        contrat.setPrimeNetteCourante(detail.base() - detail.accessoires());
+        contrat.setPrimeTtcCourante(detail.ttc());
+        contrat.setTauxCommission(detail.tauxCommission());
+        contrat.setMontantCommission(detail.commission());
+        contrat.setDateNotifEcheance(null);
+        contrat = contratRepository.save(contrat);
+
+        factureService.emettreRenouvellement(contrat, detail);
+        return contrat;
+    }
+
+    /**
      * Vérifie qu'un véhicule appartient bien à l'assuré.
      * Appelé avant toute souscription faite par un client, pour qu'il ne puisse pas couvrir
      * un véhicule d'un autre assuré. Un véhicule qui n'est pas le sien est signalé introuvable.

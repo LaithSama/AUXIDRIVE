@@ -1,0 +1,119 @@
+.entete-contenu {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(28, 34, 39, 0.12);
+
+  h1 { margin: 0 0 0.35rem; }
+}
+
+.profil-carte {
+  box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.07);
+}
+
+.profil-bloc {
+  margin-bottom: 1.25rem;
+}
+
+.profil-titre {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 1.25rem;
+}
+
+.profil-lecture {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+  background: var(--papier);
+  border: 1px solid #e3e7ea;
+  border-radius: 10px;
+  padding: 0.7rem 0.95rem;
+  margin-bottom: 1.35rem;
+  font-size: 0.95rem;
+  color: var(--gris);
+
+  strong { color: var(--encre); }
+}
+
+.profil-alerte {
+  display: block;
+  color: var(--erreur);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
+}
+
+.profil-bouton {
+  margin-top: 0.35rem;
+}
+
+.banniere-suppression {
+  background: #fdecea;
+  border: 2px solid var(--erreur);
+  border-left-width: 6px;
+  border-radius: 12px 12px 12px 4px;
+  color: var(--encre);
+  font-size: 0.98rem;
+  padding: 0.9rem 1.15rem;
+  margin-bottom: 1.25rem;
+}
+
+.zone-dangereuse {
+  border-color: var(--erreur);
+  box-shadow: 6px 6px 0 rgba(179, 38, 30, 0.1);
+}
+
+.zone-texte {
+  color: var(--gris);
+  font-size: 0.97rem;
+}
+
+.zone-confirmation {
+  background: #fdecea;
+  border-radius: 10px;
+  padding: 1rem;
+
+  p { margin-top: 0; }
+}
+
+.zone-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.btn-zone {
+  background: var(--erreur);
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.75rem 1.4rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #93201a;
+    box-shadow: 0 8px 18px rgba(179, 38, 30, 0.35);
+    transform: translateY(-2px);
+  }
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn-zone {
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+}

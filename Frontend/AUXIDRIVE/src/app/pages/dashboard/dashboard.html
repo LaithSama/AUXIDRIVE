@@ -2,7 +2,7 @@
   <div class="container d-flex align-items-center justify-content-between py-3">
     <a routerLink="/dashboard" class="marque">Auxiassur <span class="marque-suffixe">Espace</span></a>
     <div class="d-flex align-items-center">
-      <span class="dashboard-profil">{{ userRole }}</span>
+      <span class="dashboard-profil">{{ roleAffiche }}</span>
       <button type="button" class="btn-contour" (click)="deconnexion()">Déconnexion</button>
     </div>
   </div>
@@ -16,7 +16,7 @@
         <li class="nav-item">
           <a class="nav-link sidebar-lien" routerLink="/dashboard"
              routerLinkActive="sidebar-lien-actif" [routerLinkActiveOptions]="{exact: true}">
-            📊 Tableau de bord
+            <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Tableau de bord
           </a>
         </li>
 
@@ -24,22 +24,27 @@
         @if (userRole === 'ROLE_CLIENT' || userRole === 'CLIENT') {
           <li class="nav-item">
             <a class="nav-link sidebar-lien" routerLink="/dashboard/vehicules" routerLinkActive="sidebar-lien-actif">
-              🚙 Mes véhicules
+              <i class="bi bi-car-front-fill me-2" aria-hidden="true"></i>Mes véhicules
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link sidebar-lien" routerLink="/dashboard/contrats" routerLinkActive="sidebar-lien-actif">
-              🚗 Mes contrats
+              <i class="bi bi-file-earmark-check-fill me-2" aria-hidden="true"></i>Mes contrats
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link sidebar-lien" routerLink="/dashboard/sinistres" routerLinkActive="sidebar-lien-actif">
-              ⚠️ Déclarer un sinistre
+              <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>Déclarer un sinistre
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link sidebar-lien" routerLink="/dashboard/factures" routerLinkActive="sidebar-lien-actif">
-              📄 Mes factures
+              <i class="bi bi-receipt me-2" aria-hidden="true"></i>Mes factures
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/profil" routerLinkActive="sidebar-lien-actif">
+              <i class="bi bi-person-fill me-2" aria-hidden="true"></i>Mon profil
             </a>
           </li>
         }
@@ -48,12 +53,12 @@
         @if (userRole === 'ROLE_AGENT' || userRole === 'ROLE_ADMIN') {
           <li class="nav-item">
             <a class="nav-link sidebar-lien" routerLink="/dashboard/demandes" routerLinkActive="sidebar-lien-actif">
-              📂 Demandes d'inscription
+              <i class="bi bi-inbox-fill me-2" aria-hidden="true"></i>Demandes d'inscription
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link sidebar-lien" routerLink="/dashboard/clients" routerLinkActive="sidebar-lien-actif">
-              👥 Gestion des clients
+              <i class="bi bi-people-fill me-2" aria-hidden="true"></i>Gestion des clients
             </a>
           </li>
         }

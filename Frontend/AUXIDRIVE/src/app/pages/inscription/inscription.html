@@ -1,7 +1,13 @@
 <header class="entete">
   <nav class="container d-flex align-items-center justify-content-between py-3">
-    <a routerLink="/" class="marque">Auxiassur</a>
-    <a routerLink="/connexion" class="btn-contour">Se connecter</a>
+    <a routerLink="/" class="marque">
+      <img class="marque-logo" src="img/logo-auxiassur.jpg" alt="" />
+      Auxiassur
+    </a>
+    <div class="d-flex align-items-center gap-2">
+      <a routerLink="/connexion" class="btn-contour">Se connecter</a>
+      <img class="entete-drapeau" src="img/drapeau-droite.jpg" alt="" aria-hidden="true" />
+    </div>
   </nav>
 </header>
 
@@ -12,13 +18,10 @@
 
     @if (immatriculationInitiale) {
       <div class="message-info">
-        📍 Véhicule à assurer identifié : <strong>{{ immatriculationInitiale }}</strong>
+        <i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Véhicule à assurer identifié : <strong>{{ immatriculationInitiale }}</strong>
       </div>
     }
 
-    @if (messageSucces) {
-      <div class="message-ok text-center">{{ messageSucces }}</div>
-    }
     @if (messageErreur) {
       <div class="message-erreur text-center">{{ messageErreur }}</div>
     }
@@ -133,12 +136,44 @@
         <input type="file" id="modeleN1" (change)="onFileChange($event, 'modeleN1')" />
       </div>
 
-      <button type="submit" class="btn-signal inscription-envoi">
-        Transmettre le dossier
+      <button type="submit" class="btn-signal inscription-envoi" [disabled]="enCours || dossierEnvoye">
+        {{ enCours ? 'Transmission du dossier…' : 'Transmettre le dossier' }}
       </button>
     </form>
   </div>
 </main>
+
+<!-- Confirmation de transmission du dossier -->
+@if (dossierEnvoye) {
+  <div class="inscription-overlay" role="alertdialog" aria-modal="true" aria-labelledby="confirmation-titre">
+    <div class="inscription-confirmation">
+      <span class="confirmation-icone" aria-hidden="true">
+        <i class="bi bi-check-circle-fill"></i>
+      </span>
+      <h2 id="confirmation-titre" class="confirmation-titre">Dossier transmis</h2>
+
+      @if (numeroDossier !== null) {
+        <p class="confirmation-numero">Dossier n° {{ numeroDossier }}</p>
+      }
+
+      <p class="confirmation-texte">
+        Votre demande d'inscription a bien été envoyée.
+        Un agent va vérifier votre dossier :
+        <strong>veuillez patienter en attendant sa validation.</strong>
+        Vous pourrez vous connecter une fois votre compte activé.
+      </p>
+
+      <p class="confirmation-rebours" aria-live="polite">
+        Redirection vers la page de connexion dans {{ compteArebours }} s…
+      </p>
+
+      <div class="confirmation-actions">
+        <button type="button" class="btn-signal" (click)="allerConnexion()">Se connecter</button>
+        <a routerLink="/" class="btn-contour-sombre">Retour à l'accueil</a>
+      </div>
+    </div>
+  </div>
+}
 
 <footer class="pied">
   <div class="container d-flex justify-content-between flex-wrap gap-2">

@@ -27,13 +27,13 @@
 
         <form (ngSubmit)="ajouter()">
           <div class="champ">
-            <label for="immatriculation">Numéro d'immatriculation *</label>
+            <label for="immatriculation">Numéro d'immatriculation</label>
             <input type="text" id="immatriculation" name="immatriculation"
                    placeholder="1234 ABC" [(ngModel)]="formImmatriculation" required />
           </div>
 
           <div class="champ">
-            <label for="chassis">Numéro de châssis *</label>
+            <label for="chassis">Numéro de châssis</label>
             <input type="text" id="chassis" name="chassis"
                    placeholder="VF1..." [(ngModel)]="formChassis" required />
           </div>
@@ -41,14 +41,14 @@
           <div class="row g-3">
             <div class="col-sm-6">
               <div class="champ mb-0">
-                <label for="marque">Marque *</label>
+                <label for="marque">Marque</label>
                 <input type="text" id="marque" name="marque"
                        placeholder="Toyota" [(ngModel)]="formMarque" required />
               </div>
             </div>
             <div class="col-sm-6">
               <div class="champ mb-0">
-                <label for="modele">Modèle *</label>
+                <label for="modele">Modèle</label>
                 <input type="text" id="modele" name="modele"
                        placeholder="Corolla" [(ngModel)]="formModele" required />
               </div>
@@ -56,7 +56,7 @@
           </div>
 
           <div class="champ">
-            <label for="codeTarif">Code tarifaire *</label>
+            <label for="codeTarif">Code tarifaire</label>
             <select id="codeTarif" name="codeTarif" [(ngModel)]="formCodeTarif" required>
               <option [ngValue]="null" disabled>—</option>
               @for (c of codesTarifaires; track c.idCodeAuto) {
@@ -69,7 +69,7 @@
           <div class="row g-3">
             <div class="col-sm-6">
               <div class="champ mb-0">
-                <label for="energie">Énergie *</label>
+                <label for="energie">Énergie</label>
                 <select id="energie" name="energie" [(ngModel)]="formEnergie" required>
                   <option value="" disabled>—</option>
                   @for (e of energies; track e) {
@@ -80,7 +80,7 @@
             </div>
             <div class="col-sm-6">
               <div class="champ mb-0">
-                <label for="places">Nombre de places *</label>
+                <label for="places">Nombre de places</label>
                 <input type="number" id="places" name="places" min="1"
                        [(ngModel)]="formPlaces" required />
               </div>
@@ -90,7 +90,7 @@
           <div class="row g-3">
             <div class="col-sm-6">
               <div class="champ mb-0">
-                <label for="puissance">Puissance fiscale (CV) *</label>
+                <label for="puissance">Puissance fiscale (CV)</label>
                 <input type="number" id="puissance" name="puissance" min="1"
                        [(ngModel)]="formPuissance" required />
               </div>

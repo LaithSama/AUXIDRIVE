@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnDestroy, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { InscriptionService } from '../../services/inscription-service';
@@ -12,7 +12,7 @@ import { AssureProfession } from '../../core/interfaces/assure-profession';
   templateUrl: './inscription.html',
   styleUrl: './inscription.scss',
 })
-export class Inscription implements OnInit {
+export class Inscription implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private inscriptionService = inject(InscriptionService);
@@ -58,8 +58,13 @@ export class Inscription implements OnInit {
   fichierCarteRose: File | null = null;
   fichierModeleN1: File | null = null;
 
-  messageSucces = '';
   messageErreur = '';
+
+  enCours = false;
+  dossierEnvoye = false;
+  numeroDossier: number | null = null;
+  compteArebours = 10;
+  private minuteur: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -67,6 +72,10 @@ export class Inscription implements OnInit {
         this.immatriculationInitiale = params['immatriculation'];
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.arreterMinuteur();
   }
 
   onFileChange(event: any, type: string): void {
@@ -81,7 +90,10 @@ export class Inscription implements OnInit {
   }
 
   onSubmit(): void {
-    this.messageSucces = '';
+    if (this.enCours || this.dossierEnvoye) {
+      return;
+    }
+    this.enCours = true;
     this.messageErreur = '';
 
     const listeFichiers = {
@@ -126,10 +138,13 @@ export class Inscription implements OnInit {
     // 4. Envoi des structures nettoyées et conformes au service
     this.inscriptionService.soumettre(assureNettoye, professionNettoye as any, identifiantsNettoyes as any, listeFichiers).subscribe({
       next: (response) => {
-        this.messageSucces = response.message || "Votre demande a été enregistrée avec succès.";
-        setTimeout(() => this.router.navigate(['/connexion']), 3000);
+        this.enCours = false;
+        this.numeroDossier = response.idInscription ?? null;
+        this.dossierEnvoye = true;
+        this.lancerCompteArebours();
       },
       error: (err) => {
+        this.enCours = false;
         console.log("Détail complet de l'erreur reçue du backend :", err);
         
         // Extraction intelligente du message renvoyé par Spring Boot
@@ -140,5 +155,27 @@ export class Inscription implements OnInit {
         }
       }
     });
+  }
+
+  allerConnexion(): void {
+    this.arreterMinuteur();
+    this.router.navigate(['/connexion']);
+  }
+
+  private lancerCompteArebours(): void {
+    this.compteArebours = 10;
+    this.minuteur = setInterval(() => {
+      this.compteArebours -= 1;
+      if (this.compteArebours <= 0) {
+        this.allerConnexion();
+      }
+    }, 1000);
+  }
+
+  private arreterMinuteur(): void {
+    if (this.minuteur !== null) {
+      clearInterval(this.minuteur);
+      this.minuteur = null;
+    }
   }
 }

@@ -13,7 +13,22 @@ export class Dashboard implements OnInit {
   private router = inject(Router);
 
   userRole: string | null = '';
-  
+
+  get roleAffiche(): string {
+    switch (this.userRole) {
+      case 'ROLE_CLIENT':
+      case 'CLIENT':
+        return 'Assuré';
+      case 'ROLE_AGENT':
+      case 'AGENT':
+        return 'Agent';
+      case 'ROLE_ADMIN':
+        return 'Administrateur';
+      default:
+        return this.userRole ?? '';
+    }
+  }
+
   ngOnInit(): void {
     this.userRole = this.authService.getRole();
 

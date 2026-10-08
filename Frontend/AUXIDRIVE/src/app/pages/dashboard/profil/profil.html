@@ -1,0 +1,177 @@
+<div class="entete-contenu">
+  <div>
+    <h1 class="titre-section">Mon profil</h1>
+    <p class="chapeau mb-0">
+      Gérez vos informations personnelles, votre mot de passe et la suppression de votre compte.
+    </p>
+  </div>
+</div>
+
+@if (chargement) {
+  <p class="text-muted">Chargement…</p>
+}
+
+@if (!chargement) {
+  @if (suppressionPlanifiee) {
+    <div class="banniere-suppression" role="alert">
+      <div>
+        <strong>Compte à supprimer.</strong>
+        La suppression définitive est prévue <strong>{{ dateSuppressionFr }}</strong>
+        (dans environ {{ heuresRestantes }} h). Passé ce délai, elle ne pourra plus être annulée.
+      </div>
+    </div>
+  }
+
+  @if (messageSucces) {
+    <div class="message-ok">{{ messageSucces }}</div>
+  }
+  @if (messageErreur) {
+    <div class="message-erreur">{{ messageErreur }}</div>
+  }
+
+  <div class="row g-4">
+    <!-- Informations personnelles + e-mail de connexion -->
+    <div class="col-lg-7">
+      <div class="carte profil-carte">
+        <h2 class="profil-titre">Mes informations</h2>
+
+        <div class="profil-lecture">
+          <span>N° assuré : <strong>{{ profil?.assure?.numerosAssure || '—' }}</strong></span>
+          <span>Civilité : <strong>{{ profil?.assure?.civilite || '—' }}</strong></span>
+          <span>Naissance : <strong>{{ dateNaissanceFr }}</strong></span>
+        </div>
+
+        <form (ngSubmit)="enregistrer()">
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="nom" [(ngModel)]="nom" required />
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom" [(ngModel)]="prenom" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="champ">
+            <label for="adresse">Adresse</label>
+            <input type="text" id="adresse" name="adresse" [(ngModel)]="adresse" />
+          </div>
+
+          <div class="row g-3">
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="contact">Téléphone</label>
+                <input type="tel" id="contact" name="contact" placeholder="034 00 000 00"
+                       [(ngModel)]="contact" />
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="champ mb-0">
+                <label for="mail">E-mail de contact</label>
+                <input type="email" id="mail" name="mail" placeholder="vous@exemple.mg"
+                       [(ngModel)]="mail" />
+              </div>
+            </div>
+          </div>
+
+          <div class="champ">
+            <label for="emailConnexion">E-mail de connexion</label>
+            <input type="email" id="emailConnexion" name="emailConnexion" required
+                   [(ngModel)]="emailConnexion" />
+            <small class="aide">Utilisé pour vous connecter à votre espace client.</small>
+            @if (emailModifiee) {
+              <small class="profil-alerte">Vous devrez vous reconnecter après ce changement.</small>
+            }
+          </div>
+
+          <button type="submit" class="btn-signal profil-bouton" [disabled]="!informationsValides || enCours">
+            {{ enCours ? 'Enregistrement…' : 'Enregistrer mes informations' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Mot de passe + suppression -->
+    <div class="col-lg-5">
+      <div class="carte profil-carte profil-bloc">
+        <h2 class="profil-titre">Mot de passe</h2>
+
+        <form (ngSubmit)="changerMotDePasse()">
+          <div class="champ">
+            <label for="mdpActuel">Mot de passe actuel</label>
+            <input type="password" id="mdpActuel" name="mdpActuel" autocomplete="current-password"
+                   [(ngModel)]="mdpActuel" required />
+          </div>
+          <div class="champ">
+            <label for="mdpNouveau">Nouveau mot de passe</label>
+            <input type="password" id="mdpNouveau" name="mdpNouveau" autocomplete="new-password"
+                   placeholder="8 caractères minimum" [(ngModel)]="mdpNouveau" required />
+          </div>
+          <div class="champ">
+            <label for="mdpConfirmation">Confirmer le nouveau mot de passe</label>
+            <input type="password" id="mdpConfirmation" name="mdpConfirmation" autocomplete="new-password"
+                   [(ngModel)]="mdpConfirmation" required />
+            @if (mdpNouveau && mdpConfirmation && mdpNouveau !== mdpConfirmation) {
+              <span class="erreur">Les deux mots de passe ne correspondent pas.</span>
+            }
+          </div>
+
+          <button type="submit" class="btn-signal profil-bouton" [disabled]="!motDePasseValide || enCours">
+            {{ enCours ? 'Mise à jour…' : 'Mettre à jour le mot de passe' }}
+          </button>
+        </form>
+      </div>
+
+      <div class="carte profil-carte zone-dangereuse">
+        <h2 class="profil-titre">Supprimer mon compte</h2>
+
+        @if (!suppressionPlanifiee) {
+          <p class="zone-texte">
+            La suppression de votre compte de connexion est <strong>définitive</strong>. Vous disposez
+            d'un délai de rétractation de <strong>72 heures</strong> après la demande, pendant lequel
+            vous pouvez encore annuler la suppression depuis cette page.
+          </p>
+          <p class="zone-texte">
+            Passé ce délai, votre compte sera supprimé et vous ne pourrez plus vous connecter.
+          </p>
+
+          @if (!confirmationAffichee) {
+            <button type="button" class="btn-zone" (click)="confirmationAffichee = true">
+              Supprimer mon compte
+            </button>
+          } @else {
+            <div class="zone-confirmation">
+              <p>
+                <strong>Confirmer la suppression ?</strong>
+                Votre compte sera supprimé définitivement <strong>72 heures</strong> après la
+                confirmation, sauf annulation entre-temps.
+              </p>
+              <div class="zone-actions">
+                <button type="button" class="btn-zone" (click)="planifierSuppression()" [disabled]="enCours">
+                  Oui, programmer la suppression
+                </button>
+                <button type="button" class="btn-contour-sombre" (click)="confirmationAffichee = false"
+                        [disabled]="enCours">
+                  Non, y renoncer
+                </button>
+              </div>
+            </div>
+          }
+        } @else {
+          <p class="zone-texte">
+            Votre compte est programmé pour suppression le <strong>{{ dateSuppressionFr }}</strong>
+            (dans environ {{ heuresRestantes }} h).
+          </p>
+          <button type="button" class="btn-signal profil-bouton" (click)="annulerSuppression()" [disabled]="enCours">
+            {{ enCours ? 'Annulation…' : 'Annuler la suppression' }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -35,6 +35,10 @@ public class CompteClient {
     @Column(name = "date_derniere_connexion")
     private LocalDateTime dateDerniereConnexion;
 
+    /** Date à laquelle le compte sera définitivement supprimé (délai de rétractation de 72 h). */
+    @Column(name = "date_suppression_planifiee")
+    private LocalDateTime dateSuppressionPlanifiee;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_role")
     private Role role;
@@ -93,6 +97,14 @@ public class CompteClient {
 
     public void setDateDerniereConnexion(LocalDateTime dateDerniereConnexion) {
         this.dateDerniereConnexion = dateDerniereConnexion;
+    }
+
+    public LocalDateTime getDateSuppressionPlanifiee() {
+        return dateSuppressionPlanifiee;
+    }
+
+    public void setDateSuppressionPlanifiee(LocalDateTime dateSuppressionPlanifiee) {
+        this.dateSuppressionPlanifiee = dateSuppressionPlanifiee;
     }
 
     public Role getRole() {

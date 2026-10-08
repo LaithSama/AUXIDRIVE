@@ -1,13 +1,16 @@
 /* Polices + tokens partagés : chargés globalement via src/styles.scss */
 
 :host {
-  --nuit: #10283c;
-  --nuit-2: #17364f;
-  --lagon: #1f7a8c;
-  --signal: #f2b632;
+  --nuit: #2e3437;
+  --nuit-2: #3a4245;
+  --lagon: #1f6b4a;
+  --signal: #55a13a;
+  --signal-clair: #8fd06a;
   --papier: #f6f7f5;
   --encre: #1c2227;
-  --gris: #5b6770;
+  --gris: #5f676b;
+  --sable: #ece2d4;
+  --bois: #a9744f;
 
   display: block;
   background: var(--papier);
@@ -32,6 +35,9 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   background: var(--nuit);
   color: #fff;
 }
+
+/* barre fixe : les ancres de la navbar s'arrêtent juste en dessous */
+section[id] { scroll-margin-top: 5rem; }
 .marque {
   color: #fff;
   font-weight: 700;
@@ -74,7 +80,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   margin-top: 1rem;
   color: #c5d2dc;
   font-size: 0.95rem;
-  a { color: var(--signal); }
+  a { color: var(--signal-clair); }
 }
 
 /* la plaque : le seul élément "spectaculaire" de la page */
@@ -131,7 +137,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   font-size: 1.1rem;
   text-decoration: none;
   cursor: pointer;
-  &:hover { background: #ffc94d; color: var(--encre); }
+  &:hover { background: #63ab3e; color: var(--encre); }
 }
 .btn-signal-clair { margin-top: 0.5rem; }
 
@@ -183,6 +189,19 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   .formule-texte { color: #e1f0f3; }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .formule {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 28px rgba(46, 52, 55, 0.18);
+    }
+  }
+  .formule-flotte:hover {
+    box-shadow: 0 14px 28px rgba(31, 107, 74, 0.35);
+  }
+}
+
 /* étapes */
 .etapes {
   list-style: none;
@@ -231,12 +250,88 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 
 /* pied de page */
 .pied {
-  background: var(--encre);
-  color: #aeb9c1;
-  padding: 1.75rem 0;
+  background: var(--nuit);
+  color: #cfc8c0;
+  padding: 2.25rem 0;
   font-size: 0.95rem;
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .btn-signal { transition: background-color 0.15s; }
+.pied-titre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 0.4rem;
 }
+.pied-lien {
+  color: var(--signal-clair);
+  font-weight: 500;
+  text-decoration: none;
+  margin-right: 0.85rem;
+  &:hover { text-decoration: underline; }
+}
+
+/* ---------- contact : contenu de la page Facebook ---------- */
+.bloc-chaleureux {
+  background: var(--sable);
+
+  h2 { margin-bottom: 0.75rem; }
+  .chapeau { color: var(--gris); }
+}
+
+.actu {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 2px solid var(--encre);
+  border-left: 6px solid var(--bois);
+  border-radius: 18px 18px 18px 4px;
+  overflow: hidden;
+}
+
+.actu-corps {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.5rem 1.75rem 1.75rem;
+
+  h3 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.actu-sur-titre {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--signal);
+  margin-bottom: 0.35rem;
+}
+
+.actu-liste {
+  padding-left: 1.15rem;
+  margin: 0 0 1rem;
+  li { margin-bottom: 0.35rem; }
+  li::marker { color: var(--lagon); }
+}
+.actu-puces li::marker { color: var(--signal); }
+
+.actu-texte {
+  color: var(--gris);
+  margin-bottom: 1rem;
+}
+
+.actu-corps .btn-signal { align-self: flex-start; }
+
+.actu-tels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding-top: 0.5rem;
+}
+

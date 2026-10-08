@@ -91,6 +91,19 @@ public class FactureService {
      */
     @Transactional
     public Facture emettreSouscription(Contrat contrat, Detail detail) {
+        return emettre(contrat, detail, TypeFacture.SOUSCRIPTION);
+    }
+
+    /**
+     * Émet la facture de renouvellement émise à chaque reconduction tacite du contrat,
+     * sur le même modèle que la facture de souscription.
+     */
+    @Transactional
+    public Facture emettreRenouvellement(Contrat contrat, Detail detail) {
+        return emettre(contrat, detail, TypeFacture.RENOUVELLEMENT);
+    }
+
+    private Facture emettre(Contrat contrat, Detail detail, TypeFacture type) {
         if (contrat.getBranche() == null || contrat.getOffre() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Contrat sans branche ni offre : impossible d'établir la facture");
@@ -98,7 +111,7 @@ public class FactureService {
 
         Facture facture = new Facture();
         facture.setContrat(contrat);
-        facture.setTypeFacture(TypeFacture.SOUSCRIPTION);
+        facture.setTypeFacture(type);
         facture.setDateEmission(LocalDate.now());
         facture.setStatutFacture(StatutFacture.EMISE);
         // prime_nette porte la base taxable, c'est-à-dire la prime nette plus les accessoires

@@ -42,6 +42,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/utilisateurs/**").hasRole("ADMIN")
                 .requestMatchers("/api/inscriptions/**", "/api/assures/**", "/api/documents/**", "/api/comptes-clients/**")
                     .hasAnyRole("AGENT", "ADMIN")
+                // profil du client connecté (consultation, modification, suppression programmée)
+                .requestMatchers("/api/profil/**").hasRole("CLIENT")
                 // véhicules : l'agent et l'administrateur ont tous les droits, le client seulement les siens.
                 // Les routes staff sont déclarées avant les routes client pour que le premier motif qui
                 // correspond gagne ; sans cela un client pourrait lister les véhicules d'un autre assuré.

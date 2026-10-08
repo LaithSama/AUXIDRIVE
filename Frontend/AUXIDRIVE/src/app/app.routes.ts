@@ -8,6 +8,7 @@ import { DashboardContrats } from './pages/dashboard/contrats/contrats';
 import { DashboardSinistres } from './pages/dashboard/sinistres/sinistres';
 import { DashboardFactures } from './pages/dashboard/factures/factures';
 import { DashboardVehicules } from './pages/dashboard/vehicules/vehicules';
+import { DashboardProfil } from './pages/dashboard/profil/profil';
 import { AgentDashboard } from './pages/agent-dashboard/agent-dashboard';
 import { roleGuard } from './core/guards/role-guard';
 
@@ -29,6 +30,7 @@ export const routes: Routes = [
             {path: 'sinistres', component: DashboardSinistres},
             {path: 'factures', component: DashboardFactures},
             {path: 'vehicules', component: DashboardVehicules},
+            {path: 'profil', component: DashboardProfil},
         ],
     },
 

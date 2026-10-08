@@ -1,5 +1,6 @@
 package mg.auxidrive.api.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +28,12 @@ public interface ContratRepository extends JpaRepository<Contrat, Long> {
     List<Contrat> findByAssure_IdAssureOrderByIdContrat(Long idAssure);
 
     List<Contrat> findByStatutContratOrderByIdContrat(StatutContrat statutContrat);
+
+    /* Échéances : assure, offre et branche sont chargés d'avance (open-in-view désactivé),
+       le service de planification lit ces relations pour calculer et rédiger les mails. */
+    @EntityGraph(attributePaths = {"assure", "offre", "branche"})
+    List<Contrat> findByStatutContratAndDateExpirationBetween(StatutContrat statutContrat,
+                                                              LocalDate debut, LocalDate fin);
 
     Optional<Contrat> findByNumPolice(String numPolice);
 

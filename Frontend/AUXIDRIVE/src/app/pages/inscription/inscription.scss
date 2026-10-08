@@ -6,7 +6,7 @@
   width: 100%;
   max-width: 680px;
   margin: 0 auto;
-  box-shadow: 8px 8px 0 rgba(16, 40, 60, 0.08);
+  box-shadow: 8px 8px 0 rgba(46, 52, 55, 0.08);
 }
 
 .inscription-titre {
@@ -35,4 +35,100 @@
 .inscription-envoi {
   width: 100%;
   margin-top: 0.75rem;
+}
+
+/* ---------- overlay de confirmation ---------- */
+.inscription-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(46, 52, 55, 0.75);
+  backdrop-filter: blur(3px);
+}
+
+.inscription-confirmation {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border: 2px solid var(--encre);
+  border-radius: 18px 18px 18px 4px;
+  box-shadow: 12px 12px 0 rgba(46, 52, 55, 0.35);
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+.confirmation-icone {
+  display: block;
+  font-size: 3.5rem;
+  color: var(--signal);
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+
+.confirmation-titre {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  margin: 0 0 0.75rem;
+  color: var(--encre);
+}
+
+.confirmation-numero {
+  display: inline-block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--papier);
+  border: 1px solid #e3e7ea;
+  border-radius: 999px;
+  padding: 0.2rem 0.9rem;
+  margin: 0 0 1rem;
+  color: var(--nuit);
+}
+
+.confirmation-texte {
+  color: var(--gris);
+  margin: 0 0 1.25rem;
+
+  strong { color: var(--encre); }
+}
+
+.confirmation-rebours {
+  background: #e6f3ee;
+  border-left: 6px solid var(--lagon);
+  color: var(--encre);
+  font-weight: 600;
+  font-size: 0.97rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: 8px;
+  margin: 0 0 1.5rem;
+}
+
+.confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .inscription-overlay {
+    animation: overlay-fade 0.25s ease;
+  }
+
+  .inscription-confirmation {
+    animation: overlay-fade 0.3s ease;
+  }
+}
+
+@keyframes overlay-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

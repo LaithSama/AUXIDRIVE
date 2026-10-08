@@ -10,7 +10,7 @@
   font-size: 1.1rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--signal);
+  color: var(--signal-clair);
   margin-left: 0.35rem;
 }
 
@@ -51,6 +51,11 @@
   background: var(--nuit-2);
   color: #fff;
   box-shadow: inset 4px 0 0 var(--signal);
+}
+
+/* icône du lien actif : accent vert */
+.sidebar-lien-actif .bi {
+  color: var(--signal-clair);
 }
 
 /* ---------- contenu ---------- */

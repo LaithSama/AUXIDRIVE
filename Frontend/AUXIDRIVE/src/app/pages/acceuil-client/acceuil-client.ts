@@ -45,6 +45,28 @@ export class AcceuilClient implements OnInit {
     'Déclarer un sinistre et suivre son traitement',
   ];
 
+  horaires = [
+    { jour: 'Lundi à Vendredi', heures: '08h00 – 17h00' },
+    { jour: 'Samedi', heures: '08h00 – 12h00' },
+  ];
+
+  coordonnees = [
+    'Galerie Zoom Ankorondrano, près du Restaurant « Au QG » et de l\'Institut Pasteur',
+    'Rez-de-chaussée bâtiment AUXIMAD, Antsahavola',
+  ];
+
+  telephones = [
+    { affiche: '032 05 242 21', lien: 'tel:+261320524221' },
+    { affiche: '032 05 243 32', lien: 'tel:+261320524332' },
+  ];
+
+  reflexes = [
+    'Sécurisez les lieux',
+    'Vérifiez les dégâts',
+    'Remplissez votre constat amiable',
+    'Contactez votre assurance rapidement',
+  ];
+
   ngOnInit(): void {
     // le catalogue d'offres est public (GET /api/offres)
     this.http.get<Offre[]>(`${API}/offres`).subscribe({

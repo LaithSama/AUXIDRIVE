@@ -18,6 +18,17 @@ export class DashboardFactures implements OnInit {
   erreur = '';
   telechargementId: number | null = null;
 
+  private static readonly LIBELLES_TYPES: Record<string, string> = {
+    SOUSCRIPTION: 'Souscription',
+    RENOUVELLEMENT: 'Renouvellement',
+    MAJORATION: 'Majoration',
+    RESILIATION: 'Résiliation',
+  };
+
+  libelleType(type: string | undefined): string {
+    return type ? DashboardFactures.LIBELLES_TYPES[type] ?? type : '—';
+  }
+
   ngOnInit(): void {
     this.factureService.mesFactures().subscribe({
       next: (factures) => {

@@ -1,9 +1,12 @@
 package mg.auxidrive.api.repository;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import mg.auxidrive.api.model.*;
@@ -16,4 +19,10 @@ public interface CompteClientRepository extends JpaRepository<CompteClient, Long
     boolean existsByEmail(String email);
 
     Optional<CompteClient> findByAssure_IdAssure(Long idAssure);
+
+    /** Suppression définitive des comptes dont le délai de rétractation est écoulé. */
+    @Modifying
+    @Query("delete from CompteClient c where c.dateSuppressionPlanifiee is not null "
+            + "and c.dateSuppressionPlanifiee <= :limite")
+    int purgeEchues(@Param("limite") LocalDateTime limite);
 }

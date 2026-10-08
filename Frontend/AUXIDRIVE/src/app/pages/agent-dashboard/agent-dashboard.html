@@ -27,7 +27,7 @@
     <button type="button" class="agent-nav-lien"
             [class.agent-nav-actif]="vue() === 'inscriptions'"
             (click)="changerVue('inscriptions')">
-      📋 Inscriptions
+      <i class="bi bi-clipboard2-check-fill" aria-hidden="true"></i>Inscriptions
       @if (demandesEnAttente().length > 0) {
         <span class="agent-nav-badge">{{ demandesEnAttente().length }}</span>
       }
@@ -35,7 +35,7 @@
     <button type="button" class="agent-nav-lien"
             [class.agent-nav-actif]="vue() === 'contrats'"
             (click)="changerVue('contrats')">
-      📄 Contrats
+      <i class="bi bi-file-earmark-text-fill" aria-hidden="true"></i>Contrats
       @if (contratsAttente().length > 0) {
         <span class="agent-nav-badge">{{ contratsAttente().length }}</span>
       }
@@ -43,7 +43,7 @@
     <button type="button" class="agent-nav-lien"
             [class.agent-nav-actif]="vue() === 'sinistres'"
             (click)="changerVue('sinistres')">
-      🚗 Sinistres
+      <i class="bi bi-car-front-fill" aria-hidden="true"></i>Sinistres
       @if (sinistresDeclares().length > 0) {
         <span class="agent-nav-badge">{{ sinistresDeclares().length }}</span>
       }
@@ -57,21 +57,21 @@
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletActif() === 'EN_ATTENTE'"
                 (click)="changerOnglet('EN_ATTENTE')">
-          📥 À vérifier ({{ demandesEnAttente().length }})
+          <i class="bi bi-inbox-fill" aria-hidden="true"></i>À vérifier ({{ demandesEnAttente().length }})
         </button>
       </li>
       <li>
         <button type="button" class="onglet onglet-valide"
                 [class.onglet-actif]="ongletActif() === 'VALIDEE'"
                 (click)="changerOnglet('VALIDEE')">
-          ✓ Validés ({{ demandesValidees().length }})
+          <i class="bi bi-check-circle-fill" aria-hidden="true"></i>Validés ({{ demandesValidees().length }})
         </button>
       </li>
       <li>
         <button type="button" class="onglet onglet-refuse"
                 [class.onglet-actif]="ongletActif() === 'REFUSEE'"
                 (click)="changerOnglet('REFUSEE')">
-          ✗ Refusés ({{ demandesRefusees().length }})
+          <i class="bi bi-x-circle-fill" aria-hidden="true"></i>Refusés ({{ demandesRefusees().length }})
         </button>
       </li>
     </ul>
@@ -107,13 +107,13 @@
                   <td><span class="pastille pastille-sombre font-monospace">{{ d.identifiants?.cin || 'Absent' }}</span></td>
                   <td class="text-end pe-4">
                     <div class="d-inline-flex gap-2">
-                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')">✓ Valider</button>
-                      <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')">✗ Refuser</button>
+                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')"><i class="bi bi-check-lg" aria-hidden="true"></i>Valider</button>
+                      <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')"><i class="bi bi-x-lg" aria-hidden="true"></i>Refuser</button>
                     </div>
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="5" class="text-center py-4 text-muted">🎉 Aucun dossier en attente d'approbation.</td></tr>
+                <tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-check2-circle" aria-hidden="true"></i> Aucun dossier en attente d'approbation.</td></tr>
               }
             }
 
@@ -151,7 +151,8 @@
                   </td>
                   <td>
                     <span class="agent-refus text-truncate d-inline-block" [title]="d.motifRefus || d.motif">
-                      ⚠️ {{ d.motifRefus || d.motif || 'Aucun motif renseigné' }}
+                      <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                      {{ d.motifRefus || d.motif || 'Aucun motif renseigné' }}
                     </span>
                   </td>
                   <td class="text-end pe-4 text-muted small fst-italic">Rejeté</td>
@@ -174,21 +175,21 @@
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletContrat() === 'EN_ATTENTE'"
                 (click)="changerOngletContrat('EN_ATTENTE')">
-          📥 À valider ({{ contratsAttente().length }})
+          <i class="bi bi-inbox-fill" aria-hidden="true"></i>À valider ({{ contratsAttente().length }})
         </button>
       </li>
       <li>
         <button type="button" class="onglet onglet-valide"
                 [class.onglet-actif]="ongletContrat() === 'VALIDE'"
                 (click)="changerOngletContrat('VALIDE')">
-          ✓ Validés ({{ contratsValides().length }})
+          <i class="bi bi-check-circle-fill" aria-hidden="true"></i>Validés ({{ contratsValides().length }})
         </button>
       </li>
       <li>
         <button type="button" class="onglet onglet-refuse"
                 [class.onglet-actif]="ongletContrat() === 'REFUSE'"
                 (click)="changerOngletContrat('REFUSE')">
-          ✗ Refusés ({{ contratsRefuses().length }})
+          <i class="bi bi-x-circle-fill" aria-hidden="true"></i>Refusés ({{ contratsRefuses().length }})
         </button>
       </li>
     </ul>
@@ -219,13 +220,13 @@
                   <td><span class="pastille">En attente</span></td>
                   <td class="text-end pe-4">
                     <div class="d-inline-flex gap-2">
-                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModaleContrat(c, 'VALIDER')">✓ Valider</button>
-                      <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModaleContrat(c, 'REFUSER')">✗ Refuser</button>
+                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModaleContrat(c, 'VALIDER')"><i class="bi bi-check-lg" aria-hidden="true"></i>Valider</button>
+                      <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModaleContrat(c, 'REFUSER')"><i class="bi bi-x-lg" aria-hidden="true"></i>Refuser</button>
                     </div>
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="6" class="text-center py-4 text-muted">🎉 Aucune demande de contrat en attente.</td></tr>
+                <tr><td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-check2-circle" aria-hidden="true"></i> Aucune demande de contrat en attente.</td></tr>
               }
             }
 
@@ -272,21 +273,21 @@
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletSinistre() === 'DECLARE'"
                 (click)="changerOngletSinistre('DECLARE')">
-          📥 À instruire ({{ sinistresDeclares().length }})
+          <i class="bi bi-inbox-fill" aria-hidden="true"></i>À instruire ({{ sinistresDeclares().length }})
         </button>
       </li>
       <li>
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletSinistre() === 'RAPPORT_EN_COURS'"
                 (click)="changerOngletSinistre('RAPPORT_EN_COURS')">
-          📝 Rapport en cours ({{ sinistresEnCours().length }})
+          <i class="bi bi-pencil-fill" aria-hidden="true"></i>Rapport en cours ({{ sinistresEnCours().length }})
         </button>
       </li>
       <li>
         <button type="button" class="onglet onglet-valide"
                 [class.onglet-actif]="ongletSinistre() === 'CLOTURES'"
                 (click)="changerOngletSinistre('CLOTURES')">
-          ✓ Clôturés ({{ sinistresClotures().length }})
+          <i class="bi bi-check-circle-fill" aria-hidden="true"></i>Clôturés ({{ sinistresClotures().length }})
         </button>
       </li>
     </ul>
@@ -318,7 +319,7 @@
                   <td><span class="pastille">Déclaré</span></td>
                   <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
                   <td class="text-end pe-4">
-                    <button type="button" class="agent-btn" (click)="ouvrirRapport(s)">📋 Rapport</button>
+                    <button type="button" class="agent-btn" (click)="ouvrirRapport(s)"><i class="bi bi-clipboard2-fill" aria-hidden="true"></i>Rapport</button>
                   </td>
                 </tr>
               } @empty {
@@ -337,7 +338,7 @@
                   <td><span class="pastille pastille-sombre">Rapport reçu</span></td>
                   <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
                   <td class="text-end pe-4">
-                    <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirCloture(s)">⚖️ Clôturer</button>
+                    <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirCloture(s)"><i class="bi bi-archive-fill" aria-hidden="true"></i>Clôturer</button>
                   </td>
                 </tr>
               } @empty {
@@ -366,7 +367,7 @@
                   </td>
                   <td class="text-end fw-medium">{{ s.montantIndemnisation | montant }}</td>
                   <td class="text-end pe-4">
-                    <button type="button" class="agent-btn" (click)="ouvrirDetail(s)">👁 Détail</button>
+                    <button type="button" class="agent-btn" (click)="ouvrirDetail(s)"><i class="bi bi-eye-fill" aria-hidden="true"></i>Détail</button>
                   </td>
                 </tr>
               } @empty {
@@ -388,9 +389,13 @@
 
           <div class="agent-modale-entete" [class.agent-modale-entete-refus]="modeAction === 'REFUSER'">
             <h5 class="agent-modale-titre">
-              {{ modeAction === 'VALIDER' ? '✓ Approuver la demande' : '✗ Rejeter le dossier' }}
+              @if (modeAction === 'VALIDER') {
+                <i class="bi bi-check-lg" aria-hidden="true"></i>Approuver la demande
+              } @else {
+                <i class="bi bi-x-lg" aria-hidden="true"></i>Rejeter le dossier
+              }
             </h5>
-            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
 
           <div class="modal-body py-4">
@@ -440,9 +445,13 @@
 
           <div class="agent-modale-entete" [class.agent-modale-entete-refus]="modeContrat === 'REFUSER'">
             <h5 class="agent-modale-titre">
-              {{ modeContrat === 'VALIDER' ? '✓ Valider le contrat' : '✗ Refuser la demande' }}
+              @if (modeContrat === 'VALIDER') {
+                <i class="bi bi-check-lg" aria-hidden="true"></i>Valider le contrat
+              } @else {
+                <i class="bi bi-x-lg" aria-hidden="true"></i>Refuser la demande
+              }
             </h5>
-            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
 
           <div class="modal-body py-4">
@@ -492,8 +501,8 @@
         <div class="modal-content agent-modale">
 
           <div class="agent-modale-entete">
-            <h5 class="agent-modale-titre">📋 Rapport policier — sinistre n°{{ sinistreSelectionne.idSinistre }}</h5>
-            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+            <h5 class="agent-modale-titre"><i class="bi bi-clipboard2-fill" aria-hidden="true"></i>Rapport policier — sinistre n°{{ sinistreSelectionne.idSinistre }}</h5>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
 
           <div class="modal-body py-4">
@@ -563,8 +572,8 @@
         <div class="modal-content agent-modale">
 
           <div class="agent-modale-entete">
-            <h5 class="agent-modale-titre">⚖️ Clôturer le dossier — sinistre n°{{ sinistreSelectionne.idSinistre }}</h5>
-            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+            <h5 class="agent-modale-titre"><i class="bi bi-archive-fill" aria-hidden="true"></i>Clôturer le dossier — sinistre n°{{ sinistreSelectionne.idSinistre }}</h5>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
 
           <div class="modal-body py-4">
@@ -591,8 +600,8 @@
                        [(ngModel)]="montantSaisi" />
               </div>
               <p class="message-info mb-0">
-                <strong>✓ Indemniser</strong> valide le dossier (statut « Indemnisé » côté client) ;
-                <strong>✗ Refuser</strong> le clôture sans versement.
+                <strong><i class="bi bi-check-lg" aria-hidden="true"></i>Indemniser</strong> valide le dossier (statut « Indemnisé » côté client) ;
+                <strong><i class="bi bi-x-lg" aria-hidden="true"></i>Refuser</strong> le clôture sans versement.
               </p>
             }
           </div>
@@ -601,10 +610,10 @@
             <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
             @if (!messageSucces) {
               <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" (click)="cloturer(false)">
-                ✗ Refuser
+                <i class="bi bi-x-lg" aria-hidden="true"></i>Refuser
               </button>
               <button type="button" class="btn-signal" [disabled]="!indemnisationPrete" (click)="cloturer(true)">
-                ✓ Indemniser
+                <i class="bi bi-check-lg" aria-hidden="true"></i>Indemniser
               </button>
             }
           </div>
@@ -621,8 +630,8 @@
         <div class="modal-content agent-modale">
 
           <div class="agent-modale-entete" [class.agent-modale-entete-refus]="sinistreSelectionne.statutSinistre === 'REFUSE'">
-            <h5 class="agent-modale-titre">📄 Sinistre n°{{ sinistreSelectionne.idSinistre }} — dossier clôturé</h5>
-            <button type="button" class="agent-modale-fermer" (click)="fermerModale()">✕</button>
+            <h5 class="agent-modale-titre"><i class="bi bi-file-earmark-check-fill" aria-hidden="true"></i>Sinistre n°{{ sinistreSelectionne.idSinistre }} — dossier clôturé</h5>
+            <button type="button" class="agent-modale-fermer" (click)="fermerModale()"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
 
           <div class="modal-body py-4">

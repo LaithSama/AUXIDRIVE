@@ -6,14 +6,17 @@
    chargées via <link> dans src/index.html */
 
 :root {
-  --nuit: #10283c;
-  --nuit-2: #17364f;
-  --lagon: #1f7a8c;
-  --signal: #f2b632;
+  --nuit: #2e3437;
+  --nuit-2: #3a4245;
+  --lagon: #1f6b4a;
+  --signal: #55a13a;
+  --signal-clair: #8fd06a;
   --papier: #f6f7f5;
   --encre: #1c2227;
-  --gris: #5b6770;
+  --gris: #5f676b;
   --erreur: #b3261e;
+  --sable: #ece2d4;
+  --bois: #a9744f;
 }
 
 /* ---------- base ---------- */
@@ -38,14 +41,40 @@ select:focus-visible, textarea:focus-visible {
 
 /* ---------- en-tête ---------- */
 .entete {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background: var(--nuit);
   color: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
 }
 .marque {
   color: #fff;
   font-weight: 700;
   font-size: 1.5rem;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.marque-logo {
+  display: block;
+  height: 38px;
+  width: auto;
+  border-radius: 4px;
+}
+.entete-drapeau {
+  display: block;
+  height: 30px;
+  width: auto;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
+}
+
+@media (max-width: 419.98px) {
+  .marque { font-size: 1.25rem; }
+  .marque-logo { height: 30px; }
+  .entete-drapeau { height: 26px; }
 }
 .lien {
   color: #d3dde5;
@@ -55,8 +84,8 @@ select:focus-visible, textarea:focus-visible {
 
 /* ---------- pied de page ---------- */
 .pied {
-  background: var(--encre);
-  color: #aeb9c1;
+  background: var(--nuit);
+  color: #cfc8c0;
   padding: 1.75rem 0;
   font-size: 0.95rem;
 }
@@ -74,7 +103,7 @@ select:focus-visible, textarea:focus-visible {
   font-size: 1.05rem;
   text-decoration: none;
   cursor: pointer;
-  &:hover:not(:disabled) { background: #ffc94d; color: var(--encre); }
+  &:hover:not(:disabled) { background: #63ab3e; color: var(--encre); }
   &:disabled { opacity: 0.6; cursor: wait; }
 }
 
@@ -198,7 +227,7 @@ select:focus-visible, textarea:focus-visible {
   margin-bottom: 1.25rem;
 }
 .message-info {
-  background: #e1f0f3;
+  background: #e8f1ea;
   border-left: 6px solid var(--lagon);
   color: var(--encre);
   padding: 0.8rem 1rem;
@@ -224,6 +253,7 @@ select:focus-visible, textarea:focus-visible {
 .champ .aide { display: block; color: var(--gris); font-size: 0.9rem; margin-top: 0.25rem; }
 .champ input[type='text'], .champ input[type='email'], .champ input[type='password'],
 .champ input[type='tel'], .champ input[type='date'], .champ input[type='file'],
+.champ input[type='number'],
 .champ select, .champ textarea,
 .saisie {
   width: 100%;
@@ -236,7 +266,7 @@ select:focus-visible, textarea:focus-visible {
   &:focus {
     border-color: var(--lagon);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(31, 122, 140, 0.25);
+    box-shadow: 0 0 0 3px rgba(31, 107, 74, 0.25);
   }
 }
 .champ.invalide input, .champ.invalide select { border-color: var(--erreur); }
@@ -251,5 +281,37 @@ select:focus-visible, textarea:focus-visible {
 .chapeau { color: var(--gris); max-width: 60ch; }
 
 @media (prefers-reduced-motion: no-preference) {
-  .btn-signal, .btn-contour { transition: background-color 0.15s, color 0.15s; }
+  .btn-signal,
+  .btn-contour,
+  .btn-contour-sombre {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+      transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .btn-signal:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(85, 161, 58, 0.35);
+  }
+  .btn-signal:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .btn-contour-sombre:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(46, 52, 55, 0.25);
+  }
+  .btn-contour-sombre:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  .btn-contour:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(255, 255, 255, 0.25);
+  }
+  .btn-contour:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
 }

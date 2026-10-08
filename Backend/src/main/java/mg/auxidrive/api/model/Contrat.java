@@ -48,6 +48,10 @@ public class Contrat {
     @Column(name = "date_expiration")
     private LocalDate dateExpiration;
 
+    /** Date à laquelle le mail de rappel d'échéance a été envoyé ; null = pas encore envoyé. */
+    @Column(name = "date_notif_echeance")
+    private LocalDate dateNotifEcheance;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "statut_contrat", length = 20)
     private StatutContrat statutContrat;
@@ -159,6 +163,14 @@ public class Contrat {
 
     public void setDateExpiration(LocalDate dateExpiration) {
         this.dateExpiration = dateExpiration;
+    }
+
+    public LocalDate getDateNotifEcheance() {
+        return dateNotifEcheance;
+    }
+
+    public void setDateNotifEcheance(LocalDate dateNotifEcheance) {
+        this.dateNotifEcheance = dateNotifEcheance;
     }
 
     public StatutContrat getStatutContrat() {

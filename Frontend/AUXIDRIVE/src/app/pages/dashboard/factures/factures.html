@@ -34,7 +34,7 @@
                 {{ f.numPolice || '—' }}
                 <span class="fac-id">n°{{ f.idFacture }}</span>
               </td>
-              <td>{{ f.typeFacture }}</td>
+              <td>{{ libelleType(f.typeFacture) }}</td>
               <td>{{ f.dateEmission | dateFr }}</td>
               <td>
                 @switch (f.statutFacture) {

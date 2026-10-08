@@ -1,10 +1,15 @@
 <header class="entete">
   <nav class="container d-flex align-items-center justify-content-between py-3" aria-label="Navigation principale">
-    <a routerLink="/" class="marque">Auxiassur</a>
+    <a routerLink="/" class="marque">
+      <img class="marque-logo" src="img/logo-auxiassur.jpg" alt="" />
+      Auxiassur
+    </a>
     <div class="d-flex align-items-center gap-2 gap-md-4">
       <a href="#formules" class="lien d-none d-md-inline">Nos formules</a>
       <a href="#demarches" class="lien d-none d-md-inline">Comment ça marche</a>
+      <a href="#contact" class="lien d-none d-md-inline">Contact</a>
       <a routerLink="/connexion" class="btn btn-outline-light btn-sm px-3">Se connecter</a>
+      <img class="entete-drapeau" src="img/drapeau-droite.jpg" alt="" aria-hidden="true" />
     </div>
   </nav>
 </header>
@@ -115,11 +120,99 @@
       </div>
     </div>
   </section>
+  <!-- Contact : contenu de la page Facebook Auxiassur -->
+  <section id="contact" class="bloc bloc-chaleureux">
+    <div class="container">
+      <h2>Passez nous voir ou contactez-nous</h2>
+      <p class="chapeau">
+        Notre équipe est prête à vous accueillir et à répondre à tous vos besoins en assurance.
+        Que ce soit pour une souscription, un renouvellement, un conseil ou une déclaration,
+        nous sommes là pour vous accompagner.
+      </p>
+
+      <div class="row g-4 mt-1">
+        <div class="col-lg-6">
+          <article class="actu">
+            <div class="actu-corps">
+              <h3>Nous sommes ouverts</h3>
+              <p class="actu-texte">Passez nous voir ou contactez-nous pendant nos heures d'ouverture :</p>
+              <ul class="actu-liste">
+                @for (h of horaires; track h.jour) {
+                  <li><strong>{{ h.jour }}</strong> : {{ h.heures }}</li>
+                }
+              </ul>
+              <p class="actu-texte">Nos deux adresses :</p>
+              <ul class="actu-liste">
+                @for (a of coordonnees; track a) {
+                  <li>{{ a }}</li>
+                }
+              </ul>
+              <div class="actu-tels">
+                <a class="btn-signal" [href]="telephones[0].lien"><i class="bi bi-telephone-fill me-2" aria-hidden="true"></i>Pour plus d'infos</a>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="col-lg-6">
+          <article class="actu">
+            <div class="actu-corps">
+              <p class="actu-sur-titre">Conseil assurance automobile</p>
+              <h3>Accident ? Gardez les bons réflexes !</h3>
+              <p class="actu-texte">
+                Un accident peut arriver à tout moment… mais les bons réflexes peuvent faire toute la
+                différence. Chez Auxiassur, nous vous accompagnons pour vous aider à gérer
+                sereinement les situations imprévues.
+              </p>
+              <p class="actu-texte">Pensez à adopter les bons gestes :</p>
+              <ul class="actu-liste actu-puces">
+                @for (r of reflexes; track r) {
+                  <li>{{ r }}</li>
+                }
+              </ul>
+              <p class="actu-texte"><strong>Votre tranquillité sur la route est notre priorité.</strong></p>
+              <p class="actu-texte">
+                Besoin d'un accompagnement pour votre assurance automobile ? L'équipe Auxiassur
+                est à votre écoute.
+              </p>
+              <p class="actu-texte">Nous trouver :</p>
+              <ul class="actu-liste">
+                @for (a of coordonnees; track a) {
+                  <li>{{ a }}</li>
+                }
+              </ul>
+              <div class="actu-tels">
+                @for (t of telephones; track t.lien) {
+                  <a class="btn-contour-sombre" [href]="t.lien"><i class="bi bi-telephone-fill me-2" aria-hidden="true"></i>{{ t.affiche }}</a>
+                }
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer class="pied">
-  <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
-    <span>Auxiassur, l'assurance automobile d'Auximad.</span>
-    <span>Antananarivo, Madagascar</span>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <p class="pied-titre">Auxiassur</p>
+        <span>L'assurance automobile d'Auximad, agence générale ARO.</span>
+      </div>
+      <div class="col-md-4">
+        <p class="pied-titre">Nous trouver</p>
+        <span>Galerie Zoom Ankorondrano · Antsahavola — Antananarivo, Madagascar</span>
+      </div>
+      <div class="col-md-4">
+        <p class="pied-titre">Nous joindre</p>
+        <span>
+          @for (t of telephones; track t.lien) {
+            <a class="pied-lien" [href]="t.lien">{{ t.affiche }}</a>
+          }
+        </span>
+      </div>
+    </div>
   </div>
 </footer>
