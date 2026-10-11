@@ -39,11 +39,14 @@ public class SecurityConfig {
                 // catalogue d'offres : lecture publique, modification réservée à l'administrateur
                 .requestMatchers(HttpMethod.GET, "/api/offres/**").permitAll()
                 .requestMatchers("/api/offres/**").hasRole("ADMIN")
-                .requestMatchers("/api/utilisateurs/**").hasRole("ADMIN")
+                // espace d'administration : gestion des utilisateurs, assurés et comptes clients
+                .requestMatchers("/api/utilisateurs/**", "/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/inscriptions/**", "/api/assures/**", "/api/documents/**", "/api/comptes-clients/**")
                     .hasAnyRole("AGENT", "ADMIN")
                 // profil du client connecté (consultation, modification, suppression programmée)
                 .requestMatchers("/api/profil/**").hasRole("CLIENT")
+                // profil de l'agent ou de l'administrateur connecté (nom, e-mail de connexion, mot de passe)
+                .requestMatchers("/api/profil-staff/**").hasAnyRole("AGENT", "ADMIN")
                 // véhicules : l'agent et l'administrateur ont tous les droits, le client seulement les siens.
                 // Les routes staff sont déclarées avant les routes client pour que le premier motif qui
                 // correspond gagne ; sans cela un client pourrait lister les véhicules d'un autre assuré.

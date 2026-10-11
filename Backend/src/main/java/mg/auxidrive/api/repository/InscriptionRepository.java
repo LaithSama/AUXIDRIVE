@@ -25,4 +25,7 @@ public interface InscriptionRepository extends JpaRepository<Inscription, Long> 
     List<Inscription> findByStatutInscriptionOrderByDateDemandeDesc(StatutInscription statutInscription);
 
     boolean existsByAssure_MailAndStatutInscription(String mail, StatutInscription statutInscription);
+
+    /** Comptage par statut, pour le tableau de bord administrateur. */
+    long countByStatutInscription(StatutInscription statutInscription);
 }

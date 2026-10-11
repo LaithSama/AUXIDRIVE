@@ -35,6 +35,18 @@ public class Inscription {
     @JoinColumn(name = "id_agent")
     private Utilisateur agent;
 
+    /** Identifiants légaux (CIN, NIF, CIF...) assemblés pour la liste/dossier agent, non persisté ici. */
+    @Transient
+    private AssureIdentifiantsLegaux identifiants;
+
+    public AssureIdentifiantsLegaux getIdentifiants() {
+        return identifiants;
+    }
+
+    public void setIdentifiants(AssureIdentifiantsLegaux identifiants) {
+        this.identifiants = identifiants;
+    }
+
     public Long getIdInscription() {
         return idInscription;
     }

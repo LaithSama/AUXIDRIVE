@@ -13,6 +13,7 @@ export class Dashboard implements OnInit {
   private router = inject(Router);
 
   userRole: string | null = '';
+  emailClient = this.authService.getEmail() ?? '';
 
   get roleAffiche(): string {
     switch (this.userRole) {

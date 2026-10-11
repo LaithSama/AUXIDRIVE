@@ -6,25 +6,34 @@ import { Contrat, StatutContrat } from '../../core/interfaces/contrat';
 import { Sinistre } from '../../core/interfaces/sinistre';
 import { MontantPipe } from '../../core/pipes/montant.pipe';
 import { DateFrPipe } from '../../core/pipes/date-fr.pipe';
+import { AuthService } from '../../services/auth-service';
+import { ProfilStaffPanel } from '../../components/profil-staff/profil-staff';
 
-type VueAgent = 'inscriptions' | 'contrats' | 'sinistres';
+type VueAgent = 'inscriptions' | 'contrats' | 'sinistres' | 'profil';
 type OngletSinistre = 'DECLARE' | 'RAPPORT_EN_COURS' | 'CLOTURES';
 
 @Component({
   selector: 'app-agent-dashboard',
   standalone: true,
-  imports: [FormsModule, MontantPipe, DateFrPipe],
+  imports: [FormsModule, MontantPipe, DateFrPipe, ProfilStaffPanel],
   templateUrl: './agent-dashboard.html',
   styleUrl: './agent-dashboard.scss',
 })
 export class AgentDashboard implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
   private apiUrl = 'http://localhost:8080/api';
 
   /** Espace affiché : inscriptions, contrats ou sinistres. */
   vue = signal<VueAgent>('inscriptions');
+
+  /** Sidebar dépliable (mobile). */
+  sidebarOuverte = signal(false);
+
+  /** E-mail de l'agent connecté, affiché dans le pied de la sidebar. */
+  emailAgent = this.authService.getEmail() ?? 'Agent';
 
   // ---------- Inscriptions ----------
   private apiUrlInscriptions = `${this.apiUrl}/inscriptions`;
@@ -38,6 +47,38 @@ export class AgentDashboard implements OnInit {
     this.toutesLesInscriptions().filter(d => d.statutInscription === 'VALIDEE'));
   demandesRefusees = computed(() =>
     this.toutesLesInscriptions().filter(d => d.statutInscription === 'REFUSEE'));
+
+  // Filtres inscriptions
+  rechercheInscription = signal('');
+  filtreCin = signal<'tous' | 'avec' | 'sans'>('tous');
+  dateDemandeDepuis = signal('');
+  dateDemandeJusqua = signal('');
+  triInscription = signal<'recent' | 'ancien' | 'nom'>('recent');
+
+  inscriptionsAffichees = computed(() => {
+    const liste = this.ongletActif() === 'EN_ATTENTE' ? this.demandesEnAttente()
+      : this.ongletActif() === 'VALIDEE' ? this.demandesValidees()
+      : this.demandesRefusees();
+
+    const filtree = liste.filter(d => {
+      const hay = [
+        d.idInscription, d.assure?.nomAssure, d.assure?.prenomAssure,
+        d.assure?.contact, d.assure?.mail, d.assure?.numerosAssure,
+        d.identifiants?.cin, d.motifRefus, d.motif,
+      ].map(v => this.normaliser(v)).join(' ');
+      if (!this.correspond(hay, this.rechercheInscription())) return false;
+
+      const aCin = !!d.identifiants?.cin;
+      if (this.filtreCin() === 'avec' && !aCin) return false;
+      if (this.filtreCin() === 'sans' && aCin) return false;
+
+      const date = this.dateIso(d.dateDemande);
+      if (!this.dansIntervalle(date, this.dateDemandeDepuis(), this.dateDemandeJusqua())) return false;
+      return true;
+    });
+
+    return this.trierInscriptions(filtree);
+  });
 
   demandeSelectionnee: any = null;
   numAssureSaisi = '';
@@ -58,6 +99,52 @@ export class AgentDashboard implements OnInit {
   contratSelectionne: Contrat | null = null;
   modeContrat: 'VALIDER' | 'REFUSER' | null = null;
 
+  // Filtres contrats
+  rechercheContrat = signal('');
+  primeMinContrat = signal('');
+  primeMaxContrat = signal('');
+  canalContrat = signal('');
+  echeanceProche = signal(false);
+  triContrat = signal<'recent' | 'ancien' | 'primeDesc' | 'primeAsc'>('recent');
+
+  canauxDisponibles = computed(() => {
+    const canaux = new Set<string>();
+    this.contrats().forEach(c => { if (c.canalSouscription) canaux.add(c.canalSouscription); });
+    return Array.from(canaux).sort();
+  });
+
+  contratsAffiches = computed(() => {
+    const liste = this.ongletContrat() === 'EN_ATTENTE' ? this.contratsAttente()
+      : this.ongletContrat() === 'VALIDE' ? this.contratsValides()
+      : this.contratsRefuses();
+
+    const min = this.nombreOuNull(this.primeMinContrat());
+    const max = this.nombreOuNull(this.primeMaxContrat());
+    const canal = this.canalContrat();
+    const limite = new Date();
+    limite.setDate(limite.getDate() + 30);
+
+    const filtree = liste.filter(c => {
+      const hay = [c.idContrat, c.numPolice, c.nomAssure, c.prenomAssure, c.codeAgence]
+        .map(v => this.normaliser(v)).join(' ');
+      if (!this.correspond(hay, this.rechercheContrat())) return false;
+
+      const prime = c.primeTtcCourante ?? 0;
+      if (min !== null && prime < min) return false;
+      if (max !== null && prime > max) return false;
+
+      if (canal && c.canalSouscription !== canal) return false;
+
+      if (this.echeanceProche()) {
+        if (!c.dateExpiration) return false;
+        if (new Date(c.dateExpiration) > limite) return false;
+      }
+      return true;
+    });
+
+    return this.trierContrats(filtree);
+  });
+
   // ---------- Sinistres ----------
   sinistres = signal<Sinistre[]>([]);
   ongletSinistre = signal<OngletSinistre>('DECLARE');
@@ -72,6 +159,51 @@ export class AgentDashboard implements OnInit {
 
   sinistreSelectionne: Sinistre | null = null;
   modeSinistre: 'RAPPORT' | 'CLOTURE' | 'DETAIL' | null = null;
+
+  // Filtres sinistres
+  rechercheSinistre = signal('');
+  dateSinistreDepuis = signal('');
+  dateSinistreJusqua = signal('');
+  responsabiliteFiltre = signal<'toutes' | 'assure' | 'tiers' | 'indeterminee'>('toutes');
+  montantMinSinistre = signal('');
+  montantMaxSinistre = signal('');
+  rapportRecu = signal<'tous' | 'oui' | 'non'>('tous');
+  triSinistre = signal<'recent' | 'ancien' | 'montantDesc' | 'montantAsc'>('recent');
+
+  sinistresAffiches = computed(() => {
+    const liste = this.ongletSinistre() === 'DECLARE' ? this.sinistresDeclares()
+      : this.ongletSinistre() === 'RAPPORT_EN_COURS' ? this.sinistresEnCours()
+      : this.sinistresClotures();
+
+    const min = this.nombreOuNull(this.montantMinSinistre());
+    const max = this.nombreOuNull(this.montantMaxSinistre());
+    const responsabilite = this.responsabiliteFiltre();
+    const rapport = this.rapportRecu();
+
+    const filtree = liste.filter(s => {
+      const hay = [s.idSinistre, s.numPolice, s.numRapportPolice, s.nomAssure, s.prenomAssure, s.lieuSinistre]
+        .map(v => this.normaliser(v)).join(' ');
+      if (!this.correspond(hay, this.rechercheSinistre())) return false;
+
+      const date = this.dateIso(s.dateSinistre);
+      if (!this.dansIntervalle(date, this.dateSinistreDepuis(), this.dateSinistreJusqua())) return false;
+
+      if (responsabilite === 'assure' && s.responsabiliteAssure !== true) return false;
+      if (responsabilite === 'tiers' && s.responsabiliteAssure !== false) return false;
+      if (responsabilite === 'indeterminee' && s.responsabiliteAssure !== null) return false;
+
+      const montant = s.montantIndemnisation ?? 0;
+      if (min !== null && montant < min) return false;
+      if (max !== null && montant > max) return false;
+
+      const aRapport = !!s.numRapportPolice;
+      if (rapport === 'oui' && !aRapport) return false;
+      if (rapport === 'non' && aRapport) return false;
+      return true;
+    });
+
+    return this.trierSinistres(filtree);
+  });
 
   // Formulaire de rapport policier
   numRapportSaisi = '';
@@ -126,6 +258,15 @@ export class AgentDashboard implements OnInit {
     this.vue.set(vue);
     this.messageSucces = '';
     this.messageErreur = '';
+    this.fermerSidebar();
+  }
+
+  basculerSidebar(): void {
+    this.sidebarOuverte.update(ouverte => !ouverte);
+  }
+
+  fermerSidebar(): void {
+    this.sidebarOuverte.set(false);
   }
 
   changerOnglet(statut: 'EN_ATTENTE' | 'VALIDEE' | 'REFUSEE'): void {
@@ -334,7 +475,112 @@ export class AgentDashboard implements OnInit {
   }
 
   deconnexion(): void {
-    localStorage.clear();
+    sessionStorage.clear();
     this.router.navigate(['/connexion']);
+  }
+
+  // ---------- Filtres : utilitaires ----------
+
+  reinitialiserFiltres(): void {
+    switch (this.vue()) {
+      case 'contrats':
+        this.rechercheContrat.set('');
+        this.primeMinContrat.set('');
+        this.primeMaxContrat.set('');
+        this.canalContrat.set('');
+        this.echeanceProche.set(false);
+        this.triContrat.set('recent');
+        break;
+      case 'sinistres':
+        this.rechercheSinistre.set('');
+        this.dateSinistreDepuis.set('');
+        this.dateSinistreJusqua.set('');
+        this.responsabiliteFiltre.set('toutes');
+        this.montantMinSinistre.set('');
+        this.montantMaxSinistre.set('');
+        this.rapportRecu.set('tous');
+        this.triSinistre.set('recent');
+        break;
+      default:
+        this.rechercheInscription.set('');
+        this.filtreCin.set('tous');
+        this.dateDemandeDepuis.set('');
+        this.dateDemandeJusqua.set('');
+        this.triInscription.set('recent');
+    }
+  }
+
+  private normaliser(valeur: unknown): string {
+    return (valeur ?? '').toString().toLowerCase().trim();
+  }
+
+  private correspond(texte: string, requete: string): boolean {
+    const q = this.normaliser(requete);
+    return q === '' || texte.includes(q);
+  }
+
+  private nombreOuNull(valeur: string): number | null {
+    const brut = valeur.trim();
+    if (brut === '') return null;
+    const n = Number(brut);
+    return Number.isNaN(n) ? null : n;
+  }
+
+  private dateIso(valeur: unknown): string {
+    return (valeur ?? '').toString().slice(0, 10);
+  }
+
+  private dansIntervalle(date: string, depuis: string, jusqua: string): boolean {
+    if (!date) return !depuis && !jusqua;
+    if (depuis && date < depuis) return false;
+    if (jusqua && date > jusqua) return false;
+    return true;
+  }
+
+  private trierInscriptions(liste: any[]): any[] {
+    return [...liste].sort((a, b) => {
+      switch (this.triInscription()) {
+        case 'ancien':
+          return this.dateIso(a.dateDemande).localeCompare(this.dateIso(b.dateDemande));
+        case 'nom':
+          return this.nomAssure(a).localeCompare(this.nomAssure(b));
+        default:
+          return this.dateIso(b.dateDemande).localeCompare(this.dateIso(a.dateDemande));
+      }
+    });
+  }
+
+  private trierContrats(liste: Contrat[]): Contrat[] {
+    return [...liste].sort((a, b) => {
+      switch (this.triContrat()) {
+        case 'ancien':
+          return this.dateIso(a.dateSouscription).localeCompare(this.dateIso(b.dateSouscription));
+        case 'primeDesc':
+          return (b.primeTtcCourante ?? 0) - (a.primeTtcCourante ?? 0);
+        case 'primeAsc':
+          return (a.primeTtcCourante ?? 0) - (b.primeTtcCourante ?? 0);
+        default:
+          return this.dateIso(b.dateSouscription).localeCompare(this.dateIso(a.dateSouscription));
+      }
+    });
+  }
+
+  private trierSinistres(liste: Sinistre[]): Sinistre[] {
+    return [...liste].sort((a, b) => {
+      switch (this.triSinistre()) {
+        case 'ancien':
+          return this.dateIso(a.dateSinistre).localeCompare(this.dateIso(b.dateSinistre));
+        case 'montantDesc':
+          return (b.montantIndemnisation ?? 0) - (a.montantIndemnisation ?? 0);
+        case 'montantAsc':
+          return (a.montantIndemnisation ?? 0) - (b.montantIndemnisation ?? 0);
+        default:
+          return this.dateIso(b.dateSinistre).localeCompare(this.dateIso(a.dateSinistre));
+      }
+    });
+  }
+
+  private nomAssure(d: any): string {
+    return this.normaliser(`${d.assure?.nomAssure ?? d.nomAssure ?? ''} ${d.assure?.prenomAssure ?? d.prenomAssure ?? ''}`);
   }
 }

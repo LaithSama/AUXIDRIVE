@@ -1,3 +1,5 @@
+import { GarantieType } from './garantie';
+
 export type StatutContrat = 'EN_ATTENTE' | 'VALIDE' | 'REFUSE';
 
 export interface Contrat {
@@ -7,6 +9,7 @@ export interface Contrat {
   dateSouscription: string | null;
   dateEffet: string | null;
   dateExpiration: string | null;
+  dureeMois: number | null;
   statutContrat: StatutContrat;
   coefficientBonusMalus: number | null;
   primeNetteCourante: number | null;
@@ -17,4 +20,5 @@ export interface Contrat {
   idAssure?: number | null;
   nomAssure?: string | null;
   prenomAssure?: string | null;
+  garanties?: GarantieType[];
 }

@@ -5,6 +5,7 @@ import { ContratService } from '../../../services/contrat-service';
 import { OffreService } from '../../../services/offre';
 import { VehiculeService } from '../../../services/vehicule-service';
 import { Contrat } from '../../../core/interfaces/contrat';
+import { GarantieType } from '../../../core/interfaces/garantie';
 import { Offre } from '../../../core/interfaces/offre';
 import { Vehicule } from '../../../core/interfaces/vehicule';
 import { DetailSimulation } from '../../../core/interfaces/demande-souscription';
@@ -25,16 +26,21 @@ export class DashboardContrats implements OnInit {
   contrats: Contrat[] = [];
   offres: Offre[] = [];
   vehicules: Vehicule[] = [];
+  /** Garanties proposées par l'offre sélectionnée. */
+  garanties: GarantieType[] = [];
 
   chargement = true;
   erreur = '';
   messageSucces = '';
 
+  /** Prime nette fixe par mois : le montant total est ce tarif multiplié par la durée. */
+  readonly primeMensuelleFixe = 20000;
+
   // formulaire de souscription
   formIdOffre: number | null = null;
   formVehicules: number[] = [];
-  formPrimeNette: number | null = null;
-  formDateEffet = '';
+  formGaranties: string[] = [];
+  formDureeMois: number | null = null;
   simulation: DetailSimulation | null = null;
   enCours = false;
 
@@ -61,18 +67,53 @@ export class DashboardContrats implements OnInit {
     return this.offres.find((o) => o.idOffre === this.formIdOffre);
   }
 
+  /** Prime nette envoyée au serveur : tarif mensuel fixe x durée du contrat. */
+  get primeNetteCalculee(): number {
+    return this.primeMensuelleFixe * (this.formDureeMois ?? 0);
+  }
+
   get vehiculesValides(): boolean {
     const min = this.offreSelectionnee?.nbVehiculesMin ?? 1;
     return this.formVehicules.length >= min;
   }
 
+  get dureeValide(): boolean {
+    const min = this.offreSelectionnee?.dureeMinMois ?? 1;
+    return this.formDureeMois !== null && this.formDureeMois >= min;
+  }
+
   get formulairePret(): boolean {
-    return (
-      this.formIdOffre !== null &&
-      this.vehiculesValides &&
-      this.formPrimeNette !== null &&
-      this.formPrimeNette > 0
-    );
+    return this.formIdOffre !== null && this.vehiculesValides && this.dureeValide;
+  }
+
+  /**
+   * Au changement d'offre, la durée repart du minimum imposé et les garanties proposées par
+   * l'offre (celles de sa branche) sont rechargées.
+   */
+  changerOffre(): void {
+    this.formDureeMois = this.offreSelectionnee?.dureeMinMois ?? null;
+    this.formGaranties = [];
+    this.simulation = null;
+    this.garanties = [];
+
+    const idOffre = this.formIdOffre;
+    if (idOffre === null) {
+      return;
+    }
+    this.offreService.getGaranties(idOffre).subscribe({
+      next: (garanties) => (this.garanties = garanties),
+      error: () => (this.erreur = 'Impossible de charger les garanties de cette offre.'),
+    });
+  }
+
+  basculerGarantie(cdGarantie: string): void {
+    const index = this.formGaranties.indexOf(cdGarantie);
+    if (index === -1) {
+      this.formGaranties.push(cdGarantie);
+    } else {
+      this.formGaranties.splice(index, 1);
+    }
+    this.simulation = null;
   }
 
   basculerVehicule(id: number): void {
@@ -89,8 +130,9 @@ export class DashboardContrats implements OnInit {
     return {
       idOffre: this.formIdOffre!,
       idVehicules: [...this.formVehicules],
-      primeNette: this.formPrimeNette!,
-      dateEffet: this.formDateEffet || undefined,
+      cdGaranties: [...this.formGaranties],
+      primeNette: this.primeNetteCalculee,
+      dureeMois: this.formDureeMois!,
     };
   }
 
@@ -124,8 +166,9 @@ export class DashboardContrats implements OnInit {
         this.simulation = null;
         this.formIdOffre = null;
         this.formVehicules = [];
-        this.formPrimeNette = null;
-        this.formDateEffet = '';
+        this.formGaranties = [];
+        this.garanties = [];
+        this.formDureeMois = null;
         this.enCours = false;
         this.recharger();
       },

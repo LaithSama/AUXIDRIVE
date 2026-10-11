@@ -28,6 +28,8 @@ import mg.auxidrive.api.model.BrancheParametresCalcul;
 import mg.auxidrive.api.model.CodeTaxePolice;
 import mg.auxidrive.api.model.Contrat;
 import mg.auxidrive.api.model.ContratAuto;
+import mg.auxidrive.api.model.DemandeSouscription;
+import mg.auxidrive.api.model.GarantieType;
 import mg.auxidrive.api.model.Offre;
 import mg.auxidrive.api.model.StatutContrat;
 import mg.auxidrive.api.model.Vehicule;
@@ -37,6 +39,7 @@ import mg.auxidrive.api.repository.BrancheParametresCalculRepository;
 import mg.auxidrive.api.repository.CodeTaxePoliceRepository;
 import mg.auxidrive.api.repository.ContratAutoRepository;
 import mg.auxidrive.api.repository.ContratRepository;
+import mg.auxidrive.api.repository.GarantieTypeRepository;
 import mg.auxidrive.api.repository.OffreRepository;
 import mg.auxidrive.api.repository.VehiculeRepository;
 import mg.auxidrive.api.service.PrimeCalculator.Detail;
@@ -70,6 +73,8 @@ class ContratServiceTest {
     @Mock
     private AutoCodeTarifRepository codeTarifRepository;
     @Mock
+    private GarantieTypeRepository garantieRepository;
+    @Mock
     private FactureService factureService;
 
     private ContratService service;
@@ -78,7 +83,7 @@ class ContratServiceTest {
     void setUp() {
         service = new ContratService(contratRepository, contratAutoRepository, offreRepository,
                 vehiculeRepository, assureRepository, parametresRepository, codeTaxeRepository,
-                codeTarifRepository, factureService);
+                codeTarifRepository, garantieRepository, factureService);
     }
 
     // ---- fixtures ----
@@ -157,6 +162,143 @@ class ContratServiceTest {
         Vehicule v = new Vehicule();
         v.setCodeTarif(codeTarif());
         return v;
+    }
+
+    private Offre offre(int dureeMinMois) {
+        Branche branche = new Branche();
+        branche.setCdBranche("11");
+        Offre offre = new Offre();
+        offre.setIdOffre(1L);
+        offre.setBranche(branche);
+        offre.setDureeMinMois(dureeMinMois);
+        return offre;
+    }
+
+    // ---- souscrire ----
+
+    @Test
+    @DisplayName("Sans prime fournie, la prime nette vaut le tarif mensuel multiplié par la durée")
+    void souscrireAppliqueLaPrimeMensuelleParDefaut() {
+        Vehicule vehicule = vehiculeDuFixture();
+        vehicule.setIdVehicule(10L);
+
+        when(offreRepository.findById(1L)).thenReturn(Optional.of(offre(3)));
+        when(parametresRepository.findByBranche_CdBranche("11")).thenReturn(Optional.of(parametres()));
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+        when(assureRepository.findById(5L)).thenReturn(Optional.of(new Assure()));
+        when(contratRepository.save(any(Contrat.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DemandeSouscription demande = new DemandeSouscription();
+        demande.setIdOffre(1L);
+        demande.setIdVehicules(List.of(10L));
+        demande.setDureeMois(3);
+
+        Contrat contrat = service.souscrire(demande, 5L, "PORTAL_CLIENT");
+
+        assertThat(contrat.getPrimeNetteCourante())
+                .isEqualTo(ContratService.PRIME_MENSUELLE_DEFAUT * 3, org.assertj.core.data.Offset.offset(DELTA));
+        assertThat(contrat.getDureeMois()).isEqualTo(3);
+        assertThat(contrat.getDateEffet()).isNull();
+        assertThat(contrat.getStatutContrat()).isEqualTo(StatutContrat.EN_ATTENTE);
+        verify(contratAutoRepository).save(any(ContratAuto.class));
+    }
+
+    @Test
+    @DisplayName("Une durée inférieure au minimum de l'offre est refusée")
+    void souscrireRefuseUneDureeTropCourte() {
+        when(offreRepository.findById(1L)).thenReturn(Optional.of(offre(12)));
+
+        DemandeSouscription demande = new DemandeSouscription();
+        demande.setIdOffre(1L);
+        demande.setIdVehicules(List.of(10L));
+        demande.setDureeMois(3);
+
+        assertThatThrownBy(() -> service.souscrire(demande, 5L, "PORTAL_CLIENT"))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("durée d'au moins 12 mois");
+    }
+
+    @Test
+    @DisplayName("Les garanties choisies sont rattachées au contrat")
+    void souscrireRattacheLesGarantiesChoisies() {
+        Vehicule vehicule = vehiculeDuFixture();
+        vehicule.setIdVehicule(10L);
+
+        when(offreRepository.findById(1L)).thenReturn(Optional.of(offre(3)));
+        when(parametresRepository.findByBranche_CdBranche("11")).thenReturn(Optional.of(parametres()));
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+        when(assureRepository.findById(5L)).thenReturn(Optional.of(new Assure()));
+        when(contratRepository.save(any(Contrat.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(garantieRepository.findById("05")).thenReturn(Optional.of(garantie("05", "11")));
+
+        DemandeSouscription demande = new DemandeSouscription();
+        demande.setIdOffre(1L);
+        demande.setIdVehicules(List.of(10L));
+        demande.setDureeMois(3);
+        demande.setCdGaranties(List.of("05"));
+
+        Contrat contrat = service.souscrire(demande, 5L, "PORTAL_CLIENT");
+
+        assertThat(contrat.getGaranties()).extracting(GarantieType::getCdGarantie).containsExactly("05");
+    }
+
+    @Test
+    @DisplayName("Une garantie relevant d'une autre branche est refusée")
+    void souscrireRefuseUneGarantieHorsBranche() {
+        Vehicule vehicule = vehiculeDuFixture();
+        vehicule.setIdVehicule(10L);
+
+        when(offreRepository.findById(1L)).thenReturn(Optional.of(offre(3)));
+        when(parametresRepository.findByBranche_CdBranche("11")).thenReturn(Optional.of(parametres()));
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+        when(assureRepository.findById(5L)).thenReturn(Optional.of(new Assure()));
+        when(garantieRepository.findById("99")).thenReturn(Optional.of(garantie("99", "07")));
+
+        DemandeSouscription demande = new DemandeSouscription();
+        demande.setIdOffre(1L);
+        demande.setIdVehicules(List.of(10L));
+        demande.setDureeMois(3);
+        demande.setCdGaranties(List.of("99"));
+
+        assertThatThrownBy(() -> service.souscrire(demande, 5L, "PORTAL_CLIENT"))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("branche");
+    }
+
+    private GarantieType garantie(String cdGarantie, String cdBranche) {
+        Branche branche = new Branche();
+        branche.setCdBranche(cdBranche);
+        GarantieType g = new GarantieType();
+        g.setCdGarantie(cdGarantie);
+        g.setBranche(branche);
+        return g;
+    }
+
+    // ---- valider ----
+
+    @Test
+    @DisplayName("La validation fixe la date d'effet au jour même et l'expiration selon la durée")
+    void validerFixeLaDateDEffetALaValidation() {
+        LocalDate today = LocalDate.now();
+        Contrat contrat = contratValide();
+        contrat.setStatutContrat(StatutContrat.EN_ATTENTE);
+        contrat.setNumPolice(null);
+        contrat.setDureeMois(3);
+        contrat.setPrimeNetteCourante(60000d);
+
+        stubsRecalcul(contrat);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        when(contratRepository.findAll()).thenReturn(List.of(contrat));
+        when(contratRepository.save(any(Contrat.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Contrat valide = service.valider(1L);
+
+        assertThat(valide.getDateEffet()).isEqualTo(today);
+        assertThat(valide.getDateExpiration()).isEqualTo(today.plusMonths(3));
+        assertThat(valide.getDureeMois()).isEqualTo(3);
+        assertThat(valide.getStatutContrat()).isEqualTo(StatutContrat.VALIDE);
+        assertThat(valide.getNumPolice()).isNotBlank();
+        verify(factureService).emettreSouscription(eq(contrat), any(Detail.class));
     }
 
     // ---- renouveler ----

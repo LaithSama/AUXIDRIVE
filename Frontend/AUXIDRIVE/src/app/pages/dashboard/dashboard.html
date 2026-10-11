@@ -1,10 +1,6 @@
 <header class="entete dashboard-entete">
   <div class="container d-flex align-items-center justify-content-between py-3">
     <a routerLink="/dashboard" class="marque">Auxiassur <span class="marque-suffixe">Espace</span></a>
-    <div class="d-flex align-items-center">
-      <span class="dashboard-profil">{{ roleAffiche }}</span>
-      <button type="button" class="btn-contour" (click)="deconnexion()">Déconnexion</button>
-    </div>
   </div>
 </header>
 
@@ -48,21 +44,21 @@
             </a>
           </li>
         }
-
-        <!-- Liens visibles uniquement pour les agents ou administrateurs -->
-        @if (userRole === 'ROLE_AGENT' || userRole === 'ROLE_ADMIN') {
-          <li class="nav-item">
-            <a class="nav-link sidebar-lien" routerLink="/dashboard/demandes" routerLinkActive="sidebar-lien-actif">
-              <i class="bi bi-inbox-fill me-2" aria-hidden="true"></i>Demandes d'inscription
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link sidebar-lien" routerLink="/dashboard/clients" routerLinkActive="sidebar-lien-actif">
-              <i class="bi bi-people-fill me-2" aria-hidden="true"></i>Gestion des clients
-            </a>
-          </li>
-        }
       </ul>
+
+      <!-- Pied de la sidebar : profil et déconnexion -->
+      <div class="sidebar-pied">
+        <div class="sidebar-profil">
+          <span class="sidebar-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+          <div class="sidebar-identite">
+            <strong>{{ roleAffiche }}</strong>
+            <small>{{ emailClient }}</small>
+          </div>
+        </div>
+        <button type="button" class="btn-contour sidebar-deconnexion" (click)="deconnexion()">
+          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>Déconnexion
+        </button>
+      </div>
     </nav>
 
     <!-- Contenu principal (pages enfants) -->

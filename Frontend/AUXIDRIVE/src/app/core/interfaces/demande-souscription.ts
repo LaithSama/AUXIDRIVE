@@ -1,11 +1,13 @@
 export interface DemandeSouscription {
   idOffre: number;
   idVehicules: number[];
-  primeNette: number;
+  /** Codes des garanties choisies ; vide ou absent = contrat sans garantie. */
+  cdGaranties?: string[];
+  primeNette?: number;
   codeTaxe?: string;
   tauxCommission?: number;
   coefficientBonusMalus?: number;
-  dateEffet?: string;
+  dureeMois?: number;
   codeAgence?: string;
 }
 

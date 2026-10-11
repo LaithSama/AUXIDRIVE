@@ -1,57 +1,125 @@
-<header class="entete">
-  <div class="container d-flex align-items-center justify-content-between py-3">
+<header class="entete agent-barre">
+  <div class="container-fluid d-flex align-items-center py-3">
+    <button type="button" class="agent-hamburger d-lg-none" (click)="basculerSidebar()" aria-label="Ouvrir le menu">
+      <i class="bi bi-list" aria-hidden="true"></i>
+    </button>
     <span class="marque">Auxiassur <span class="marque-suffixe">Espace Gestion</span></span>
-    <button type="button" class="btn-contour" (click)="deconnexion()">Déconnexion</button>
   </div>
 </header>
 
-<div class="container py-5">
+<div class="agent-layout">
+  <!-- Sidebar agent -->
+  <nav class="agent-sidebar" [class.agent-sidebar-ouverte]="sidebarOuverte()" aria-label="Espaces de gestion">
+    <div class="agent-sidebar-navigation">
+      <p class="agent-sidebar-titre">Espaces de gestion</p>
+
+      <button type="button" class="agent-sidebar-lien"
+              [class.agent-sidebar-lien-actif]="vue() === 'inscriptions'"
+              (click)="changerVue('inscriptions')">
+        <i class="bi bi-clipboard2-check-fill" aria-hidden="true"></i>
+        <span>Inscriptions</span>
+        @if (demandesEnAttente().length > 0) {
+          <span class="agent-sidebar-badge">{{ demandesEnAttente().length }}</span>
+        }
+      </button>
+
+      <button type="button" class="agent-sidebar-lien"
+              [class.agent-sidebar-lien-actif]="vue() === 'contrats'"
+              (click)="changerVue('contrats')">
+        <i class="bi bi-file-earmark-text-fill" aria-hidden="true"></i>
+        <span>Contrats</span>
+        @if (contratsAttente().length > 0) {
+          <span class="agent-sidebar-badge">{{ contratsAttente().length }}</span>
+        }
+      </button>
+
+      <button type="button" class="agent-sidebar-lien"
+              [class.agent-sidebar-lien-actif]="vue() === 'sinistres'"
+              (click)="changerVue('sinistres')">
+        <i class="bi bi-car-front-fill" aria-hidden="true"></i>
+        <span>Sinistres</span>
+        @if (sinistresDeclares().length > 0) {
+          <span class="agent-sidebar-badge">{{ sinistresDeclares().length }}</span>
+        }
+      </button>
+
+      <button type="button" class="agent-sidebar-lien"
+              [class.agent-sidebar-lien-actif]="vue() === 'profil'"
+              (click)="changerVue('profil')">
+        <i class="bi bi-person-circle" aria-hidden="true"></i>
+        <span>Mon profil</span>
+      </button>
+    </div>
+
+    <div class="agent-sidebar-pied">
+      <div class="agent-sidebar-profil">
+        <span class="agent-sidebar-avatar" aria-hidden="true"><i class="bi bi-person-badge-fill"></i></span>
+        <div class="agent-sidebar-identite">
+          <strong>Agent</strong>
+          <small>{{ emailAgent }}</small>
+        </div>
+      </div>
+      <button type="button" class="agent-btn agent-btn-annuler agent-sidebar-deconnexion" (click)="deconnexion()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>Déconnexion
+      </button>
+    </div>
+  </nav>
+
+  <div class="agent-sidebar-voile"
+       [class.agent-sidebar-voile-visible]="sidebarOuverte()"
+       (click)="fermerSidebar()"></div>
+
+  <main class="agent-contenu">
   <!-- En-tête du tableau de bord -->
+  @if (vue() !== 'profil') {
   <div class="agent-entete">
     <div>
       @if (vue() === 'inscriptions') {
         <h1 class="titre-section agent-titre">Suivi des dossiers d'inscription</h1>
-        <p class="chapeau mb-0">Consultez, validez ou suivez l'historique des requêtes de souscription.</p>
+        <p class="chapeau mb-0">Consultez, validez ou suivez l'historique des requêtes de souscription. <span class="agent-entete-compte">{{ demandesEnAttente().length }} en attente · {{ demandesValidees().length }} validés · {{ demandesRefusees().length }} refusés</span></p>
       } @else if (vue() === 'contrats') {
         <h1 class="titre-section agent-titre">Validation des contrats</h1>
-        <p class="chapeau mb-0">Validez les demandes de souscription : la validation attribue le numéro de police et émet la facture.</p>
+        <p class="chapeau mb-0">Validez les demandes de souscription : la validation attribue le numéro de police et émet la facture. <span class="agent-entete-compte">{{ contratsAttente().length }} à valider · {{ contratsValides().length }} validés · {{ contratsRefuses().length }} refusés</span></p>
       } @else {
         <h1 class="titre-section agent-titre">Instruction des sinistres</h1>
-        <p class="chapeau mb-0">Rédigez le rapport policier, puis validez (indemnisation) ou refusez chaque dossier.</p>
+        <p class="chapeau mb-0">Rédigez le rapport policier, puis validez (indemnisation) ou refusez chaque dossier. <span class="agent-entete-compte">{{ sinistresDeclares().length }} à instruire · {{ sinistresEnCours().length }} rapports en cours · {{ sinistresClotures().length }} clôturés</span></p>
       }
     </div>
   </div>
-
-  <!-- Navigation entre les espaces -->
-  <nav class="agent-nav" aria-label="Espaces de gestion">
-    <button type="button" class="agent-nav-lien"
-            [class.agent-nav-actif]="vue() === 'inscriptions'"
-            (click)="changerVue('inscriptions')">
-      <i class="bi bi-clipboard2-check-fill" aria-hidden="true"></i>Inscriptions
-      @if (demandesEnAttente().length > 0) {
-        <span class="agent-nav-badge">{{ demandesEnAttente().length }}</span>
-      }
-    </button>
-    <button type="button" class="agent-nav-lien"
-            [class.agent-nav-actif]="vue() === 'contrats'"
-            (click)="changerVue('contrats')">
-      <i class="bi bi-file-earmark-text-fill" aria-hidden="true"></i>Contrats
-      @if (contratsAttente().length > 0) {
-        <span class="agent-nav-badge">{{ contratsAttente().length }}</span>
-      }
-    </button>
-    <button type="button" class="agent-nav-lien"
-            [class.agent-nav-actif]="vue() === 'sinistres'"
-            (click)="changerVue('sinistres')">
-      <i class="bi bi-car-front-fill" aria-hidden="true"></i>Sinistres
-      @if (sinistresDeclares().length > 0) {
-        <span class="agent-nav-badge">{{ sinistresDeclares().length }}</span>
-      }
-    </button>
-  </nav>
+  }
 
   <!-- ==================== INSCRIPTIONS ==================== -->
   @if (vue() === 'inscriptions') {
+    <div class="agent-kpis">
+      <button type="button" class="agent-kpi agent-kpi-signal"
+              [class.agent-kpi-actif]="ongletActif() === 'EN_ATTENTE'"
+              (click)="changerOnglet('EN_ATTENTE')">
+        <i class="bi bi-inbox-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ demandesEnAttente().length }}</span>
+          <span class="agent-kpi-libelle">En attente</span>
+        </span>
+      </button>
+      <button type="button" class="agent-kpi agent-kpi-lagon"
+              [class.agent-kpi-actif]="ongletActif() === 'VALIDEE'"
+              (click)="changerOnglet('VALIDEE')">
+        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ demandesValidees().length }}</span>
+          <span class="agent-kpi-libelle">Validés</span>
+        </span>
+      </button>
+      <button type="button" class="agent-kpi agent-kpi-erreur"
+              [class.agent-kpi-actif]="ongletActif() === 'REFUSEE'"
+              (click)="changerOnglet('REFUSEE')">
+        <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ demandesRefusees().length }}</span>
+          <span class="agent-kpi-libelle">Refusés</span>
+        </span>
+      </button>
+    </div>
+
     <ul class="onglets">
       <li>
         <button type="button" class="onglet onglet-attente"
@@ -76,6 +144,36 @@
       </li>
     </ul>
 
+    <div class="agent-filtres">
+      <div class="agent-filtres-recherche">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" class="saisie" placeholder="Rechercher un dossier, un nom, un CIN, un e-mail…"
+               aria-label="Rechercher un dossier"
+               [ngModel]="rechercheInscription()" (ngModelChange)="rechercheInscription.set($event)"
+               autocomplete="off" />
+      </div>
+      <select class="saisie" aria-label="Filtrer par pièce d'identité"
+              [ngModel]="filtreCin()" (ngModelChange)="filtreCin.set($event)">
+        <option value="tous">CIN : tous</option>
+        <option value="avec">CIN fourni</option>
+        <option value="sans">CIN absent</option>
+      </select>
+      <input type="date" class="saisie" title="Demandé depuis" aria-label="Demandé depuis"
+             [ngModel]="dateDemandeDepuis()" (ngModelChange)="dateDemandeDepuis.set($event)" />
+      <input type="date" class="saisie" title="Demandé jusqu'au" aria-label="Demandé jusqu'au"
+             [ngModel]="dateDemandeJusqua()" (ngModelChange)="dateDemandeJusqua.set($event)" />
+      <select class="saisie" aria-label="Trier les inscriptions"
+              [ngModel]="triInscription()" (ngModelChange)="triInscription.set($event)">
+        <option value="recent">Plus récents</option>
+        <option value="ancien">Plus anciens</option>
+        <option value="nom">Nom (A → Z)</option>
+      </select>
+      <button type="button" class="agent-btn agent-btn-annuler" (click)="reinitialiserFiltres()">
+        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
+      </button>
+      <span class="agent-filtres-compteur">{{ inscriptionsAffichees().length }} résultat(s)</span>
+    </div>
+
     <div class="carte agent-tableau-carte p-0 overflow-hidden">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
@@ -85,7 +183,7 @@
               <th>Nom & Prénom</th>
               <th>Contact / E-mail</th>
 
-              @if (ongletActif() === 'EN_ATTENTE') { <th>Identifiant (CIN)</th> }
+              @if (ongletActif() === 'EN_ATTENTE') { <th class="d-none d-md-table-cell">Identifiant (CIN)</th> }
               @if (ongletActif() === 'VALIDEE') { <th>N° Assuré Attribué</th> }
               @if (ongletActif() === 'REFUSEE') { <th>Raison du Rejet</th> }
 
@@ -96,7 +194,7 @@
 
             <!-- CAS 1 : EN ATTENTE -->
             @if (ongletActif() === 'EN_ATTENTE') {
-              @for (d of demandesEnAttente(); track d.idInscription) {
+              @for (d of inscriptionsAffichees(); track d.idInscription) {
                 <tr>
                   <td class="ps-4 agent-num">#{{ d.idInscription }}</td>
                   <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
@@ -104,7 +202,7 @@
                     <div class="fw-semibold small">{{ d.assure?.contact }}</div>
                     <small class="text-muted font-monospace">{{ d.assure?.mail }}</small>
                   </td>
-                  <td><span class="pastille pastille-sombre font-monospace">{{ d.identifiants?.cin || 'Absent' }}</span></td>
+                  <td class="d-none d-md-table-cell"><span class="pastille pastille-sombre font-monospace">{{ d.identifiants?.cin || 'Absent' }}</span></td>
                   <td class="text-end pe-4">
                     <div class="d-inline-flex gap-2">
                       <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')"><i class="bi bi-check-lg" aria-hidden="true"></i>Valider</button>
@@ -113,13 +211,13 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-check2-circle" aria-hidden="true"></i> Aucun dossier en attente d'approbation.</td></tr>
+                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucun dossier en attente d'approbation.</span></div></td></tr>
               }
             }
 
             <!-- CAS 2 : VALIDÉS -->
             @if (ongletActif() === 'VALIDEE') {
-              @for (d of demandesValidees(); track d.idInscription) {
+              @for (d of inscriptionsAffichees(); track d.idInscription) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ok">#{{ d.idInscription }}</td>
                   <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
@@ -135,13 +233,13 @@
                   <td class="text-end pe-4 text-muted small fst-italic">Approuvé</td>
                 </tr>
               } @empty {
-                <tr><td colspan="5" class="text-center py-4 text-muted">Aucun dossier validé pour l'instant.</td></tr>
+                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun dossier validé pour l'instant.</span></div></td></tr>
               }
             }
 
             <!-- CAS 3 : REFUSÉS -->
             @if (ongletActif() === 'REFUSEE') {
-              @for (d of demandesRefusees(); track d.idInscription) {
+              @for (d of inscriptionsAffichees(); track d.idInscription) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ko">#{{ d.idInscription }}</td>
                   <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
@@ -158,7 +256,7 @@
                   <td class="text-end pe-4 text-muted small fst-italic">Rejeté</td>
                 </tr>
               } @empty {
-                <tr><td colspan="5" class="text-center py-4 text-muted">Aucun historique de refus enregistré.</td></tr>
+                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun historique de refus enregistré.</span></div></td></tr>
               }
             }
 
@@ -170,6 +268,36 @@
 
   <!-- ==================== CONTRATS ==================== -->
   @if (vue() === 'contrats') {
+    <div class="agent-kpis">
+      <button type="button" class="agent-kpi agent-kpi-signal"
+              [class.agent-kpi-actif]="ongletContrat() === 'EN_ATTENTE'"
+              (click)="changerOngletContrat('EN_ATTENTE')">
+        <i class="bi bi-inbox-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ contratsAttente().length }}</span>
+          <span class="agent-kpi-libelle">À valider</span>
+        </span>
+      </button>
+      <button type="button" class="agent-kpi agent-kpi-lagon"
+              [class.agent-kpi-actif]="ongletContrat() === 'VALIDE'"
+              (click)="changerOngletContrat('VALIDE')">
+        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ contratsValides().length }}</span>
+          <span class="agent-kpi-libelle">Validés</span>
+        </span>
+      </button>
+      <button type="button" class="agent-kpi agent-kpi-erreur"
+              [class.agent-kpi-actif]="ongletContrat() === 'REFUSE'"
+              (click)="changerOngletContrat('REFUSE')">
+        <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ contratsRefuses().length }}</span>
+          <span class="agent-kpi-libelle">Refusés</span>
+        </span>
+      </button>
+    </div>
+
     <ul class="onglets">
       <li>
         <button type="button" class="onglet onglet-attente"
@@ -194,6 +322,42 @@
       </li>
     </ul>
 
+    <div class="agent-filtres">
+      <div class="agent-filtres-recherche">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" class="saisie" placeholder="Rechercher un contrat, un n° de police, un client, une agence…"
+               aria-label="Rechercher un contrat"
+               [ngModel]="rechercheContrat()" (ngModelChange)="rechercheContrat.set($event)"
+               autocomplete="off" />
+      </div>
+      <input type="number" class="saisie" min="0" placeholder="Prime min (Ar)" aria-label="Prime minimale"
+             [ngModel]="primeMinContrat()" (ngModelChange)="primeMinContrat.set($event)" />
+      <input type="number" class="saisie" min="0" placeholder="Prime max (Ar)" aria-label="Prime maximale"
+             [ngModel]="primeMaxContrat()" (ngModelChange)="primeMaxContrat.set($event)" />
+      <select class="saisie" aria-label="Filtrer par canal de souscription"
+              [ngModel]="canalContrat()" (ngModelChange)="canalContrat.set($event)">
+        <option value="">Tous les canaux</option>
+        @for (canal of canauxDisponibles(); track canal) {
+          <option [value]="canal">{{ canal }}</option>
+        }
+      </select>
+      <label class="agent-filtres-case">
+        <input type="checkbox" [ngModel]="echeanceProche()" (ngModelChange)="echeanceProche.set($event)" />
+        Échéance &lt; 30 j
+      </label>
+      <select class="saisie" aria-label="Trier les contrats"
+              [ngModel]="triContrat()" (ngModelChange)="triContrat.set($event)">
+        <option value="recent">Plus récents</option>
+        <option value="ancien">Plus anciens</option>
+        <option value="primeDesc">Prime décroissante</option>
+        <option value="primeAsc">Prime croissante</option>
+      </select>
+      <button type="button" class="agent-btn agent-btn-annuler" (click)="reinitialiserFiltres()">
+        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
+      </button>
+      <span class="agent-filtres-compteur">{{ contratsAffiches().length }} résultat(s)</span>
+    </div>
+
     <div class="carte agent-tableau-carte p-0 overflow-hidden">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
@@ -201,7 +365,7 @@
             <tr>
               <th class="ps-4">N° Contrat</th>
               <th>Client</th>
-              <th>Souscription</th>
+              <th class="d-none d-md-table-cell">Souscription</th>
               <th class="text-end">Prime TTC</th>
               <th>Statut / N° police</th>
               @if (ongletContrat() === 'EN_ATTENTE') { <th class="text-end pe-4">Actions</th> }
@@ -211,11 +375,11 @@
 
             <!-- EN ATTENTE -->
             @if (ongletContrat() === 'EN_ATTENTE') {
-              @for (c of contratsAttente(); track c.idContrat) {
+              @for (c of contratsAffiches(); track c.idContrat) {
                 <tr>
                   <td class="ps-4 agent-num">#{{ c.idContrat }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
-                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td class="d-none d-md-table-cell">{{ c.dateSouscription | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
                   <td><span class="pastille">En attente</span></td>
                   <td class="text-end pe-4">
@@ -226,37 +390,37 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-check2-circle" aria-hidden="true"></i> Aucune demande de contrat en attente.</td></tr>
+                <tr><td colspan="6"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucune demande de contrat en attente.</span></div></td></tr>
               }
             }
 
             <!-- VALIDÉS -->
             @if (ongletContrat() === 'VALIDE') {
-              @for (c of contratsValides(); track c.idContrat) {
+              @for (c of contratsAffiches(); track c.idContrat) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ok">#{{ c.idContrat }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
-                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td class="d-none d-md-table-cell">{{ c.dateSouscription | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
                   <td><span class="pastille pastille-lagon font-monospace">{{ c.numPolice || '—' }}</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="6" class="text-center py-4 text-muted">Aucun contrat validé pour l'instant.</td></tr>
+                <tr><td colspan="6"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat validé pour l'instant.</span></div></td></tr>
               }
             }
 
             <!-- REFUSÉS -->
             @if (ongletContrat() === 'REFUSE') {
-              @for (c of contratsRefuses(); track c.idContrat) {
+              @for (c of contratsAffiches(); track c.idContrat) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ko">#{{ c.idContrat }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
-                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td class="d-none d-md-table-cell">{{ c.dateSouscription | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
                   <td><span class="pastille pastille-rouge">Refusé</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="6" class="text-center py-4 text-muted">Aucun contrat refusé.</td></tr>
+                <tr><td colspan="6"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat refusé.</span></div></td></tr>
               }
             }
 
@@ -268,6 +432,36 @@
 
   <!-- ==================== SINISTRES ==================== -->
   @if (vue() === 'sinistres') {
+    <div class="agent-kpis">
+      <button type="button" class="agent-kpi agent-kpi-signal"
+              [class.agent-kpi-actif]="ongletSinistre() === 'DECLARE'"
+              (click)="changerOngletSinistre('DECLARE')">
+        <i class="bi bi-inbox-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ sinistresDeclares().length }}</span>
+          <span class="agent-kpi-libelle">À instruire</span>
+        </span>
+      </button>
+      <button type="button" class="agent-kpi agent-kpi-signal"
+              [class.agent-kpi-actif]="ongletSinistre() === 'RAPPORT_EN_COURS'"
+              (click)="changerOngletSinistre('RAPPORT_EN_COURS')">
+        <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ sinistresEnCours().length }}</span>
+          <span class="agent-kpi-libelle">Rapport en cours</span>
+        </span>
+      </button>
+      <button type="button" class="agent-kpi agent-kpi-lagon"
+              [class.agent-kpi-actif]="ongletSinistre() === 'CLOTURES'"
+              (click)="changerOngletSinistre('CLOTURES')">
+        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ sinistresClotures().length }}</span>
+          <span class="agent-kpi-libelle">Clôturés</span>
+        </span>
+      </button>
+    </div>
+
     <ul class="onglets">
       <li>
         <button type="button" class="onglet onglet-attente"
@@ -292,14 +486,56 @@
       </li>
     </ul>
 
+    <div class="agent-filtres">
+      <div class="agent-filtres-recherche">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" class="saisie" placeholder="Rechercher un sinistre, un n° de police, un rapport, un lieu…"
+               aria-label="Rechercher un sinistre"
+               [ngModel]="rechercheSinistre()" (ngModelChange)="rechercheSinistre.set($event)"
+               autocomplete="off" />
+      </div>
+      <input type="date" class="saisie" title="Sinistre du" aria-label="Sinistre depuis"
+             [ngModel]="dateSinistreDepuis()" (ngModelChange)="dateSinistreDepuis.set($event)" />
+      <input type="date" class="saisie" title="Sinistre au" aria-label="Sinistre jusqu'au"
+             [ngModel]="dateSinistreJusqua()" (ngModelChange)="dateSinistreJusqua.set($event)" />
+      <select class="saisie" aria-label="Filtrer par responsabilité"
+              [ngModel]="responsabiliteFiltre()" (ngModelChange)="responsabiliteFiltre.set($event)">
+        <option value="toutes">Responsabilité : toutes</option>
+        <option value="assure">À l'assuré</option>
+        <option value="tiers">À un tiers</option>
+        <option value="indeterminee">Non déterminée</option>
+      </select>
+      <input type="number" class="saisie" min="0" placeholder="Indemn. min (Ar)" aria-label="Indemnisation minimale"
+             [ngModel]="montantMinSinistre()" (ngModelChange)="montantMinSinistre.set($event)" />
+      <input type="number" class="saisie" min="0" placeholder="Indemn. max (Ar)" aria-label="Indemnisation maximale"
+             [ngModel]="montantMaxSinistre()" (ngModelChange)="montantMaxSinistre.set($event)" />
+      <select class="saisie" aria-label="Filtrer par rapport de police"
+              [ngModel]="rapportRecu()" (ngModelChange)="rapportRecu.set($event)">
+        <option value="tous">Rapport : tous</option>
+        <option value="oui">Rapport reçu</option>
+        <option value="non">Sans rapport</option>
+      </select>
+      <select class="saisie" aria-label="Trier les sinistres"
+              [ngModel]="triSinistre()" (ngModelChange)="triSinistre.set($event)">
+        <option value="recent">Plus récents</option>
+        <option value="ancien">Plus anciens</option>
+        <option value="montantDesc">Indemn. décroissante</option>
+        <option value="montantAsc">Indemn. croissante</option>
+      </select>
+      <button type="button" class="agent-btn agent-btn-annuler" (click)="reinitialiserFiltres()">
+        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
+      </button>
+      <span class="agent-filtres-compteur">{{ sinistresAffiches().length }} résultat(s)</span>
+    </div>
+
     <div class="carte agent-tableau-carte p-0 overflow-hidden">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
           <thead>
             <tr>
               <th class="ps-4">N°</th>
-              <th>Date</th>
-              <th>Contrat</th>
+              <th class="d-none d-md-table-cell">Date</th>
+              <th class="d-none d-md-table-cell">Contrat</th>
               <th>Client</th>
               <th>Statut</th>
               <th class="text-end">Indemnisation</th>
@@ -310,11 +546,11 @@
 
             <!-- À INSTRUIRE -->
             @if (ongletSinistre() === 'DECLARE') {
-              @for (s of sinistresDeclares(); track s.idSinistre) {
+              @for (s of sinistresAffiches(); track s.idSinistre) {
                 <tr>
                   <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
-                  <td>{{ s.dateSinistre | dateFr }}</td>
-                  <td class="font-monospace">{{ s.numPolice || '—' }}</td>
+                  <td class="d-none d-md-table-cell">{{ s.dateSinistre | dateFr }}</td>
+                  <td class="d-none d-md-table-cell font-monospace">{{ s.numPolice || '—' }}</td>
                   <td class="fw-medium">{{ s.nomAssure }} {{ s.prenomAssure }}</td>
                   <td><span class="pastille">Déclaré</span></td>
                   <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
@@ -323,17 +559,17 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="7" class="text-center py-4 text-muted">Aucun sinistre en attente d'instruction.</td></tr>
+                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucun sinistre en attente d'instruction.</span></div></td></tr>
               }
             }
 
             <!-- RAPPORT EN COURS -->
             @if (ongletSinistre() === 'RAPPORT_EN_COURS') {
-              @for (s of sinistresEnCours(); track s.idSinistre) {
+              @for (s of sinistresAffiches(); track s.idSinistre) {
                 <tr>
                   <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
-                  <td>{{ s.dateSinistre | dateFr }}</td>
-                  <td class="font-monospace">{{ s.numPolice || '—' }}</td>
+                  <td class="d-none d-md-table-cell">{{ s.dateSinistre | dateFr }}</td>
+                  <td class="d-none d-md-table-cell font-monospace">{{ s.numPolice || '—' }}</td>
                   <td class="fw-medium">{{ s.nomAssure }} {{ s.prenomAssure }}</td>
                   <td><span class="pastille pastille-sombre">Rapport reçu</span></td>
                   <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
@@ -342,21 +578,21 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="7" class="text-center py-4 text-muted">Aucun dossier avec rapport en cours.</td></tr>
+                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun dossier avec rapport en cours.</span></div></td></tr>
               }
             }
 
             <!-- CLÔTURÉS -->
             @if (ongletSinistre() === 'CLOTURES') {
-              @for (s of sinistresClotures(); track s.idSinistre) {
+              @for (s of sinistresAffiches(); track s.idSinistre) {
                 <tr>
                   <td class="ps-4">
                     <span class="agent-num"
                           [class.agent-num-ok]="s.statutSinistre === 'INDEMNISE'"
                           [class.agent-num-ko]="s.statutSinistre === 'REFUSE'">#{{ s.idSinistre }}</span>
                   </td>
-                  <td>{{ s.dateSinistre | dateFr }}</td>
-                  <td class="font-monospace">{{ s.numPolice || '—' }}</td>
+                  <td class="d-none d-md-table-cell">{{ s.dateSinistre | dateFr }}</td>
+                  <td class="d-none d-md-table-cell font-monospace">{{ s.numPolice || '—' }}</td>
                   <td class="fw-medium">{{ s.nomAssure }} {{ s.prenomAssure }}</td>
                   <td>
                     @if (s.statutSinistre === 'INDEMNISE') {
@@ -371,7 +607,7 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="7" class="text-center py-4 text-muted">Aucun dossier clôturé.</td></tr>
+                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun dossier clôturé.</span></div></td></tr>
               }
             }
 
@@ -379,6 +615,11 @@
         </table>
       </div>
     </div>
+  }
+
+  <!-- ==================== PROFIL ==================== -->
+  @if (vue() === 'profil') {
+    <app-profil-staff />
   }
 
   <!-- ==================== MODALE : INSCRIPTION ==================== -->
@@ -670,4 +911,5 @@
       </div>
     </div>
   }
+  </main>
 </div>

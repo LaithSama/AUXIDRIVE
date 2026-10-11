@@ -13,20 +13,25 @@ export class AuthService {
   login(email: string, motDePasse: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(this.apiUrl, { email, motDePasse }).pipe(
       tap((response: AuthResponse) => {
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('role', response.role);
+        sessionStorage.setItem('token', response.token);
+        sessionStorage.setItem('role', response.role);
+        sessionStorage.setItem('email', email);
       })
     );
   }
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return sessionStorage.getItem('token');
   }
 
   getRole(): string | null {
-    return localStorage.getItem('role');
+    return sessionStorage.getItem('role');
+  }
+
+  getEmail(): string | null {
+    return sessionStorage.getItem('email');
   }
 
   logout() {
-    localStorage.clear();
+    sessionStorage.clear();
   }
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import mg.auxidrive.api.model.GarantieType;
 import mg.auxidrive.api.model.Offre;
 import mg.auxidrive.api.service.OffreService;
 
@@ -35,6 +36,12 @@ public class OffreController {
     @GetMapping("/{id}")
     public Offre trouver(@PathVariable Long id) {
         return offreService.trouver(id);
+    }
+
+    /** Garanties que le client peut choisir pour cette offre (celles de sa branche). */
+    @GetMapping("/{id}/garanties")
+    public List<GarantieType> garanties(@PathVariable Long id) {
+        return offreService.garanties(id);
     }
 
     @PostMapping

@@ -14,4 +14,7 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long> 
     Optional<Utilisateur> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    /** Nombre de comptes utilisateurs portant ce rôle (AGENT, ADMIN...), pour le tableau de bord admin. */
+    long countByRole_LibRole(String libRole);
 }

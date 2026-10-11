@@ -17,14 +17,14 @@ public interface ContratRepository extends JpaRepository<Contrat, Long> {
        sinon la sérialisation (nouveaux champs enrichis) échouerait. */
 
     @Override
-    @EntityGraph(attributePaths = "assure")
+    @EntityGraph(attributePaths = {"assure", "garanties"})
     List<Contrat> findAll();
 
     @Override
-    @EntityGraph(attributePaths = "assure")
+    @EntityGraph(attributePaths = {"assure", "garanties"})
     Optional<Contrat> findById(Long id);
 
-    @EntityGraph(attributePaths = "assure")
+    @EntityGraph(attributePaths = {"assure", "garanties"})
     List<Contrat> findByAssure_IdAssureOrderByIdContrat(Long idAssure);
 
     List<Contrat> findByStatutContratOrderByIdContrat(StatutContrat statutContrat);
@@ -38,4 +38,7 @@ public interface ContratRepository extends JpaRepository<Contrat, Long> {
     Optional<Contrat> findByNumPolice(String numPolice);
 
     boolean existsByNumPolice(String numPolice);
+
+    /** Comptage par statut, pour le tableau de bord administrateur. */
+    long countByStatutContrat(StatutContrat statutContrat);
 }

@@ -25,10 +25,12 @@ export class Connexion {
         console.log('Connexion réussie ! Rôle détecté :', res.role);
         
         // 👈 C'est cette vérification cruciale qu'il faut ajouter ou valider
-        if (res.role === 'ROLE_AGENT' || res.role === 'ROLE_ADMIN' || res.role === 'AGENT') {
-          this.router.navigate(['/agent-dashboard']); // Redirection vers l'espace de gestion
+        if (res.role === 'ROLE_ADMIN' || res.role === 'ADMIN') {
+          this.router.navigate(['/admin-dashboard']); // Espace d'administration
+        } else if (res.role === 'ROLE_AGENT' || res.role === 'AGENT') {
+          this.router.navigate(['/agent-dashboard']); // Espace de gestion
         } else {
-          this.router.navigate(['/dashboard']); // Redirection vers l'espace client standard
+          this.router.navigate(['/dashboard']); // Espace client standard
         }
       },
       error: (err) => {

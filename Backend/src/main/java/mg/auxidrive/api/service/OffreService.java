@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import mg.auxidrive.api.model.GarantieType;
 import mg.auxidrive.api.model.Offre;
+import mg.auxidrive.api.repository.GarantieTypeRepository;
 import mg.auxidrive.api.repository.OffreRepository;
 
 /** Catalogue d'offres (Monovéhicule, Flotte...) : CRUD complet. */
@@ -16,14 +18,30 @@ import mg.auxidrive.api.repository.OffreRepository;
 public class OffreService {
 
     private final OffreRepository offreRepository;
+    private final GarantieTypeRepository garantieRepository;
 
-    public OffreService(OffreRepository offreRepository) {
+    public OffreService(OffreRepository offreRepository,
+                        GarantieTypeRepository garantieRepository) {
         this.offreRepository = offreRepository;
+        this.garantieRepository = garantieRepository;
     }
 
     @Transactional(readOnly = true)
     public List<Offre> lister() {
         return offreRepository.findAll();
+    }
+
+    /**
+     * Garanties proposées pour une offre : celles de la branche à laquelle elle est rattachée.
+     * Sert au client pour choisir les garanties (0..n) de sa future souscription.
+     */
+    @Transactional(readOnly = true)
+    public List<GarantieType> garanties(Long id) {
+        Offre offre = trouver(id);
+        if (offre.getBranche() == null) {
+            return List.of();
+        }
+        return garantieRepository.findByBranche_CdBrancheOrderByCdGarantie(offre.getBranche().getCdBranche());
     }
 
     @Transactional(readOnly = true)

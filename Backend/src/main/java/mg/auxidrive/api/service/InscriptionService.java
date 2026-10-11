@@ -178,9 +178,17 @@ public class InscriptionService {
 
     @Transactional(readOnly = true)
     public List<Inscription> lister(StatutInscription statut) {
-        return statut == null
+        List<Inscription> inscriptions = statut == null
                 ? inscriptionRepository.findAllByOrderByDateDemandeDesc()
                 : inscriptionRepository.findByStatutInscriptionOrderByDateDemandeDesc(statut);
+        for (Inscription inscription : inscriptions) {
+            Assure assure = inscription.getAssure();
+            if (assure != null) {
+                inscription.setIdentifiants(
+                        legauxRepository.findByAssure_IdAssure(assure.getIdAssure()).orElse(null));
+            }
+        }
+        return inscriptions;
     }
 
     @Transactional(readOnly = true)

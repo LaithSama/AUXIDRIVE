@@ -19,7 +19,6 @@ import mg.auxidrive.api.model.StatutFacture;
 import mg.auxidrive.api.model.TypeFacture;
 import mg.auxidrive.api.repository.ContratAutoRepository;
 import mg.auxidrive.api.repository.FactureRepository;
-import mg.auxidrive.api.repository.GarantieTypeRepository;
 import mg.auxidrive.api.service.PrimeCalculator.Detail;
 
 /**
@@ -37,16 +36,13 @@ public class FactureService {
 
     private final FactureRepository factureRepository;
     private final ContratAutoRepository contratAutoRepository;
-    private final GarantieTypeRepository garantieRepository;
     private final FacturePdfGenerator pdfGenerator;
 
     public FactureService(FactureRepository factureRepository,
                           ContratAutoRepository contratAutoRepository,
-                          GarantieTypeRepository garantieRepository,
                           FacturePdfGenerator pdfGenerator) {
         this.factureRepository = factureRepository;
         this.contratAutoRepository = contratAutoRepository;
-        this.garantieRepository = garantieRepository;
         this.pdfGenerator = pdfGenerator;
     }
 
@@ -156,12 +152,11 @@ public class FactureService {
         return contratAutoRepository.findByContrat_IdContrat(contrat.getIdContrat());
     }
 
-    /** Garanties incluses par la branche du contrat, pour le PDF. */
+    /** Garanties choisies pour le contrat (0..n), triées par code, pour le PDF. */
     @Transactional(readOnly = true)
     public List<GarantieType> garanties(Contrat contrat) {
-        if (contrat.getBranche() == null) {
-            return List.of();
-        }
-        return garantieRepository.findByBranche_CdBrancheOrderByCdGarantie(contrat.getBranche().getCdBranche());
+        return contrat.getGaranties().stream()
+                .sorted(java.util.Comparator.comparing(GarantieType::getCdGarantie))
+                .toList();
     }
 }

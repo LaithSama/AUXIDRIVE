@@ -1,0 +1,632 @@
+<header class="entete admin-barre">
+  <div class="container-fluid d-flex align-items-center py-3">
+    <button type="button" class="admin-hamburger d-lg-none" (click)="basculerSidebar()" aria-label="Ouvrir le menu">
+      <i class="bi bi-list" aria-hidden="true"></i>
+    </button>
+    <span class="marque">Auxiassur <span class="marque-suffixe">Administration</span></span>
+  </div>
+</header>
+
+<div class="admin-layout">
+  <!-- Sidebar d'administration -->
+  <nav class="admin-sidebar" [class.admin-sidebar-ouverte]="sidebarOuverte()" aria-label="Espace d'administration">
+    <div class="admin-sidebar-navigation">
+      <p class="admin-sidebar-titre">Pilotage</p>
+
+      <button type="button" class="admin-sidebar-lien"
+              [class.admin-sidebar-lien-actif]="vue() === 'tableau'"
+              (click)="changerVue('tableau')">
+        <i class="bi bi-speedometer2" aria-hidden="true"></i>
+        <span>Tableau de bord</span>
+      </button>
+
+      <button type="button" class="admin-sidebar-lien"
+              [class.admin-sidebar-lien-actif]="vue() === 'utilisateurs'"
+              (click)="changerVue('utilisateurs')">
+        <i class="bi bi-people-fill" aria-hidden="true"></i>
+        <span>Utilisateurs</span>
+        <span class="admin-sidebar-badge">{{ utilisateurs().length }}</span>
+      </button>
+
+      <button type="button" class="admin-sidebar-lien"
+              [class.admin-sidebar-lien-actif]="vue() === 'comptes'"
+              (click)="changerVue('comptes')">
+        <i class="bi bi-person-vcard" aria-hidden="true"></i>
+        <span>Comptes clients</span>
+        <span class="admin-sidebar-badge">{{ comptes().length }}</span>
+      </button>
+
+      <button type="button" class="admin-sidebar-lien"
+              [class.admin-sidebar-lien-actif]="vue() === 'assures'"
+              (click)="changerVue('assures')">
+        <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+        <span>Assurés</span>
+        <span class="admin-sidebar-badge">{{ assures().length }}</span>
+      </button>
+
+      <p class="admin-sidebar-titre">Gestion</p>
+
+      <button type="button" class="admin-sidebar-lien"
+              [class.admin-sidebar-lien-actif]="vue() === 'profil'"
+              (click)="changerVue('profil')">
+        <i class="bi bi-person-circle" aria-hidden="true"></i>
+        <span>Mon profil</span>
+      </button>
+
+      <a class="admin-sidebar-lien" routerLink="/agent-dashboard">
+        <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+        <span>Espace agent</span>
+      </a>
+    </div>
+
+    <div class="admin-sidebar-pied">
+      <div class="admin-sidebar-profil">
+        <span class="admin-sidebar-avatar" aria-hidden="true"><i class="bi bi-shield-lock-fill"></i></span>
+        <div class="admin-sidebar-identite">
+          <strong>Administrateur</strong>
+          <small>{{ emailAdmin }}</small>
+        </div>
+      </div>
+      <button type="button" class="btn-contour-sombre admin-sidebar-deconnexion" (click)="deconnexion()">
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>Déconnexion
+      </button>
+    </div>
+  </nav>
+
+  <div class="admin-voile" [class.admin-voile-visible]="sidebarOuverte()" (click)="fermerSidebar()"></div>
+
+  <main class="admin-contenu">
+    <!-- En-tête -->
+    @if (vue() !== 'profil') {
+    <div class="admin-entete">
+      <div>
+        @switch (vue()) {
+          @case ('tableau') {
+            <h1 class="titre-section">Tableau de bord</h1>
+            <p class="chapeau mb-0">Vue d'ensemble de la plateforme Auxiassur.</p>
+          }
+          @case ('utilisateurs') {
+            <h1 class="titre-section">Utilisateurs</h1>
+            <p class="chapeau mb-0">Agents et administrateurs : créer, modifier, supprimer.<span class="admin-entete-compte">{{ utilisateurs().length }} au total</span></p>
+          }
+          @case ('comptes') {
+            <h1 class="titre-section">Comptes clients</h1>
+            <p class="chapeau mb-0">Comptes de connexion au portail client, rattachés à un assuré.<span class="admin-entete-compte">{{ comptes().length }} au total</span></p>
+          }
+          @default {
+            <h1 class="titre-section">Assurés</h1>
+            <p class="chapeau mb-0">Fiches assurés : créer, modifier, supprimer.<span class="admin-entete-compte">{{ assures().length }} au total</span></p>
+          }
+        }
+      </div>
+
+      @if (vue() !== 'tableau') {
+        <button type="button" class="btn-signal admin-nouveau" (click)="ouvrirCreation(sectionVue)">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i> Nouveau
+        </button>
+      }
+    </div>
+    }
+
+    @if (messageSucces) { <p class="message-ok">{{ messageSucces }}</p> }
+    @if (messageErreur) { <p class="message-erreur">{{ messageErreur }}</p> }
+
+    <!-- ==================== TABLEAU DE BORD ==================== -->
+    @if (vue() === 'tableau') {
+      @if (statistiques(); as s) {
+        <div class="admin-kpis">
+          <button type="button" class="admin-kpi admin-kpi-signal" (click)="changerVue('utilisateurs')">
+            <i class="bi bi-people-fill" aria-hidden="true"></i>
+            <span class="admin-kpi-corps">
+              <span class="admin-kpi-valeur">{{ s.utilisateurs }}</span>
+              <span class="admin-kpi-libelle">Utilisateurs</span>
+              <span class="admin-kpi-detail">{{ s.agents }} agents · {{ s.administrateurs }} admins</span>
+            </span>
+          </button>
+
+          <button type="button" class="admin-kpi admin-kpi-lagon" (click)="changerVue('comptes')">
+            <i class="bi bi-person-vcard" aria-hidden="true"></i>
+            <span class="admin-kpi-corps">
+              <span class="admin-kpi-valeur">{{ s.comptesClients }}</span>
+              <span class="admin-kpi-libelle">Comptes clients</span>
+              <span class="admin-kpi-detail">{{ s.comptesClientsActifs }} actifs</span>
+            </span>
+          </button>
+
+          <button type="button" class="admin-kpi admin-kpi-signal" (click)="changerVue('assures')">
+            <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+            <span class="admin-kpi-corps">
+              <span class="admin-kpi-valeur">{{ s.assures }}</span>
+              <span class="admin-kpi-libelle">Assurés</span>
+            </span>
+          </button>
+
+          <button type="button" class="admin-kpi admin-kpi-lagon" (click)="allerEspaceAgent()">
+            <i class="bi bi-file-earmark-text-fill" aria-hidden="true"></i>
+            <span class="admin-kpi-corps">
+              <span class="admin-kpi-valeur">{{ s.contrats }}</span>
+              <span class="admin-kpi-libelle">Contrats</span>
+              <span class="admin-kpi-detail">{{ s.contratsEnAttente }} en attente · {{ s.contratsValides }} validés · {{ s.contratsRefuses }} refusés</span>
+            </span>
+          </button>
+
+          <button type="button" class="admin-kpi admin-kpi-erreur" (click)="allerEspaceAgent()">
+            <i class="bi bi-inbox-fill" aria-hidden="true"></i>
+            <span class="admin-kpi-corps">
+              <span class="admin-kpi-valeur">{{ s.inscriptionsEnAttente }}</span>
+              <span class="admin-kpi-libelle">Inscriptions en attente</span>
+              <span class="admin-kpi-detail">à traiter dans l'espace agent</span>
+            </span>
+          </button>
+        </div>
+      } @else {
+        <p class="message-info">Chargement des statistiques…</p>
+      }
+    }
+
+    <!-- ==================== UTILISATEURS ==================== -->
+    @if (vue() === 'utilisateurs') {
+      <div class="admin-filtres">
+        <div class="admin-filtres-recherche">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="search" class="saisie" placeholder="Rechercher un utilisateur (nom, e-mail, rôle)…"
+                 aria-label="Rechercher un utilisateur"
+                 [ngModel]="rechercheUtilisateur()" (ngModelChange)="rechercheUtilisateur.set($event)"
+                 autocomplete="off" />
+        </div>
+        <select class="saisie" aria-label="Filtrer par rôle"
+                [ngModel]="filtreRoleUtilisateur()" (ngModelChange)="filtreRoleUtilisateur.set($event)">
+          <option value="tous">Rôle : tous</option>
+          <option value="AGENT">Agents</option>
+          <option value="ADMIN">Administrateurs</option>
+        </select>
+        <select class="saisie" aria-label="Filtrer par statut"
+                [ngModel]="filtreStatutUtilisateur()" (ngModelChange)="filtreStatutUtilisateur.set($event)">
+          <option value="tous">Statut : tous</option>
+          <option value="ACTIF">Actif</option>
+          <option value="SUSPENDU">Suspendu</option>
+          <option value="INACTIF">Inactif</option>
+        </select>
+        <select class="saisie" aria-label="Trier les utilisateurs"
+                [ngModel]="triUtilisateur()" (ngModelChange)="triUtilisateur.set($event)">
+          <option value="nomAsc">Nom (A → Z)</option>
+          <option value="nomDesc">Nom (Z → A)</option>
+          <option value="recent">Plus récents</option>
+          <option value="ancien">Plus anciens</option>
+        </select>
+        <button type="button" class="admin-btn-reset" (click)="reinitialiserFiltres()">
+          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
+        </button>
+        <span class="admin-filtres-compteur">{{ utilisateursAffiches().length }} résultat(s)</span>
+      </div>
+      <div class="admin-tableau-carte">
+        <table class="tableau">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>E-mail</th>
+              <th>Rôle</th>
+              <th>Statut</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of utilisateursAffiches(); track u.idUtil) {
+              <tr>
+                <td class="fw-medium">{{ u.nomUtil }}</td>
+                <td>{{ u.email }}</td>
+                <td><span class="pastille pastille-sombre">{{ u.role.libRole }}</span></td>
+                <td>
+                  @switch (u.statutUtilisateur) {
+                    @case ('ACTIF') { <span class="pastille pastille-lagon">Actif</span> }
+                    @case ('SUSPENDU') { <span class="pastille">Suspendu</span> }
+                    @default { <span class="pastille pastille-rouge">Inactif</span> }
+                  }
+                </td>
+                <td class="text-end admin-actions">
+                  <button type="button" class="btn-contour-sombre admin-action" (click)="ouvrirEditionUtilisateur(u)">
+                    <i class="bi bi-pencil" aria-hidden="true"></i> Modifier
+                  </button>
+                  <button type="button" class="admin-btn-danger admin-action" (click)="demanderSuppression('utilisateur', u.idUtil, nomUtilisateur(u))">
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="admin-vide">
+                  <i class="bi bi-people" aria-hidden="true"></i>
+                  <span>Aucun utilisateur trouvé.</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- ==================== COMPTES CLIENTS ==================== -->
+    @if (vue() === 'comptes') {
+      <div class="admin-filtres">
+        <div class="admin-filtres-recherche">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="search" class="saisie" placeholder="Rechercher un compte (e-mail, assuré, numéro)…"
+                 aria-label="Rechercher un compte client"
+                 [ngModel]="rechercheCompte()" (ngModelChange)="rechercheCompte.set($event)"
+                 autocomplete="off" />
+        </div>
+        <select class="saisie" aria-label="Filtrer par statut"
+                [ngModel]="filtreStatutCompte()" (ngModelChange)="filtreStatutCompte.set($event)">
+          <option value="tous">Statut : tous</option>
+          <option value="ACTIF">Actif</option>
+          <option value="SUSPENDU">Suspendu</option>
+          <option value="INACTIF">Inactif</option>
+        </select>
+        <select class="saisie" aria-label="Filtrer par connexion"
+                [ngModel]="filtreConnexion()" (ngModelChange)="filtreConnexion.set($event)">
+          <option value="tous">Connexion : toutes</option>
+          <option value="deja">Déjà connecté</option>
+          <option value="jamais">Jamais connecté</option>
+        </select>
+        <select class="saisie" aria-label="Trier les comptes"
+                [ngModel]="triCompte()" (ngModelChange)="triCompte.set($event)">
+          <option value="nomAsc">Assuré (A → Z)</option>
+          <option value="emailAsc">E-mail (A → Z)</option>
+          <option value="recent">Plus récents</option>
+          <option value="ancien">Plus anciens</option>
+        </select>
+        <button type="button" class="admin-btn-reset" (click)="reinitialiserFiltres()">
+          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
+        </button>
+        <span class="admin-filtres-compteur">{{ comptesAffiches().length }} résultat(s)</span>
+      </div>
+      <div class="admin-tableau-carte">
+        <table class="tableau">
+          <thead>
+            <tr>
+              <th>Assuré</th>
+              <th>N° assuré</th>
+              <th>E-mail de connexion</th>
+              <th>Statut</th>
+              <th>Créé le</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of comptesAffiches(); track c.idCompteClient) {
+              <tr>
+                <td class="fw-medium">{{ libelleAssure(c) }}</td>
+                <td>{{ c.numerosAssure || '—' }}</td>
+                <td>{{ c.email }}</td>
+                <td>
+                  @switch (c.statutCompte) {
+                    @case ('ACTIF') { <span class="pastille pastille-lagon">Actif</span> }
+                    @case ('SUSPENDU') { <span class="pastille">Suspendu</span> }
+                    @default { <span class="pastille pastille-rouge">Inactif</span> }
+                  }
+                </td>
+                <td>{{ c.dateCreation?.slice(0, 10) | dateFr }}</td>
+                <td class="text-end admin-actions">
+                  <button type="button" class="btn-contour-sombre admin-action" (click)="ouvrirEditionCompte(c)">
+                    <i class="bi bi-pencil" aria-hidden="true"></i> Modifier
+                  </button>
+                  <button type="button" class="admin-btn-danger admin-action" (click)="demanderSuppression('compte', c.idCompteClient, c.email)">
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="admin-vide">
+                  <i class="bi bi-person-vcard" aria-hidden="true"></i>
+                  <span>Aucun compte client. Créez-en un pour un assuré existant.</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- ==================== ASSURÉS ==================== -->
+    @if (vue() === 'assures') {
+      <div class="admin-filtres">
+        <div class="admin-filtres-recherche">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="search" class="saisie" placeholder="Rechercher un assuré (nom, numéro, contact, e-mail)…"
+                 aria-label="Rechercher un assuré"
+                 [ngModel]="rechercheAssure()" (ngModelChange)="rechercheAssure.set($event)"
+                 autocomplete="off" />
+        </div>
+        <select class="saisie" aria-label="Filtrer par type"
+                [ngModel]="filtreTypeAssure()" (ngModelChange)="filtreTypeAssure.set($event)">
+          <option value="tous">Type : tous</option>
+          <option value="physique">Personne physique</option>
+          <option value="morale">Personne morale</option>
+        </select>
+        <select class="saisie" aria-label="Filtrer par e-mail"
+                [ngModel]="filtreMailAssure()" (ngModelChange)="filtreMailAssure.set($event)">
+          <option value="tous">E-mail : tous</option>
+          <option value="avec">Avec e-mail</option>
+          <option value="sans">Sans e-mail</option>
+        </select>
+        <select class="saisie" aria-label="Trier les assurés"
+                [ngModel]="triAssure()" (ngModelChange)="triAssure.set($event)">
+          <option value="nomAsc">Nom (A → Z)</option>
+          <option value="nomDesc">Nom (Z → A)</option>
+          <option value="numeroAsc">N° assuré (A → Z)</option>
+          <option value="recent">Plus récents</option>
+        </select>
+        <button type="button" class="admin-btn-reset" (click)="reinitialiserFiltres()">
+          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
+        </button>
+        <span class="admin-filtres-compteur">{{ assuresAffiches().length }} résultat(s)</span>
+      </div>
+      <div class="admin-tableau-carte">
+        <table class="tableau">
+          <thead>
+            <tr>
+              <th>N° assuré</th>
+              <th>Nom</th>
+              <th>Prénom</th>
+              <th>Contact</th>
+              <th>E-mail</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of assuresAffiches(); track a.idAssure) {
+              <tr>
+                <td class="fw-medium">{{ a.numerosAssure }}</td>
+                <td>
+                  {{ a.nomAssure }}
+                  @if (a.personneMorale) { <span class="pastille pastille-sombre admin-tag">Morale</span> }
+                </td>
+                <td>{{ a.prenomAssure || '—' }}</td>
+                <td>{{ a.contact || '—' }}</td>
+                <td>{{ a.mail || '—' }}</td>
+                <td class="text-end admin-actions">
+                  <button type="button" class="btn-contour-sombre admin-action" (click)="ouvrirEditionAssure(a)">
+                    <i class="bi bi-pencil" aria-hidden="true"></i> Modifier
+                  </button>
+                  <button type="button" class="admin-btn-danger admin-action" (click)="demanderSuppression('assure', a.idAssure, libelleAssure(a))">
+                    <i class="bi bi-trash" aria-hidden="true"></i>
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="admin-vide">
+                  <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+                  <span>Aucun assuré enregistré.</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <!-- ==================== PROFIL ==================== -->
+    @if (vue() === 'profil') {
+      <app-profil-staff />
+    }
+  </main>
+</div>
+
+<!-- ==================== MODALE D'ÉDITION ==================== -->
+@if (sectionModale(); as section) {
+  <div class="admin-modale-voile" (click)="fermerModale()"></div>
+  <div class="admin-modale" role="dialog" aria-modal="true">
+    <div class="admin-modale-entete">
+      <h2 class="admin-modale-titre">
+        @if (motDePasseTemporaire()) {
+          <i class="bi bi-key-fill" aria-hidden="true"></i> Compte créé
+        } @else if (modeModale() === 'CREATION') {
+          <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
+          {{ section === 'utilisateur' ? 'Nouvel utilisateur' : section === 'compte' ? 'Nouveau compte client' : 'Nouvel assuré' }}
+        } @else {
+          <i class="bi bi-pencil-square" aria-hidden="true"></i>
+          {{ section === 'utilisateur' ? 'Modifier l\'utilisateur' : section === 'compte' ? 'Modifier le compte' : 'Modifier l\'assuré' }}
+        }
+      </h2>
+      <button type="button" class="admin-modale-fermer" (click)="fermerModale()" aria-label="Fermer">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <div class="admin-modale-corps">
+      <!-- Résultat : mot de passe temporaire -->
+      @if (motDePasseTemporaire(); as mdp) {
+        <p class="message-ok">
+          Le compte a été créé et le mot de passe temporaire a été envoyé par e-mail au client.
+          Communiquez-le si nécessaire :
+        </p>
+        <p class="admin-motdepasse">{{ mdp }}</p>
+      } @else if (section === 'utilisateur') {
+        <div class="champ">
+          <label for="u-nom">Nom</label>
+          <input id="u-nom" type="text" name="nomUtil" [(ngModel)]="formUtilisateur.nomUtil" maxlength="40" />
+        </div>
+        <div class="champ">
+          <label for="u-email">E-mail</label>
+          <input id="u-email" type="email" name="emailUtil" [(ngModel)]="formUtilisateur.email" />
+        </div>
+        <div class="champ">
+          <label for="u-mdp">Mot de passe</label>
+          <input id="u-mdp" type="password" name="motDePasse" [(ngModel)]="formUtilisateur.motDePasse" autocomplete="new-password" />
+          <span class="aide">
+            {{ modeModale() === 'EDITION' ? 'Laisser vide pour conserver le mot de passe actuel.' : '8 caractères minimum.' }}
+          </span>
+        </div>
+        <div class="champ">
+          <label for="u-role">Rôle</label>
+          <select id="u-role" name="libRole" [(ngModel)]="formUtilisateur.libRole">
+            @for (r of rolesStaff(); track r.libRole) {
+              <option [value]="r.libRole">{{ r.libRole }}</option>
+            }
+            @if (rolesStaff().length === 0) {
+              <option value="AGENT">AGENT</option>
+              <option value="ADMIN">ADMIN</option>
+            }
+          </select>
+        </div>
+        <div class="champ">
+          <label for="u-statut">Statut</label>
+          <select id="u-statut" name="statut" [(ngModel)]="formUtilisateur.statutUtilisateur">
+            <option value="ACTIF">Actif</option>
+            <option value="SUSPENDU">Suspendu</option>
+            <option value="INACTIF">Inactif</option>
+          </select>
+        </div>
+      } @else if (section === 'compte') {
+        @if (modeModale() === 'CREATION') {
+          <div class="champ">
+            <label for="c-assure">Assuré</label>
+            <select id="c-assure" name="idAssure" [(ngModel)]="formCompte.idAssure" (ngModelChange)="choisirAssurePourCompte()">
+              @for (a of assuresSansCompte(); track a.idAssure) {
+                <option [ngValue]="a.idAssure">{{ a.numerosAssure }} — {{ libelleAssure(a) }}</option>
+              }
+            </select>
+            @if (assuresSansCompte().length === 0) {
+              <span class="aide">Tous les assurés ont déjà un compte client.</span>
+            }
+          </div>
+          <div class="champ">
+            <label for="c-email">E-mail de connexion</label>
+            <input id="c-email" type="email" name="emailCompte" [(ngModel)]="formCompte.email" />
+          </div>
+          <p class="message-info">Un mot de passe temporaire sera généré et envoyé automatiquement à cette adresse.</p>
+        } @else {
+          <div class="champ">
+            <label>Assuré</label>
+            <input type="text" [value]="libelleCompteEdite" disabled />
+            <span class="aide">L'assuré rattaché à un compte n'est pas modifiable.</span>
+          </div>
+          <div class="champ">
+            <label for="c-email-edit">E-mail de connexion</label>
+            <input id="c-email-edit" type="email" name="emailCompteEdit" [(ngModel)]="formCompte.email" />
+          </div>
+          <div class="champ">
+            <label for="c-statut">Statut</label>
+            <select id="c-statut" name="statutCompte" [(ngModel)]="formCompte.statutCompte">
+              <option value="ACTIF">Actif</option>
+              <option value="SUSPENDU">Suspendu</option>
+              <option value="INACTIF">Inactif</option>
+            </select>
+          </div>
+        }
+      } @else {
+        <div class="admin-form-grille">
+          <div class="champ">
+            <label for="a-num">Numéro d'assuré</label>
+            @if (modeModale() === 'EDITION') {
+              <input id="a-num" type="text" [value]="formAssure.numerosAssure" disabled />
+              <span class="aide">Le numéro d'assuré n'est pas modifiable.</span>
+            } @else {
+              <input id="a-num" type="text" name="numerosAssure" [(ngModel)]="formAssure.numerosAssure" maxlength="8" placeholder="Saisi par l'administrateur" />
+            }
+          </div>
+          <div class="champ">
+            <label for="a-nom">Nom</label>
+            <input id="a-nom" type="text" name="nomAssure" [(ngModel)]="formAssure.nomAssure" maxlength="50" />
+          </div>
+          <div class="champ">
+            <label for="a-prenom">Prénom</label>
+            <input id="a-prenom" type="text" name="prenomAssure" [(ngModel)]="formAssure.prenomAssure" maxlength="50" />
+          </div>
+          <div class="champ">
+            <label for="a-naiss">Date de naissance</label>
+            <input id="a-naiss" type="date" name="dateNaissance" [(ngModel)]="formAssure.dateNaissance" />
+          </div>
+          <div class="champ">
+            <label for="a-sexe">Sexe</label>
+            <select id="a-sexe" name="sexe" [(ngModel)]="formAssure.sexe">
+              <option value="">—</option>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
+            </select>
+          </div>
+          <div class="champ">
+            <label for="a-civ">Civilité</label>
+            <select id="a-civ" name="civilite" [(ngModel)]="formAssure.civilite">
+              <option value="">—</option>
+              <option value="M.">M.</option>
+              <option value="Mme">Mme</option>
+              <option value="Mlle">Mlle</option>
+            </select>
+          </div>
+          <div class="champ">
+            <label for="a-nat">Nationalité</label>
+            <input id="a-nat" type="text" name="nationalite" [(ngModel)]="formAssure.nationalite" maxlength="50" />
+          </div>
+          <div class="champ">
+            <label for="a-pays">Pays de résidence</label>
+            <input id="a-pays" type="text" name="paysResidence" [(ngModel)]="formAssure.paysResidence" maxlength="50" />
+          </div>
+          <div class="champ admin-pleine-largeur">
+            <label for="a-adresse">Adresse</label>
+            <input id="a-adresse" type="text" name="adresse" [(ngModel)]="formAssure.adresse" maxlength="50" />
+          </div>
+          <div class="champ">
+            <label for="a-contact">Contact</label>
+            <input id="a-contact" type="tel" name="contact" [(ngModel)]="formAssure.contact" maxlength="13" />
+          </div>
+          <div class="champ">
+            <label for="a-mail">E-mail</label>
+            @if (modeModale() === 'EDITION') {
+              <input id="a-mail" type="email" [value]="formAssure.mail" disabled />
+              <span class="aide">L'e-mail n'est pas modifiable.</span>
+            } @else {
+              <input id="a-mail" type="email" name="mail" [(ngModel)]="formAssure.mail" maxlength="50" />
+            }
+          </div>
+          <div class="champ admin-case">
+            <label>
+              <input type="checkbox" name="personneMorale" [(ngModel)]="formAssure.personneMorale" />
+              Personne morale (entreprise)
+            </label>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="admin-modale-pied">
+      @if (motDePasseTemporaire()) {
+        <button type="button" class="btn-signal" (click)="fermerModale()">
+          <i class="bi bi-check-lg" aria-hidden="true"></i> Terminé
+        </button>
+      } @else {
+        <button type="button" class="btn-contour-sombre" (click)="fermerModale()">Annuler</button>
+        <button type="button" class="btn-signal" [disabled]="!pret" (click)="enregistrer()">
+          <i class="bi bi-check-lg" aria-hidden="true"></i>
+          {{ modeModale() === 'CREATION' ? 'Créer' : 'Enregistrer' }}
+        </button>
+      }
+    </div>
+  </div>
+}
+
+<!-- ==================== CONFIRMATION DE SUPPRESSION ==================== -->
+@if (suppression(); as cible) {
+  <div class="admin-modale-voile" (click)="annulerSuppression()"></div>
+  <div class="admin-modale admin-modale-etroite" role="alertdialog" aria-modal="true">
+    <div class="admin-modale-entete admin-modale-entete-danger">
+      <h2 class="admin-modale-titre"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Confirmer la suppression</h2>
+      <button type="button" class="admin-modale-fermer" (click)="annulerSuppression()" aria-label="Fermer">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="admin-modale-corps">
+      <p>Voulez-vous vraiment supprimer <strong>{{ cible.libelle }}</strong> ?</p>
+      <p class="admin-aide-danger">
+        La suppression est refusée si la donnée est référencée (contrats, véhicules, documents…).
+      </p>
+    </div>
+    <div class="admin-modale-pied">
+      <button type="button" class="btn-contour-sombre" (click)="annulerSuppression()">Annuler</button>
+      <button type="button" class="admin-btn-danger" (click)="confirmerSuppression()">
+        <i class="bi bi-trash" aria-hidden="true"></i> Supprimer
+      </button>
+    </div>
+  </div>
+}

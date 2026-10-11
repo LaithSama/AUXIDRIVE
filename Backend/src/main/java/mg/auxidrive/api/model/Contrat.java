@@ -3,6 +3,8 @@ package mg.auxidrive.api.model;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "Contrats")
@@ -48,6 +50,13 @@ public class Contrat {
     @Column(name = "date_expiration")
     private LocalDate dateExpiration;
 
+    /**
+     * Durée contractuelle choisie à la souscription, en mois. Elle fixe l'expiration à partir
+     * de la date d'effet (elle-même fixée à la validation) et sert de base aux renouvellements.
+     */
+    @Column(name = "duree_mois")
+    private Integer dureeMois;
+
     /** Date à laquelle le mail de rappel d'échéance a été envoyé ; null = pas encore envoyé. */
     @Column(name = "date_notif_echeance")
     private LocalDate dateNotifEcheance;
@@ -84,6 +93,16 @@ public class Contrat {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_util")
     private Utilisateur utilisateur;
+
+    /**
+     * Garanties souscrites pour ce contrat (0..n). Le contrat porte lui-même sa sélection :
+     * elle n'est plus déduite de la branche, ce qui autorise un contrat sans garantie.
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "Contrats_garanties",
+            joinColumns = @JoinColumn(name = "id_contrat"),
+            inverseJoinColumns = @JoinColumn(name = "cd_garantie"))
+    private Set<GarantieType> garanties = new LinkedHashSet<>();
 
     public Long getIdContrat() {
         return idContrat;
@@ -165,6 +184,14 @@ public class Contrat {
         this.dateExpiration = dateExpiration;
     }
 
+    public Integer getDureeMois() {
+        return dureeMois;
+    }
+
+    public void setDureeMois(Integer dureeMois) {
+        this.dureeMois = dureeMois;
+    }
+
     public LocalDate getDateNotifEcheance() {
         return dateNotifEcheance;
     }
@@ -235,6 +262,14 @@ public class Contrat {
 
     public void setUtilisateur(Utilisateur utilisateur) {
         this.utilisateur = utilisateur;
+    }
+
+    public Set<GarantieType> getGaranties() {
+        return garanties;
+    }
+
+    public void setGaranties(Set<GarantieType> garanties) {
+        this.garanties = garanties;
     }
 
     /* Vues enrichies pour l'agent : la FK assuré est ignorée, on expose l'identité. */

@@ -2,7 +2,9 @@ package mg.auxidrive.api.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import mg.auxidrive.api.model.CodeTaxePolice;
 import mg.auxidrive.api.model.Contrat;
 import mg.auxidrive.api.model.ContratAuto;
 import mg.auxidrive.api.model.DemandeSouscription;
+import mg.auxidrive.api.model.GarantieType;
 import mg.auxidrive.api.model.Offre;
 import mg.auxidrive.api.model.StatutContrat;
 import mg.auxidrive.api.model.TypeOffre;
@@ -27,6 +30,7 @@ import mg.auxidrive.api.repository.BrancheParametresCalculRepository;
 import mg.auxidrive.api.repository.CodeTaxePoliceRepository;
 import mg.auxidrive.api.repository.ContratAutoRepository;
 import mg.auxidrive.api.repository.ContratRepository;
+import mg.auxidrive.api.repository.GarantieTypeRepository;
 import mg.auxidrive.api.repository.OffreRepository;
 import mg.auxidrive.api.repository.VehiculeRepository;
 import mg.auxidrive.api.service.PrimeCalculator.CalculPrimeException;
@@ -45,6 +49,15 @@ import mg.auxidrive.api.service.PrimeCalculator.Detail;
 @Service
 public class ContratService {
 
+    /**
+     * Prime nette appliquée par mois lorsque le client n'en transmet pas. Le montant total du
+     * contrat est ce tarif multiplié par la durée choisie.
+     */
+    public static final double PRIME_MENSUELLE_DEFAUT = 20000d;
+
+    /** Durée retenue si ni le contrat, ni l'offre ne précisent de durée. */
+    private static final int DUREE_DEFAUT_MOIS = 12;
+
     private final ContratRepository contratRepository;
     private final ContratAutoRepository contratAutoRepository;
     private final OffreRepository offreRepository;
@@ -53,6 +66,7 @@ public class ContratService {
     private final BrancheParametresCalculRepository parametresRepository;
     private final CodeTaxePoliceRepository codeTaxeRepository;
     private final AutoCodeTarifRepository codeTarifRepository;
+    private final GarantieTypeRepository garantieRepository;
     private final FactureService factureService;
 
     public ContratService(ContratRepository contratRepository,
@@ -63,6 +77,7 @@ public class ContratService {
                           BrancheParametresCalculRepository parametresRepository,
                           CodeTaxePoliceRepository codeTaxeRepository,
                           AutoCodeTarifRepository codeTarifRepository,
+                          GarantieTypeRepository garantieRepository,
                           FactureService factureService) {
         this.contratRepository = contratRepository;
         this.contratAutoRepository = contratAutoRepository;
@@ -72,6 +87,7 @@ public class ContratService {
         this.parametresRepository = parametresRepository;
         this.codeTaxeRepository = codeTaxeRepository;
         this.codeTarifRepository = codeTarifRepository;
+        this.garantieRepository = garantieRepository;
         this.factureService = factureService;
     }
 
@@ -118,6 +134,7 @@ public class ContratService {
     @Transactional(readOnly = true)
     public Detail simuler(DemandeSouscription demande) {
         Preparation p = preparer(demande);
+        resoudreGaranties(demande.getCdGaranties(), p.branche());
         return calculer(p, demande.getTauxCommission());
     }
 
@@ -140,13 +157,15 @@ public class ContratService {
         contrat.setCodeAgence(demande.getCodeAgence());
         contrat.setCanalSouscription(canal);
         contrat.setDateSouscription(LocalDate.now());
-        contrat.setDateEffet(demande.getDateEffet() == null ? LocalDate.now() : demande.getDateEffet());
+        // la date d'effet n'est pas fixée ici : elle le sera à la validation par l'agent
+        contrat.setDureeMois(p.dureeMois());
         contrat.setStatutContrat(StatutContrat.EN_ATTENTE);
         contrat.setCoefficientBonusMalus(p.coefficient());
         contrat.setPrimeNetteCourante(p.primeNetteAjustee());
         contrat.setPrimeTtcCourante(detail.ttc());
         contrat.setTauxCommission(detail.tauxCommission());
         contrat.setMontantCommission(detail.commission());
+        contrat.setGaranties(resoudreGaranties(demande.getCdGaranties(), p.branche()));
         contrat = contratRepository.save(contrat);
 
         for (Vehicule vehicule : p.vehicules()) {
@@ -160,8 +179,9 @@ public class ContratService {
     }
 
     /**
-     * Valide une demande : le contrat reçoit son numéro de police et sa date d'expiration,
-     * et sa facture de souscription est émise.
+     * Valide une demande : le contrat reçoit son numéro de police, sa date d'effet (le jour de la
+     * validation) et sa date d'expiration (date d'effet + durée choisie), et sa facture de
+     * souscription est émise.
      * Le montant est recalculé à partir du contrat pour que la facture corresponde exactement
      * à ce qui a été souscrit, bonus/malus compris.
      */
@@ -174,18 +194,19 @@ public class ContratService {
 
         Detail detail = recalculer(contrat);
 
+        // la date d'effet est celle de la validation : le contrat prend effet immédiatement
+        LocalDate dateValidation = LocalDate.now();
+        Integer dureeMois = dureeMoisDuContrat(contrat);
+
         contrat.setNumPolice(nextNumPolice());
         contrat.setStatutContrat(StatutContrat.VALIDE);
         contrat.setPrimeNetteCourante(detail.base() - detail.accessoires());
         contrat.setPrimeTtcCourante(detail.ttc());
         contrat.setTauxCommission(detail.tauxCommission());
         contrat.setMontantCommission(detail.commission());
-        // la durée de l'offre fixe la durée du contrat si l'offre ne précise rien
-        Integer dureeMois = contrat.getOffre() == null || contrat.getOffre().getDureeMinMois() == null
-                ? 12 : contrat.getOffre().getDureeMinMois();
-        contrat.setDateExpiration(contrat.getDateEffet() == null
-                ? LocalDate.now().plusMonths(dureeMois)
-                : contrat.getDateEffet().plusMonths(dureeMois));
+        contrat.setDateEffet(dateValidation);
+        contrat.setDureeMois(dureeMois);
+        contrat.setDateExpiration(dateValidation.plusMonths(dureeMois));
         contrat = contratRepository.save(contrat);
 
         factureService.emettreSouscription(contrat, detail);
@@ -217,8 +238,7 @@ public class ContratService {
         }
         Detail detail = recalculer(contrat);
 
-        Integer dureeMois = contrat.getOffre() == null || contrat.getOffre().getDureeMinMois() == null
-                ? 12 : contrat.getOffre().getDureeMinMois();
+        Integer dureeMois = dureeMoisDuContrat(contrat);
         LocalDate ancienneExpiration = contrat.getDateExpiration();
         contrat.setDateEffet(ancienneExpiration == null ? LocalDate.now() : ancienneExpiration);
         contrat.setDateExpiration(contrat.getDateEffet().plusMonths(dureeMois));
@@ -302,12 +322,16 @@ public class ContratService {
         if (demande.getIdOffre() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "L'offre est obligatoire");
         }
-        if (demande.getPrimeNette() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Veuillez introduire le montant de la prime nette");
-        }
 
         Offre offre = offreRepository.findById(demande.getIdOffre())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Offre introuvable"));
+
+        Integer dureeMois = resoudreDuree(demande, offre);
+
+        // prime nette : montant mensuel fixe x durée si le client n'en fournit pas
+        double primeNetteSaisie = demande.getPrimeNette() == null
+                ? PRIME_MENSUELLE_DEFAUT * dureeMois
+                : demande.getPrimeNette();
 
         Branche branche = offre.getBranche();
         if (branche == null) {
@@ -325,9 +349,63 @@ public class ContratService {
         // le bonus/malus s'applique à la prime nette avant le calcul des taxes
         double coefficient = demande.getCoefficientBonusMalus() == null || demande.getCoefficientBonusMalus() <= 0
                 ? 1d : demande.getCoefficientBonusMalus();
-        double primeNetteAjustee = arrondir(demande.getPrimeNette() * coefficient);
+        double primeNetteAjustee = arrondir(primeNetteSaisie * coefficient);
 
-        return new Preparation(offre, branche, parametres, codeTaxe, codeTarif, vehicules, primeNetteAjustee, coefficient);
+        return new Preparation(offre, branche, parametres, codeTaxe, codeTarif, vehicules, dureeMois, primeNetteAjustee, coefficient);
+    }
+
+    /**
+     * Durée du contrat choisie par le client, contrôlée par rapport au minimum de l'offre.
+     * À défaut, la durée minimale de l'offre est retenue.
+     */
+    private Integer resoudreDuree(DemandeSouscription demande, Offre offre) {
+        Integer minimum = offre.getDureeMinMois() == null ? DUREE_DEFAUT_MOIS : offre.getDureeMinMois();
+        Integer duree = demande.getDureeMois() == null ? minimum : demande.getDureeMois();
+        if (duree < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La durée du contrat doit être d'au moins 1 mois");
+        }
+        if (duree < minimum) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cette offre exige une durée d'au moins " + minimum + " mois");
+        }
+        return duree;
+    }
+
+    /** Durée contractuelle retenue : celle du contrat, sinon le minimum de l'offre, sinon un an. */
+    private Integer dureeMoisDuContrat(Contrat contrat) {
+        if (contrat.getDureeMois() != null && contrat.getDureeMois() > 0) {
+            return contrat.getDureeMois();
+        }
+        return contrat.getOffre() == null || contrat.getOffre().getDureeMinMois() == null
+                ? DUREE_DEFAUT_MOIS : contrat.getOffre().getDureeMinMois();
+    }
+
+    /**
+     * Résout les garanties choisies par le client. Une liste vide ou absente donne un contrat
+     * sans garantie (0..n autorisé). Chaque garantie doit exister et relever de la branche de
+     * l'offre, sinon la demande est rejetée.
+     */
+    private Set<GarantieType> resoudreGaranties(List<String> codes, Branche branche) {
+        Set<GarantieType> garanties = new LinkedHashSet<>();
+        if (codes == null || codes.isEmpty()) {
+            return garanties;
+        }
+        for (String code : codes) {
+            if (code == null || code.isBlank()) {
+                continue;
+            }
+            GarantieType garantie = garantieRepository.findById(code.trim())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Garantie inconnue : " + code));
+            if (branche == null || garantie.getBranche() == null
+                    || !branche.getCdBranche().equals(garantie.getBranche().getCdBranche())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "La garantie " + garantie.getCdGarantie() + " n'appartient pas à la branche de l'offre");
+            }
+            garanties.add(garantie);
+        }
+        return garanties;
     }
 
     private List<Vehicule> chargerVehicules(DemandeSouscription demande, Offre offre) {
@@ -429,6 +507,7 @@ public class ContratService {
                                CodeTaxePolice codeTaxe,
                                AutoCodeTarif codeTarif,
                                List<Vehicule> vehicules,
+                               Integer dureeMois,
                                double primeNetteAjustee,
                                double coefficient) {
     }

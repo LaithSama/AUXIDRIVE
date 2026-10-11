@@ -1,0 +1,89 @@
+<div class="entete-contenu">
+  <div>
+    <h1 class="titre-section">Mon profil</h1>
+    <p class="chapeau mb-0">
+      Gérez votre nom, votre e-mail de connexion et votre mot de passe.
+    </p>
+  </div>
+</div>
+
+@if (chargement) {
+  <p class="text-muted">Chargement…</p>
+}
+
+@if (!chargement) {
+  @if (messageSucces) {
+    <div class="message-ok">{{ messageSucces }}</div>
+  }
+  @if (messageErreur) {
+    <div class="message-erreur">{{ messageErreur }}</div>
+  }
+
+  <div class="row g-4">
+    <!-- Informations + e-mail de connexion -->
+    <div class="col-lg-7">
+      <div class="carte profil-carte">
+        <h2 class="profil-titre">Mes informations</h2>
+
+        <div class="profil-lecture">
+          <span>Rôle : <strong>{{ profil?.role || '—' }}</strong></span>
+          <span>Statut : <strong>{{ statutLibelle }}</strong></span>
+          <span>Compte créé le : <strong>{{ profil?.dateCreation?.slice(0, 10) | dateFr }}</strong></span>
+          <span>Dernière connexion : <strong>{{ profil?.derniereConnexion?.slice(0, 10) | dateFr }}</strong></span>
+        </div>
+
+        <form (ngSubmit)="enregistrer()">
+          <div class="champ">
+            <label for="ps-nom">Nom</label>
+            <input type="text" id="ps-nom" name="nomUtil" maxlength="40" [(ngModel)]="nom" required />
+          </div>
+
+          <div class="champ">
+            <label for="ps-email">E-mail de connexion</label>
+            <input type="email" id="ps-email" name="emailConnexion" [(ngModel)]="emailConnexion" required />
+            <small class="aide">Utilisé pour vous connecter à votre espace.</small>
+            @if (emailModifiee) {
+              <small class="profil-alerte">Vous devrez vous reconnecter après ce changement.</small>
+            }
+          </div>
+
+          <button type="submit" class="btn-signal profil-bouton" [disabled]="!informationsValides || enCours">
+            {{ enCours ? 'Enregistrement…' : 'Enregistrer mes informations' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Mot de passe -->
+    <div class="col-lg-5">
+      <div class="carte profil-carte">
+        <h2 class="profil-titre">Mot de passe</h2>
+
+        <form (ngSubmit)="changerMotDePasse()">
+          <div class="champ">
+            <label for="ps-mdp-actuel">Mot de passe actuel</label>
+            <input type="password" id="ps-mdp-actuel" name="mdpActuel" autocomplete="current-password"
+                   [(ngModel)]="mdpActuel" required />
+          </div>
+          <div class="champ">
+            <label for="ps-mdp-nouveau">Nouveau mot de passe</label>
+            <input type="password" id="ps-mdp-nouveau" name="mdpNouveau" autocomplete="new-password"
+                   placeholder="8 caractères minimum" [(ngModel)]="mdpNouveau" required />
+          </div>
+          <div class="champ">
+            <label for="ps-mdp-confirmation">Confirmer le nouveau mot de passe</label>
+            <input type="password" id="ps-mdp-confirmation" name="mdpConfirmation" autocomplete="new-password"
+                   [(ngModel)]="mdpConfirmation" required />
+            @if (mdpNouveau && mdpConfirmation && mdpNouveau !== mdpConfirmation) {
+              <span class="erreur">Les deux mots de passe ne correspondent pas.</span>
+            }
+          </div>
+
+          <button type="submit" class="btn-signal profil-bouton" [disabled]="!motDePasseValide || enCours">
+            {{ enCours ? 'Mise à jour…' : 'Mettre à jour le mot de passe' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+}

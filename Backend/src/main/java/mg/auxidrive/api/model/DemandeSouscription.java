@@ -1,6 +1,5 @@
 package mg.auxidrive.api.model;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -24,6 +23,12 @@ public class DemandeSouscription {
     /** Véhicules à couvrir : un seul pour une offre MONOVEHICULE, plusieurs pour une FLOTTE. */
     private List<Long> idVehicules;
 
+    /**
+     * Garanties souscrites, par leur code. Facultatif : une liste vide ou absente signifie
+     * que le contrat est souscrit sans garantie (0..n).
+     */
+    private List<String> cdGaranties;
+
     /** Prime nette saisie, hors accessoires et avant application du bonus/malus. */
     private Double primeNette;
 
@@ -33,7 +38,11 @@ public class DemandeSouscription {
     /** Coefficient de bonus/malus : appliqué à la prime nette avant le calcul, 1.0 si nul. */
     private Double coefficientBonusMalus;
 
-    private LocalDate dateEffet;
+    /**
+     * Durée du contrat en mois choisie par le client. La date d'effet n'est pas transmise :
+     * elle est fixée à la date de validation par l'agent, et l'expiration en découle.
+     */
+    private Integer dureeMois;
 
     private String codeAgence;
 
@@ -61,6 +70,14 @@ public class DemandeSouscription {
         this.idVehicules = idVehicules;
     }
 
+    public List<String> getCdGaranties() {
+        return cdGaranties;
+    }
+
+    public void setCdGaranties(List<String> cdGaranties) {
+        this.cdGaranties = cdGaranties;
+    }
+
     public Double getPrimeNette() {
         return primeNette;
     }
@@ -85,12 +102,12 @@ public class DemandeSouscription {
         this.coefficientBonusMalus = coefficientBonusMalus;
     }
 
-    public LocalDate getDateEffet() {
-        return dateEffet;
+    public Integer getDureeMois() {
+        return dureeMois;
     }
 
-    public void setDateEffet(LocalDate dateEffet) {
-        this.dateEffet = dateEffet;
+    public void setDureeMois(Integer dureeMois) {
+        this.dureeMois = dureeMois;
     }
 
     public String getCodeAgence() {

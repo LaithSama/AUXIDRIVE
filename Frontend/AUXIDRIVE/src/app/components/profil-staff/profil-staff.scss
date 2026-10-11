@@ -1,0 +1,49 @@
+.entete-contenu {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(28, 34, 39, 0.12);
+
+  h1 { margin: 0 0 0.35rem; }
+}
+
+.profil-carte {
+  box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.07);
+}
+
+.profil-titre {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 1.25rem;
+}
+
+.profil-lecture {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+  background: var(--papier);
+  border: 1px solid #e3e7ea;
+  border-radius: 10px;
+  padding: 0.7rem 0.95rem;
+  margin-bottom: 1.35rem;
+  font-size: 0.95rem;
+  color: var(--gris);
+
+  strong { color: var(--encre); }
+}
+
+.profil-alerte {
+  display: block;
+  color: var(--erreur);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
+}
+
+.profil-bouton {
+  margin-top: 0.35rem;
+}

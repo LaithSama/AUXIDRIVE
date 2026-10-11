@@ -1,9 +1,10 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ContratService } from '../../../services/contrat-service';
 import { SinistreService } from '../../../services/sinistre-service';
 import { FactureService } from '../../../services/facture-service';
+import { AuthService } from '../../../services/auth-service';
 import { Contrat } from '../../../core/interfaces/contrat';
 import { Sinistre } from '../../../core/interfaces/sinistre';
 import { Facture } from '../../../core/interfaces/facture';
@@ -18,6 +19,8 @@ export class DashboardAccueil implements OnInit {
   private contratService = inject(ContratService);
   private sinistreService = inject(SinistreService);
   private factureService = inject(FactureService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   chargement = true;
   erreur = '';
@@ -44,7 +47,12 @@ export class DashboardAccueil implements OnInit {
         this.totalFactures = factures.length;
         this.chargement = false;
       },
-      error: () => {
+      error: (err) => {
+        if (err.status === 401 || err.status === 403) {
+          this.authService.logout();
+          this.router.navigate(['/connexion']);
+          return;
+        }
         this.erreur = "Impossible de charger votre tableau de bord. Vérifiez que vous êtes connecté en tant que client.";
         this.chargement = false;
       },

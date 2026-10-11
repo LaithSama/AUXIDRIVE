@@ -25,6 +25,7 @@
           <tr>
             <th>N° Police</th>
             <th>Statut</th>
+            <th>Garanties</th>
             <th>Effet</th>
             <th>Expiration</th>
             <th class="text-end">Prime TTC</th>
@@ -44,13 +45,24 @@
                   @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
                 }
               </td>
+              <td class="contrat-garanties-cellule">
+                @if (c.garanties && c.garanties.length > 0) {
+                  <span class="contrat-garanties">
+                    @for (g of c.garanties; track g.cdGarantie) {
+                      <span class="pastille pastille-sombre contrat-garantie">{{ g.libelleGarantie }}</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="contrat-sans-garantie">Aucune</span>
+                }
+              </td>
               <td>{{ c.dateEffet | dateFr }}</td>
               <td>{{ c.dateExpiration | dateFr }}</td>
               <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="5" class="contrats-vide">
+              <td colspan="6" class="contrats-vide">
                 Aucun contrat pour le moment. Souscrivez une offre ci-dessous.
               </td>
             </tr>
@@ -68,7 +80,7 @@
       <div class="carte carte-bande">
         <div class="champ">
           <label for="offre">Offre</label>
-          <select id="offre" name="offre" [(ngModel)]="formIdOffre" (ngModelChange)="simulation = null">
+          <select id="offre" name="offre" [(ngModel)]="formIdOffre" (ngModelChange)="changerOffre()">
             <option [ngValue]="null" disabled>— Choisir une offre —</option>
             @for (o of offres; track o.idOffre) {
               <option [ngValue]="o.idOffre">
@@ -107,19 +119,53 @@
           <p class="message-info">Aucun véhicule enregistré : contactez un agent pour ajouter votre véhicule.</p>
         }
 
+        @if (offreSelectionnee) {
+          <fieldset class="champ contrats-garanties">
+            <legend>Garanties</legend>
+            <span class="aide">
+              Optionnel : cochez une ou plusieurs garanties. Aucune case cochée = contrat sans garantie.
+            </span>
+            @if (garanties.length > 0) {
+              @for (g of garanties; track g.cdGarantie) {
+                <label class="contrats-garantie">
+                  <input
+                    type="checkbox"
+                    [checked]="formGaranties.includes(g.cdGarantie)"
+                    (change)="basculerGarantie(g.cdGarantie)"
+                  />
+                  <span>
+                    <strong>{{ g.libelleGarantie }}</strong>
+                    <span class="contrats-garantie-code">{{ g.cdGarantie }}</span>
+                  </span>
+                </label>
+              }
+            } @else {
+              <span class="aide">Aucune garantie n'est proposée pour cette offre.</span>
+            }
+          </fieldset>
+        }
+
         <div class="row g-3">
           <div class="col-sm-6">
             <div class="champ mb-0">
-              <label for="primeNette">Prime nette (Ar, hors taxes)</label>
-              <input type="number" id="primeNette" name="primeNette" min="1" step="1000"
-                     [(ngModel)]="formPrimeNette" (ngModelChange)="simulation = null" />
+              <label>Prime nette</label>
+              <p class="contrats-prime-fixe">
+                {{ primeMensuelleFixe | montant }} / mois
+                <span class="contrats-prime-total">Prime nette : {{ primeNetteCalculee | montant }}</span>
+              </p>
             </div>
           </div>
           <div class="col-sm-6">
             <div class="champ mb-0">
-              <label for="dateEffet">Date d'effet (facultatif)</label>
-              <input type="date" id="dateEffet" name="dateEffet"
-                     [(ngModel)]="formDateEffet" (ngModelChange)="simulation = null" />
+              <label for="dureeMois">Nombre de mois du contrat</label>
+              <input type="number" id="dureeMois" name="dureeMois" step="1"
+                     [min]="offreSelectionnee?.dureeMinMois ?? 1"
+                     [(ngModel)]="formDureeMois" (ngModelChange)="simulation = null" />
+              @if (offreSelectionnee && formDureeMois !== null && !dureeValide) {
+                <span class="erreur">
+                  Cette offre exige une durée d'au moins {{ offreSelectionnee.dureeMinMois }} mois.
+                </span>
+              }
             </div>
           </div>
         </div>
@@ -154,8 +200,9 @@
         <div class="carte contrats-astuce">
           <p class="contrats-simulation-label">Simulation</p>
           <p class="chapeau mb-0">
-            Renseignez l'offre, les véhicules et la prime nette, puis cliquez sur
+            Renseignez l'offre, les véhicules et la durée du contrat, puis cliquez sur
             « Simuler la prime » pour obtenir le détail des taxes et le montant TTC.
+            La date d'effet sera fixée à la date de validation par l'agent.
           </p>
         </div>
       }
