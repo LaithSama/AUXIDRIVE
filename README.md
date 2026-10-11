@@ -1,0 +1,2 @@
+# Conception-et-d-veloppement-d-une-application-de-gestion-d-assurance-automobile-AUXIDRIVE-
+Application de gestion d'assurance auto pour digitaliser la relation assuré-tableur. Côté client : simulation, souscription et déclaration de sinistre en ligne avec photos. Côté admin : gestion des contrats, traitement des indemnités et suivi de sinistralité. Solution sécurisée via API REST et architecture moderne.
