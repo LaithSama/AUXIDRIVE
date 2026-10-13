@@ -63,18 +63,10 @@ select:focus-visible, textarea:focus-visible {
   width: auto;
   border-radius: 4px;
 }
-.entete-drapeau {
-  display: block;
-  height: 30px;
-  width: auto;
-  border-radius: 4px;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
-}
 
 @media (max-width: 419.98px) {
   .marque { font-size: 1.25rem; }
   .marque-logo { height: 30px; }
-  .entete-drapeau { height: 26px; }
 }
 .lien {
   color: #d3dde5;

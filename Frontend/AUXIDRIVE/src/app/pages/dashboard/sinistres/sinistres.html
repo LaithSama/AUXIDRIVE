@@ -64,6 +64,7 @@
             <div class="champ">
               <label for="lieu">Lieu</label>
               <input type="text" id="lieu" name="lieu" placeholder="Antananarivo..."
+                     maxlength="255"
                      [(ngModel)]="formLieu" />
             </div>
 
@@ -71,6 +72,7 @@
               <label for="circonstances">Circonstances</label>
               <textarea id="circonstances" name="circonstances" rows="3"
                         placeholder="Décrivez brièvement l'accident…"
+                        maxlength="2000"
                         [(ngModel)]="formCirconstances"></textarea>
             </div>
 

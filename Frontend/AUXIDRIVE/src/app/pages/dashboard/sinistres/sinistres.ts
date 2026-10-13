@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { SinistreService } from '../../../services/sinistre-service';
@@ -89,9 +90,10 @@ export class DashboardSinistres implements OnInit {
           this.enCours = false;
           this.recharger();
         },
-        error: () => {
+        error: (err: HttpErrorResponse) => {
           this.erreur =
-            'Déclaration impossible : seuls les sinistres sur un contrat validé, à une date non future, sont acceptés.';
+            err.error?.message ||
+            'Déclaration impossible : vérifiez le contrat, la date et le véhicule sélectionnés.';
           this.enCours = false;
         },
       });

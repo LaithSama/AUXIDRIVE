@@ -1,12 +1,11 @@
 <header class="entete">
   <nav class="container d-flex align-items-center justify-content-between py-3">
     <a routerLink="/" class="marque">
-      <img class="marque-logo" src="img/logo-auxiassur.jpg" alt="" />
+      <img class="marque-logo" src="img/logo-auximad.png" alt="" />
       Auxiassur
     </a>
     <div class="d-flex align-items-center gap-2">
       <a routerLink="/connexion" class="btn-contour">Se connecter</a>
-      <img class="entete-drapeau" src="img/drapeau-droite.jpg" alt="" aria-hidden="true" />
     </div>
   </nav>
 </header>
@@ -64,7 +63,7 @@
       <div class="row g-3 mb-2">
         <div class="col-md-6">
           <div class="champ mb-0">
-            <label for="nom">Nom de l'assuré</label>
+            <label for="nom">Nom</label>
             <input type="text" id="nom" name="nomAssure" [(ngModel)]="assure.nomAssure" required />
           </div>
         </div>

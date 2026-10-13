@@ -1,0 +1,40 @@
+Données de Test :
+
+Assurés 2 :
+ Nom : RAZAFINDRAKOTO
+ Prénom : Fitiavana
+ Mail : yopmail
+ Tél : 0324567890
+ Adresse : Logement 112, Cité Ampéfiloha, Antananarivo 101
+ Date Naissance : 23/03/1997
+ CIN : 101022089654
+Numéros Assuré : 73051482
+
+Véhicule 2 :
+• Numéro d'immatriculation : 9142 TAC (Format Madagascar - Antananarivo)
+• Numéro de chassis : JTMDFRFV5JD987654
+• Marque : TOYOTA
+• Modèle : RAV4 Hybrid
+• Code tarifaire (VP) : VP
+• Énergie : Hybride
+• Nombre de places : 5
+• Puissance fiscale(CV) : 9 CV
+• Numero du moteur : 2AR-7845123
+• Type de véhicule : SUV
+• Usage : Professionnel
+
+Sinistre 2 : 
+• Date du sinistre : 02/10/2026
+• Lieu du sinistre : Route Nationale 7 (RN7), à proximité de Behenjy
+• Circonstances : Le véhicule assuré roulait en direction d'Antsirabe. En croisant un camion circulant en sens inverse, un gravillon a été projeté sur le pare-brise avant. L'impact a immédiatement provoqué une fissure importante dans le champ de vision du conducteur, nécessitant le remplacement du vitrage.
+
+Rapport de police 2 :
+
+• Numéros rapport de police : PV-2026-1012/GEND
+• Date du rapport : 02/10/2026 (Le jour même)
+• Responsabilité de l'assuré : Non (Événement de force majeure / Cas fortuit)
+• Rapport policier : Constat de dégâts matériels établi par le peloton de gendarmerie routière sur la RN7 (Behenjy). Le conducteur du véhicule assuré (Toyota RAV4, immatriculé 9142 TAC) circulait normalement lorsqu'un poids lourd circulant en sens inverse a projeté un gravillon sur son pare-brise. L'impact a causé une fissuration immédiate et majeure du verre, altérant gravement la visibilité. Aucun tiers n'a pu être identifié à la suite de la projection. Aucun autre dommage corporel ou matériel n'est à déplorer.
+
+Clôture Dossier 2 (Bris de glace) : 2 800 000 Ar
+
+

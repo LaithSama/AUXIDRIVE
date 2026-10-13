@@ -35,6 +35,12 @@ export class AgentDashboard implements OnInit {
   /** E-mail de l'agent connecté, affiché dans le pied de la sidebar. */
   emailAgent = this.authService.getEmail() ?? 'Agent';
 
+  /** Vrai si l'utilisateur connecté est administrateur (accès au retour vers l'espace admin). */
+  estAdmin = (() => {
+    const role = this.authService.getRole();
+    return role === 'ROLE_ADMIN' || role === 'ADMIN';
+  })();
+
   // ---------- Inscriptions ----------
   private apiUrlInscriptions = `${this.apiUrl}/inscriptions`;
 
@@ -267,6 +273,11 @@ export class AgentDashboard implements OnInit {
 
   fermerSidebar(): void {
     this.sidebarOuverte.set(false);
+  }
+
+  /** Retour à l'espace d'administration (réservé aux administrateurs). */
+  retourEspaceAdmin(): void {
+    this.router.navigate(['/admin-dashboard']);
   }
 
   changerOnglet(statut: 'EN_ATTENTE' | 'VALIDEE' | 'REFUSEE'): void {

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router'; // 👈 Ajout de RouterLink ici
 import { Offre } from '../../core/interfaces/offre';
@@ -24,9 +24,12 @@ const OFFRES_PAR_DEFAUT: Offre[] = [
   templateUrl: './acceuil-client.html',
   styleUrl: './acceuil-client.scss',
 })
-export class AcceuilClient implements OnInit {
+export class AcceuilClient implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private router = inject(Router);
+
+  /** L'en-tête reçoit une ombre dès que la page est défilée. */
+  estScroll = signal(false);
 
   immatriculation = '';
   offres = signal<Offre[]>(OFFRES_PAR_DEFAUT);
@@ -73,7 +76,19 @@ export class AcceuilClient implements OnInit {
       next: (liste) => { if (liste.length) { this.offres.set(liste); } },
       error: () => { /* on garde les offres par défaut */ },
     });
+
+    // ombre de l'en-tête au scroll
+    this.surScroll();
+    window.addEventListener('scroll', this.surScroll, { passive: true });
   }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.surScroll);
+  }
+
+  private surScroll = (): void => {
+    this.estScroll.set(window.scrollY > 10);
+  };
 
   /** Met la saisie en majuscules, sans caractères autres que lettres, chiffres et espaces. */
   normaliser(valeur: string): void {

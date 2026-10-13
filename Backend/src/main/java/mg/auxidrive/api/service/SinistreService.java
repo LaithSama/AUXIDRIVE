@@ -29,6 +29,11 @@ import mg.auxidrive.api.repository.VehiculeRepository;
 @Service
 public class SinistreService {
 
+    /** Bornes de saisie alignées sur les colonnes : au-delà on refuse proprement (400)
+        au lieu de laisser la base tronquer et remonter une erreur 500. */
+    static final int LONGUEUR_MAX_LIEU = 255;
+    static final int LONGUEUR_MAX_CIRCONSTANCES = 2000;
+
     private final SinistreRepository sinistreRepository;
     private final ContratRepository contratRepository;
     private final ContratAutoRepository contratAutoRepository;
@@ -97,6 +102,14 @@ public class SinistreService {
         }
         if (dateSinistre.isAfter(LocalDate.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La date du sinistre ne peut pas être dans le futur");
+        }
+        if (lieu != null && lieu.length() > LONGUEUR_MAX_LIEU) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le lieu du sinistre ne peut pas dépasser " + LONGUEUR_MAX_LIEU + " caractères");
+        }
+        if (circonstances != null && circonstances.length() > LONGUEUR_MAX_CIRCONSTANCES) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Les circonstances ne peuvent pas dépasser " + LONGUEUR_MAX_CIRCONSTANCES + " caractères");
         }
 
         Sinistre sinistre = new Sinistre();

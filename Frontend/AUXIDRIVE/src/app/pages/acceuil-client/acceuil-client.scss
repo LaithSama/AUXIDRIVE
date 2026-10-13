@@ -34,20 +34,116 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .entete {
   background: var(--nuit);
   color: #fff;
+  transition: box-shadow 0.3s ease;
+}
+
+/* ombre douce dès que la page est défilée */
+.entete-scrolle {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 /* barre fixe : les ancres de la navbar s'arrêtent juste en dessous */
 section[id] { scroll-margin-top: 5rem; }
+
+/* ---------- animations du navbar ---------- */
+@keyframes entree-gauche {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes entree-haut {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .marque {
   color: #fff;
   font-weight: 700;
   font-size: 1.5rem;
   text-decoration: none;
+  animation: entree-gauche 0.6s ease backwards;
+  transition: transform 0.25s ease;
+
+  &:hover { transform: scale(1.04); }
 }
+
 .lien {
+  position: relative;
   color: #d3dde5;
   text-decoration: none;
-  &:hover { color: #fff; text-decoration: underline; }
+  animation: entree-haut 0.5s ease backwards;
+  transition: color 0.2s ease, transform 0.25s ease;
+
+  /* soulignement animé : se déploie de gauche à droite au survol */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    height: 2px;
+    width: 100%;
+    background: var(--signal-clair);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover {
+    color: #fff;
+    transform: translateY(-2px);
+
+    &::after { transform: scaleX(1); }
+  }
+
+  &:active { transform: translateY(0) scale(0.97); }
+}
+
+/* apparition en cascade des liens puis du bouton */
+nav .lien:nth-of-type(1) { animation-delay: 0.15s; }
+nav .lien:nth-of-type(2) { animation-delay: 0.25s; }
+nav .lien:nth-of-type(3) { animation-delay: 0.35s; }
+
+/* bouton « Se connecter » : remplissage blanc depuis la gauche au survol */
+nav .btn-outline-light {
+  --bs-btn-hover-bg: transparent;
+  --bs-btn-hover-border-color: #fff;
+  --bs-btn-hover-color: var(--nuit);
+  --bs-btn-active-bg: #fff;
+  --bs-btn-active-border-color: #fff;
+  --bs-btn-active-color: var(--nuit);
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+  animation: entree-haut 0.5s ease backwards;
+  animation-delay: 0.45s;
+  transition: color 0.3s ease, border-color 0.3s ease, transform 0.15s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    transform: translateX(-101%);
+    transition: transform 0.35s ease;
+    z-index: -1;
+  }
+
+  &:hover {
+    color: var(--nuit);
+
+    &::before { transform: translateX(0); }
+  }
+
+  &:active { transform: scale(0.97); }
+}
+
+/* accessibilité : on neutralise les animations d'entrée */
+@media (prefers-reduced-motion: reduce) {
+  .marque,
+  .lien,
+  nav .btn-outline-light {
+    animation: none;
+  }
 }
 
 /* ---------- accueil ---------- */

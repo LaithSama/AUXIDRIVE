@@ -1,7 +1,7 @@
-<header class="entete">
+<header class="entete" [class.entete-scrolle]="estScroll()">
   <nav class="container d-flex align-items-center justify-content-between py-3" aria-label="Navigation principale">
     <a routerLink="/" class="marque">
-      <img class="marque-logo" src="img/logo-auxiassur.jpg" alt="" />
+      <img class="marque-logo" src="img/logo-auximad.png" alt="" />
       Auxiassur
     </a>
     <div class="d-flex align-items-center gap-2 gap-md-4">
@@ -9,7 +9,6 @@
       <a href="#demarches" class="lien d-none d-md-inline">Comment ça marche</a>
       <a href="#contact" class="lien d-none d-md-inline">Contact</a>
       <a routerLink="/connexion" class="btn btn-outline-light btn-sm px-3">Se connecter</a>
-      <img class="entete-drapeau" src="img/drapeau-droite.jpg" alt="" aria-hidden="true" />
     </div>
   </nav>
 </header>
@@ -199,7 +198,7 @@
     <div class="row g-4">
       <div class="col-md-4">
         <p class="pied-titre">Auxiassur</p>
-        <span>L'assurance automobile d'Auximad, agence générale ARO.</span>
+        <span>L'assurance automobile d'Auximad, Agence Générale ARO.</span>
       </div>
       <div class="col-md-4">
         <p class="pied-titre">Nous trouver</p>

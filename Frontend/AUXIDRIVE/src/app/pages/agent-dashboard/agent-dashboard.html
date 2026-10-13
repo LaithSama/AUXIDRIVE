@@ -3,7 +3,7 @@
     <button type="button" class="agent-hamburger d-lg-none" (click)="basculerSidebar()" aria-label="Ouvrir le menu">
       <i class="bi bi-list" aria-hidden="true"></i>
     </button>
-    <span class="marque">Auxiassur <span class="marque-suffixe">Espace Gestion</span></span>
+    <span class="marque"><img class="marque-logo" src="img/logo-auximad.png" alt="" />Auxiassur <span class="marque-suffixe">Espace Gestion</span></span>
   </div>
 </header>
 
@@ -59,6 +59,12 @@
           <small>{{ emailAgent }}</small>
         </div>
       </div>
+      @if (estAdmin) {
+        <button type="button" class="agent-sidebar-lien agent-sidebar-bascule" (click)="retourEspaceAdmin()">
+          <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+          <span>Retour à l'administration</span>
+        </button>
+      }
       <button type="button" class="agent-btn agent-btn-annuler agent-sidebar-deconnexion" (click)="deconnexion()">
         <i class="bi bi-box-arrow-right" aria-hidden="true"></i>Déconnexion
       </button>

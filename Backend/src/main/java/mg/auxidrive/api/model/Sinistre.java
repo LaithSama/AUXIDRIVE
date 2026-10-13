@@ -29,10 +29,10 @@ public class Sinistre {
     @Column(name = "date_declaration")
     private LocalDate dateDeclaration;
 
-    @Column(name = "lieu_sinistre", length = 100)
+    @Column(name = "lieu_sinistre", length = 255)
     private String lieuSinistre;
 
-    @Column(name = "circonstances", length = 255)
+    @Column(name = "circonstances", columnDefinition = "text")
     private String circonstances;
 
     @Enumerated(EnumType.STRING)

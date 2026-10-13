@@ -3,7 +3,7 @@
     <button type="button" class="admin-hamburger d-lg-none" (click)="basculerSidebar()" aria-label="Ouvrir le menu">
       <i class="bi bi-list" aria-hidden="true"></i>
     </button>
-    <span class="marque">Auxiassur <span class="marque-suffixe">Administration</span></span>
+    <span class="marque"><img class="marque-logo" src="img/logo-auximad.png" alt="" />Auxiassur <span class="marque-suffixe">Administration</span></span>
   </div>
 </header>
 
@@ -52,11 +52,6 @@
         <i class="bi bi-person-circle" aria-hidden="true"></i>
         <span>Mon profil</span>
       </button>
-
-      <a class="admin-sidebar-lien" routerLink="/agent-dashboard">
-        <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
-        <span>Espace agent</span>
-      </a>
     </div>
 
     <div class="admin-sidebar-pied">
@@ -67,6 +62,10 @@
           <small>{{ emailAdmin }}</small>
         </div>
       </div>
+      <a class="admin-sidebar-lien admin-sidebar-bascule" routerLink="/agent-dashboard">
+        <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+        <span>Espace agent</span>
+      </a>
       <button type="button" class="btn-contour-sombre admin-sidebar-deconnexion" (click)="deconnexion()">
         <i class="bi bi-box-arrow-right" aria-hidden="true"></i>Déconnexion
       </button>

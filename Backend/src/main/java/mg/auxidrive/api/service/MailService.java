@@ -67,12 +67,12 @@ public class MailService {
             message.setFrom(expediteur);
         }
         message.setTo(destinataire);
-        message.setSubject("AUXIASSUR - Votre inscription est validée");
+    message.setSubject("AUXIDRIVE - Votre inscription est validée");
         message.setText("Bonjour,\n\n"
-                + "Votre inscription sur AUXIASSUR a été validée.\n\n"
+                + "Votre inscription sur AUXIDRIVE a été validée.\n\n"
                 + "Identifiant : " + destinataire + "\n"
                 + "Mot de passe temporaire : " + motDePasseTemporaire + "\n\n"
-                + "Cordialement,\nAUXIASSUR");
+                + "Cordialement,\nAUXIDRIVE");
         try {
             sender.send(message);
             log.info("Mail d'identifiants envoyé à {}", destinataire);
