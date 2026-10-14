@@ -130,72 +130,102 @@
   font-size: 0.9rem;
 }
 
-.contrats-prime-fixe {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 1.2rem;
-  margin: 0.25rem 0 0;
-  color: var(--nuit);
-}
-
-.contrats-prime-total {
-  display: block;
-  font-family: 'Public Sans', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: var(--gris);
-}
-
 .contrats-actions {
   margin-top: 1.25rem;
 }
 
-.contrats-simulation,
-.contrats-astuce {
-  box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.07);
+/* ---------- détail de la prime ---------- */
+.contrat-ligne-cliquable {
+  cursor: pointer;
+  &:hover { background-color: rgba(26, 122, 138, 0.06); }
 }
 
-.contrats-simulation-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gris);
-  margin-bottom: 0.5rem;
+.contrat-detail-bouton {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
 }
 
-.contrats-simulation-ttc {
+.modal.d-block {
+  display: block;
+  background-color: rgba(46, 52, 55, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.contrat-detail {
+  background: #fff;
+  border: 2px solid var(--encre);
+  border-radius: 18px 18px 18px 4px;
+  overflow: hidden;
+  box-shadow: 10px 10px 0 rgba(46, 52, 55, 0.25);
+}
+
+.contrat-detail-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--lagon);
+  color: #fff;
+  padding: 1.1rem 1.5rem;
+}
+
+.contrat-detail-titre {
   font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: 700;
-  margin: 0 0 1rem;
-  line-height: 1;
+  font-size: 1.2rem;
+  margin: 0;
+  color: #fff;
 }
 
-.contrats-simulation-liste {
+.contrat-detail-fermer {
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  &:hover { opacity: 0.75; }
+}
+
+.contrat-detail-lignes {
   list-style: none;
-  padding: 0;
-  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  margin: 0;
+  background: #f6f7f5;
+  border: 1px solid rgba(28, 34, 39, 0.12);
+  border-radius: 10px;
 
   li {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0.45rem 0;
-    border-bottom: 1px dashed #dfe4e7;
+    padding: 0.35rem 0;
     color: var(--gris);
-  }
 
-  .contrats-simulation-total {
-    border-bottom: 0;
-    border-top: 2px solid var(--encre);
-    color: var(--encre);
-    font-weight: 500;
-    margin-top: 0.25rem;
+    span:last-child {
+      font-weight: 600;
+      color: var(--encre);
+    }
   }
 }
 
-.contrats-souscrire {
-  width: 100%;
+.contrat-detail-total {
+  border-top: 2px solid rgba(28, 34, 39, 0.15);
+  margin-top: 0.35rem;
+  padding-top: 0.6rem !important;
+
+  span:last-child {
+    color: var(--lagon) !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem;
+  }
+}
+
+.contrat-detail-pied {
+  display: flex;
+  justify-content: flex-end;
+  background: #f6f7f5;
+  border-top: 2px solid rgba(28, 34, 39, 0.12);
+  padding: 1rem 1.5rem;
 }

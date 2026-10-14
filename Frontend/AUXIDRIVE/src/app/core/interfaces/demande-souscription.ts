@@ -4,6 +4,8 @@ export interface DemandeSouscription {
   /** Codes des garanties choisies ; vide ou absent = contrat sans garantie. */
   cdGaranties?: string[];
   primeNette?: number;
+  /** Accessoires saisis ; absent = ceux de la branche. */
+  accessoires?: number;
   codeTaxe?: string;
   tauxCommission?: number;
   coefficientBonusMalus?: number;
@@ -20,6 +22,21 @@ export interface DetailSimulation {
   ttc: number;
   commission: number;
   tauxCommission: number;
+  appliqueTe: boolean;
+  appliqueTva: boolean;
+  appliqueTacava: boolean;
+}
+
+/** Paramètres de préparation du calcul de prime d'un contrat, côté agent. */
+export interface ParametresPrime {
+  codeTaxe: string | null;
+  libelleCodeTaxe: string | null;
+  primeNetteCourante: number | null;
+  accessoiresDefaut: number | null;
+  tauxCommission: number | null;
+  tauxTe: number | null;
+  tauxTva: number | null;
+  tauxTacava: number | null;
   appliqueTe: boolean;
   appliqueTva: boolean;
   appliqueTacava: boolean;

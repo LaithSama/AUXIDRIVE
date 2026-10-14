@@ -13,8 +13,15 @@ public class Facture {
     @Column(name = "id_facture")
     private Long idFacture;
 
-    @Column(name = "num_police", length = 6)
+    @Column(name = "num_police", length = 10)
     private String numPolice;
+
+    /**
+     * Numéro de facture : année + mois + séquence mensuelle sur trois chiffres (par exemple
+     * 202610001). Il identifie la facture indépendamment du contrat et du fichier PDF associé.
+     */
+    @Column(name = "num_facture", length = 12)
+    private String numFacture;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -72,6 +79,22 @@ public class Facture {
 
     public void setIdFacture(Long idFacture) {
         this.idFacture = idFacture;
+    }
+
+    public String getNumPolice() {
+        return numPolice;
+    }
+
+    public void setNumPolice(String numPolice) {
+        this.numPolice = numPolice;
+    }
+
+    public String getNumFacture() {
+        return numFacture;
+    }
+
+    public void setNumFacture(String numFacture) {
+        this.numFacture = numFacture;
     }
 
     public Contrat getContrat() {

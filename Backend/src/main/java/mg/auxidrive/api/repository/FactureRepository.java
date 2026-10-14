@@ -16,4 +16,7 @@ public interface FactureRepository extends JpaRepository<Facture, Long> {
     List<Facture> findByContrat_Assure_IdAssureOrderByIdFacture(Long idAssure);
 
     Optional<Facture> findFirstByContrat_IdContratAndTypeFacture(Long idContrat, TypeFacture typeFacture);
+
+    /** Dernière facture émise pour un préfixe de numérotation (année + mois), pour incrémenter la séquence. */
+    Optional<Facture> findFirstByNumFactureStartingWithOrderByNumFactureDesc(String prefix);
 }

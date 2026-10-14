@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ import mg.auxidrive.api.model.ContratAuto;
 import mg.auxidrive.api.model.DemandeSouscription;
 import mg.auxidrive.api.model.GarantieType;
 import mg.auxidrive.api.model.Offre;
+import mg.auxidrive.api.model.ParametresPrime;
+import mg.auxidrive.api.model.PrimeRequest;
 import mg.auxidrive.api.model.StatutContrat;
 import mg.auxidrive.api.model.TypeOffre;
 import mg.auxidrive.api.model.Vehicule;
@@ -50,13 +53,17 @@ import mg.auxidrive.api.service.PrimeCalculator.Detail;
 public class ContratService {
 
     /**
-     * Prime nette appliquée par mois lorsque le client n'en transmet pas. Le montant total du
-     * contrat est ce tarif multiplié par la durée choisie.
+     * Prime nette par défaut lorsque le client n'en transmet pas. Ce n'est qu'une valeur d'attente :
+     * la prime réelle est saisie par l'agent au moment du calcul, à la validation. Le nombre de mois
+     * ne la multiplie pas : la durée fixe l'échéance, pas le montant.
      */
-    public static final double PRIME_MENSUELLE_DEFAUT = 20000d;
+    public static final double PRIME_NETTE_DEFAUT = 20000d;
 
     /** Durée retenue si ni le contrat, ni l'offre ne précisent de durée. */
     private static final int DUREE_DEFAUT_MOIS = 12;
+
+    /** Alphabet des trois lettres du numéro de police. */
+    private static final String LETTRES_POLICE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     private final ContratRepository contratRepository;
     private final ContratAutoRepository contratAutoRepository;
@@ -162,6 +169,7 @@ public class ContratService {
         contrat.setStatutContrat(StatutContrat.EN_ATTENTE);
         contrat.setCoefficientBonusMalus(p.coefficient());
         contrat.setPrimeNetteCourante(p.primeNetteAjustee());
+        contrat.setAccessoires(detail.accessoires());
         contrat.setPrimeTtcCourante(detail.ttc());
         contrat.setTauxCommission(detail.tauxCommission());
         contrat.setMontantCommission(detail.commission());
@@ -179,20 +187,30 @@ public class ContratService {
     }
 
     /**
-     * Valide une demande : le contrat reçoit son numéro de police, sa date d'effet (le jour de la
-     * validation) et sa date d'expiration (date d'effet + durée choisie), et sa facture de
-     * souscription est émise.
-     * Le montant est recalculé à partir du contrat pour que la facture corresponde exactement
-     * à ce qui a été souscrit, bonus/malus compris.
+     * Valide une demande avec les valeurs courantes du contrat (variante sans calcul explicite).
      */
     @Transactional
     public Contrat valider(Long idContrat) {
+        return valider(idContrat, null);
+    }
+
+    /**
+     * Valide une demande : le contrat reçoit son numéro de police, sa date d'effet (le jour de la
+     * validation) et sa date d'expiration (date d'effet + durée choisie), et sa facture de
+     * souscription est émise.
+     *
+     * <p>La prime est recalculée par le serveur à partir de la prime nette et des accessoires
+     * saisis par l'agent ({@code requete}) : la facture correspond ainsi exactement au calcul
+     * affiché. Un champ absent de la requête reprend la valeur courante du contrat.
+     */
+    @Transactional
+    public Contrat valider(Long idContrat, PrimeRequest requete) {
         Contrat contrat = trouver(idContrat);
         if (contrat.getStatutContrat() != StatutContrat.EN_ATTENTE) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Seule une demande en attente peut être validée");
         }
 
-        Detail detail = recalculer(contrat);
+        Detail detail = calculerPourContrat(contrat, requete);
 
         // la date d'effet est celle de la validation : le contrat prend effet immédiatement
         LocalDate dateValidation = LocalDate.now();
@@ -201,6 +219,7 @@ public class ContratService {
         contrat.setNumPolice(nextNumPolice());
         contrat.setStatutContrat(StatutContrat.VALIDE);
         contrat.setPrimeNetteCourante(detail.base() - detail.accessoires());
+        contrat.setAccessoires(detail.accessoires());
         contrat.setPrimeTtcCourante(detail.ttc());
         contrat.setTauxCommission(detail.tauxCommission());
         contrat.setMontantCommission(detail.commission());
@@ -236,13 +255,14 @@ public class ContratService {
         if (contrat.getStatutContrat() != StatutContrat.VALIDE) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Seul un contrat validé peut être renouvelé");
         }
-        Detail detail = recalculer(contrat);
+        Detail detail = calculerPourContrat(contrat, null);
 
         Integer dureeMois = dureeMoisDuContrat(contrat);
         LocalDate ancienneExpiration = contrat.getDateExpiration();
         contrat.setDateEffet(ancienneExpiration == null ? LocalDate.now() : ancienneExpiration);
         contrat.setDateExpiration(contrat.getDateEffet().plusMonths(dureeMois));
         contrat.setPrimeNetteCourante(detail.base() - detail.accessoires());
+        contrat.setAccessoires(detail.accessoires());
         contrat.setPrimeTtcCourante(detail.ttc());
         contrat.setTauxCommission(detail.tauxCommission());
         contrat.setMontantCommission(detail.commission());
@@ -267,44 +287,115 @@ public class ContratService {
         }
     }
 
+    /**
+     * Paramètres de préparation du calcul de prime d'un contrat existant, à destination de l'agent :
+     * code taxe, taux appliqués et valeurs par défaut des champs qu'il peut saisir.
+     */
+    @Transactional(readOnly = true)
+    public ParametresPrime parametresPrime(Long idContrat) {
+        Contrat contrat = trouver(idContrat);
+        BrancheParametresCalcul parametres = parametresDuContrat(contrat);
+        AutoCodeTarif codeTarif = codeTarifDuContrat(contrat);
+        CodeTaxePolice codeTaxe = codeTaxeDe(codeTarif);
+
+        double tauxCommission = contrat.getTauxCommission() != null && contrat.getTauxCommission() > 0
+                ? contrat.getTauxCommission()
+                : (parametres.getCommissionTotale() == null ? 0d : parametres.getCommissionTotale());
+        boolean appliqueTacava = vrai(codeTaxe.getAppliquerTacava()) && vrai(codeTarif.getAvecTacava());
+
+        return new ParametresPrime(
+                codeTaxe.getCodeTaxe(),
+                codeTaxe.getLibelleCodeTaxe(),
+                contrat.getPrimeNetteCourante(),
+                contrat.getAccessoires() != null ? contrat.getAccessoires() : parametres.getAccessoires(),
+                tauxCommission,
+                parametres.getTauxTe(),
+                codeTaxe.getTauxTaxe(),
+                parametres.getTauxTacava(),
+                vrai(codeTaxe.getAppliquerTe()),
+                vrai(codeTaxe.getAppliquerTva()),
+                appliqueTacava);
+    }
+
+    /**
+     * Calcule la prime d'un contrat sans rien enregistrer : sert à l'agent pour prévisualiser le
+     * montant TTC à partir de la prime nette et des accessoires qu'il saisit.
+     */
+    @Transactional(readOnly = true)
+    public Detail calculerPrime(Long idContrat, PrimeRequest requete) {
+        return calculerPourContrat(trouver(idContrat), requete);
+    }
+
     // ---- interne ----
 
     /**
-     * Recalcule la prime d'un contrat déjà enregistré, en résolvant à nouveau la branche,
-     * le code taxe et le code tarifaire à partir des véhicules rattachés.
-     * Utilisé à la validation pour que la facture émise corresponde au contrat souscrit.
+     * Calcule la prime d'un contrat déjà enregistré, en résolvant la branche, le code taxe et le
+     * code tarifaire à partir des véhicules rattachés.
+     *
+     * <p>Les valeurs saisies par l'agent ({@code requete}) priment ; à défaut, la prime nette et le
+     * taux de commission du contrat, ainsi que les accessoires déjà enregistrés puis ceux de la
+     * branche, sont utilisés.
      */
-    private Detail recalculer(Contrat contrat) {
-        if (contrat.getBranche() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce contrat n'est rattaché à aucune branche");
-        }
-        BrancheParametresCalcul parametres = parametresRepository.findByBranche_CdBranche(contrat.getBranche().getCdBranche())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Aucun paramètre de calcul pour la branche " + contrat.getBranche().getCdBranche()));
+    private Detail calculerPourContrat(Contrat contrat, PrimeRequest requete) {
+        BrancheParametresCalcul parametres = parametresDuContrat(contrat);
+        AutoCodeTarif codeTarif = codeTarifDuContrat(contrat);
+        CodeTaxePolice codeTaxe = codeTaxeDe(codeTarif);
 
-        List<ContratAuto> liens = contratAutoRepository.findByContrat_IdContrat(contrat.getIdContrat());
-        if (liens.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce contrat n'a aucun véhicule rattaché");
-        }
-        Vehicule premier = liens.get(0).getVehicule();
-        CodeTaxePolice codeTaxe = premier.getCodeTarif() == null || premier.getCodeTarif().getCodeTaxePolice() == null
-                ? null : premier.getCodeTarif().getCodeTaxePolice();
-        if (codeTaxe == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le véhicule couvert ne porte aucun code taxe");
-        }
+        double primeNette = requete != null && requete.primeNette() != null
+                ? requete.primeNette()
+                : (contrat.getPrimeNetteCourante() == null ? 0d : contrat.getPrimeNetteCourante());
+        Double accessoires = requete != null && requete.accessoires() != null
+                ? requete.accessoires()
+                : contrat.getAccessoires();
+        Double tauxCommission = requete != null && requete.tauxCommission() != null
+                ? requete.tauxCommission()
+                : contrat.getTauxCommission();
 
         try {
-            return PrimeCalculator.calculer(contrat.getPrimeNetteCourante() == null ? 0d : contrat.getPrimeNetteCourante(),
-                    parametres, codeTaxe, premier.getCodeTarif(), contrat.getTauxCommission());
+            return PrimeCalculator.calculer(primeNette, accessoires, parametres, codeTaxe, codeTarif, tauxCommission);
         } catch (CalculPrimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
+    /** Paramètres de calcul de la branche du contrat, ou une erreur si elle n'en a pas. */
+    private BrancheParametresCalcul parametresDuContrat(Contrat contrat) {
+        if (contrat.getBranche() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce contrat n'est rattaché à aucune branche");
+        }
+        return parametresRepository.findByBranche_CdBranche(contrat.getBranche().getCdBranche())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Aucun paramètre de calcul pour la branche " + contrat.getBranche().getCdBranche()));
+    }
+
+    /** Code tarifaire du premier véhicule couvert par le contrat. */
+    private AutoCodeTarif codeTarifDuContrat(Contrat contrat) {
+        List<ContratAuto> liens = contratAutoRepository.findByContrat_IdContrat(contrat.getIdContrat());
+        if (liens.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ce contrat n'a aucun véhicule rattaché");
+        }
+        Vehicule premier = liens.get(0).getVehicule();
+        return premier == null ? null : premier.getCodeTarif();
+    }
+
+    /** Code taxe porté par un code tarifaire ; une erreur si le véhicule n'en porte aucun. */
+    private CodeTaxePolice codeTaxeDe(AutoCodeTarif codeTarif) {
+        CodeTaxePolice codeTaxe = codeTarif == null ? null : codeTarif.getCodeTaxePolice();
+        if (codeTaxe == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le véhicule couvert ne porte aucun code taxe");
+        }
+        return codeTaxe;
+    }
+
+    private static boolean vrai(Boolean b) {
+        return b != null && b;
+    }
+
     /** Convertit une erreur de calcul en erreur HTTP 400 pour que le frontend affiche le message. */
     private Detail calculer(Preparation p, Double tauxCommission) {
         try {
-            return PrimeCalculator.calculer(p.primeNetteAjustee(), p.parametres(), p.codeTaxe(), p.codeTarif(), tauxCommission);
+            return PrimeCalculator.calculer(p.primeNetteAjustee(), p.accessoires(), p.parametres(),
+                    p.codeTaxe(), p.codeTarif(), tauxCommission);
         } catch (CalculPrimeException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -328,9 +419,9 @@ public class ContratService {
 
         Integer dureeMois = resoudreDuree(demande, offre);
 
-        // prime nette : montant mensuel fixe x durée si le client n'en fournit pas
+        // prime nette : valeur d'attente si le client n'en fournit pas ; la durée ne la multiplie pas
         double primeNetteSaisie = demande.getPrimeNette() == null
-                ? PRIME_MENSUELLE_DEFAUT * dureeMois
+                ? PRIME_NETTE_DEFAUT
                 : demande.getPrimeNette();
 
         Branche branche = offre.getBranche();
@@ -351,7 +442,8 @@ public class ContratService {
                 ? 1d : demande.getCoefficientBonusMalus();
         double primeNetteAjustee = arrondir(primeNetteSaisie * coefficient);
 
-        return new Preparation(offre, branche, parametres, codeTaxe, codeTarif, vehicules, dureeMois, primeNetteAjustee, coefficient);
+        return new Preparation(offre, branche, parametres, codeTaxe, codeTarif, vehicules, dureeMois,
+                primeNetteAjustee, coefficient, demande.getAccessoires());
     }
 
     /**
@@ -474,25 +566,30 @@ public class ContratService {
     }
 
     /**
-     * Numéro de police sur 10 caractères : deux chiffres d'année puis huit chiffres de séquence.
-     * La séquence repart du plus grand numéro existant, donc un numéro n'est pas réutilisé.
-     * On ne lit que les huit chiffres de fin : les deux premiers sont l'année, les re-préfixer
-     * produirait un numéro de 12 caractères, trop long pour la colonne.
+     * Numéro de police sur 6 caractères : trois lettres puis trois chiffres (par exemple KJD482),
+     * tirés au hasard. L'unicité est garantie par la base : on retire un numéro tant qu'il est
+     * déjà attribué. Un contrat refusé ne consomme donc pas de numéro, et deux tirages successifs
+     * ne peuvent pas se télescoper.
      */
     private String nextNumPolice() {
-        long maxSequence = contratRepository.findAll().stream()
-                .map(Contrat::getNumPolice)
-                .filter(n -> n != null && n.matches("\\d+"))
-                .mapToLong(ContratService::sequence)
-                .max()
-                .orElse(0L);
-        String annee = String.valueOf(LocalDate.now().getYear() % 100);
-        return annee + String.format("%08d", maxSequence + 1);
+        String numPolice;
+        do {
+            numPolice = policeAleatoire();
+        } while (contratRepository.existsByNumPolice(numPolice));
+        return numPolice;
     }
 
-    /** Les huit derniers chiffres d'un numéro de police, c'est-à-dire sa séquence. */
-    private static long sequence(String numPolice) {
-        return Long.parseLong(numPolice.length() > 8 ? numPolice.substring(numPolice.length() - 8) : numPolice);
+    /** Trois lettres majuscules puis trois chiffres, soit un code de police de 6 caractères. */
+    private static String policeAleatoire() {
+        ThreadLocalRandom aleatoire = ThreadLocalRandom.current();
+        StringBuilder code = new StringBuilder(6);
+        for (int i = 0; i < 3; i++) {
+            code.append(LETTRES_POLICE.charAt(aleatoire.nextInt(LETTRES_POLICE.length())));
+        }
+        for (int i = 0; i < 3; i++) {
+            code.append(aleatoire.nextInt(10));
+        }
+        return code.toString();
     }
 
     private double arrondir(double valeur) {
@@ -509,6 +606,7 @@ public class ContratService {
                                List<Vehicule> vehicules,
                                Integer dureeMois,
                                double primeNetteAjustee,
-                               double coefficient) {
+                               double coefficient,
+                               Double accessoires) {
     }
 }

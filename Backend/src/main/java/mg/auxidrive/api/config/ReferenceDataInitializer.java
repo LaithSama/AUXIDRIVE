@@ -77,20 +77,21 @@ public class ReferenceDataInitializer implements CommandLineRunner {
      * Branches et leurs paramètres de calcul.
      * La dernière colonne du fichier source est le taux de TACAVA : il varie fortement d'une
      * branche à l'autre (5 % en aviation, 18 % en automobile), il n'a donc de sens que par branche.
-     * La ventilation de commission est vide tant que les taux réels de commission ne sont pas connus.
+     * La commission totale n'est connue que pour l'automobile (18 %) : les autres branches restent
+     * sans taux tant que les valeurs réelles ne sont pas connues.
      */
     private void chargerBranches() {
         String[][] lignes = {
-                // code, libellé, accessoires, taux TE, taux TVA, taux TACAVA
-                {"01", "AUTOMOBILE", "2000", "4.50", "20.00", "18.00"},
-                {"07", "AUTRE INDIVIDUELLE", "2000", "4.50", "20.00", "20.00"},
-                {"08", "AVIATION CORPS RG", "2000", "4.50", "20.00", "5.00"},
-                {"09", "AVIATION CORPS RO", "2000", "4.50", "20.00", "7.50"},
-                {"10", "AVIATION RESPONS CIVILE RG", "2000", "4.50", "20.00", "7.50"},
-                {"11", "AVIATION RESPONS CIVILE RO", "2000", "4.50", "20.00", "12.50"},
-                {"12", "BRIS DE GLACE", "2000", "4.50", "20.00", "20.00"},
-                {"13", "BRIS DE MACHINE", "2000", "4.50", "20.00", "10.00"},
-                {"14", "CAPITALISATION", "2000", "4.50", "20.00", "10.00"},
+                // code, libellé, accessoires, taux TE, taux TVA, taux TACAVA, commission totale
+                {"01", "AUTOMOBILE", "2000", "4.50", "20.00", "18.00", "18.00"},
+                {"07", "AUTRE INDIVIDUELLE", "2000", "4.50", "20.00", "20.00", ""},
+                {"08", "AVIATION CORPS RG", "2000", "4.50", "20.00", "5.00", ""},
+                {"09", "AVIATION CORPS RO", "2000", "4.50", "20.00", "7.50", ""},
+                {"10", "AVIATION RESPONS CIVILE RG", "2000", "4.50", "20.00", "7.50", ""},
+                {"11", "AVIATION RESPONS CIVILE RO", "2000", "4.50", "20.00", "12.50", ""},
+                {"12", "BRIS DE GLACE", "2000", "4.50", "20.00", "20.00", ""},
+                {"13", "BRIS DE MACHINE", "2000", "4.50", "20.00", "10.00", ""},
+                {"14", "CAPITALISATION", "2000", "4.50", "20.00", "10.00", ""},
         };
 
         for (String[] l : lignes) {
@@ -107,8 +108,14 @@ public class ReferenceDataInitializer implements CommandLineRunner {
             parametres.setTauxTe(Double.valueOf(l[3]));
             parametres.setTauxTva(Double.valueOf(l[4]));
             parametres.setTauxTacava(Double.valueOf(l[5]));
+            parametres.setCommissionTotale(versDouble(l[6]));
             parametresRepository.save(parametres);
         }
+    }
+
+    /** Convertit une cellule texte en Double, ou renvoie null si la valeur n'est pas renseignée. */
+    private static Double versDouble(String valeur) {
+        return valeur == null || valeur.isBlank() ? null : Double.valueOf(valeur);
     }
 
     /**

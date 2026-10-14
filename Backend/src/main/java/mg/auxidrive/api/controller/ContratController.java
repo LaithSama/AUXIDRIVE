@@ -17,6 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 import mg.auxidrive.api.model.Assure;
 import mg.auxidrive.api.model.Contrat;
 import mg.auxidrive.api.model.DemandeSouscription;
+import mg.auxidrive.api.model.ParametresPrime;
+import mg.auxidrive.api.model.PrimeRequest;
 import mg.auxidrive.api.service.CompteClientService;
 import mg.auxidrive.api.service.ContratService;
 import mg.auxidrive.api.service.PrimeCalculator.Detail;
@@ -99,8 +101,30 @@ public class ContratController {
 
     @PostMapping("/{id}/valider")
     @PreAuthorize(ROLES_STAFF)
-    public Contrat valider(@PathVariable Long id) {
-        return contratService.valider(id);
+    public Contrat valider(@PathVariable Long id,
+                           @RequestBody(required = false) PrimeRequest prime) {
+        return contratService.valider(id, prime);
+    }
+
+    /**
+     * Paramètres du calcul de prime d'un contrat : code taxe, taux appliqués et valeurs par défaut,
+     * pour que l'agent prépare la modale de calcul de prime.
+     */
+    @GetMapping("/{id}/parametres-prime")
+    @PreAuthorize(ROLES_STAFF)
+    public ParametresPrime parametresPrime(@PathVariable Long id) {
+        return contratService.parametresPrime(id);
+    }
+
+    /**
+     * Calcule la prime d'un contrat sans rien enregistrer, à partir de la prime nette et des
+     * accessoires saisis par l'agent. Le montant TTC n'est jamais reçu du client.
+     */
+    @PostMapping("/{id}/calculer-prime")
+    @PreAuthorize(ROLES_STAFF)
+    public Detail calculerPrime(@PathVariable Long id,
+                                @RequestBody(required = false) PrimeRequest prime) {
+        return contratService.calculerPrime(id, prime);
     }
 
     @PostMapping("/{id}/refuser")

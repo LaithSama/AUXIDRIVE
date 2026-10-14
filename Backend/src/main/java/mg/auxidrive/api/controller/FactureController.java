@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import mg.auxidrive.api.model.Assure;
 import mg.auxidrive.api.model.Facture;
 import mg.auxidrive.api.service.CompteClientService;
+import mg.auxidrive.api.service.ContratService;
 import mg.auxidrive.api.service.FactureService;
 
 /**
@@ -34,10 +35,14 @@ public class FactureController {
 
     private final FactureService factureService;
     private final CompteClientService compteClientService;
+    private final ContratService contratService;
 
-    public FactureController(FactureService factureService, CompteClientService compteClientService) {
+    public FactureController(FactureService factureService,
+                             CompteClientService compteClientService,
+                             ContratService contratService) {
         this.factureService = factureService;
         this.compteClientService = compteClientService;
+        this.contratService = contratService;
     }
 
     @GetMapping
@@ -46,9 +51,16 @@ public class FactureController {
         return factureService.lister();
     }
 
+    /**
+     * Factures d'un contrat. Le client n'y accède que pour un contrat qui lui appartient : c'est ce
+     * qui permet à son espace « Mes contrats » d'afficher le détail de la prime à partir de la
+     * facture émise à la validation, sans recalcul.
+     */
     @GetMapping("/contrat/{idContrat}")
-    @PreAuthorize(ROLES_STAFF)
-    public List<Facture> listerParContrat(@PathVariable Long idContrat) {
+    public List<Facture> listerParContrat(@PathVariable Long idContrat, Authentication authentication) {
+        if (estClient(authentication)) {
+            contratService.trouverPourAssure(idContrat, idAssure(authentication));
+        }
         return factureService.listerParContrat(idContrat);
     }
 

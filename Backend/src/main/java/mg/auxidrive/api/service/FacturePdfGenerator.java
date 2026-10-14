@@ -46,7 +46,8 @@ public class FacturePdfGenerator {
 
     /**
      * Écrit le PDF sur le disque et renvoie son chemin absolu.
-     * Le nom du fichier reprend le numéro de police pour qu'il soit identifiable sans la base.
+     * Le nom du fichier reprend le numéro de facture (année + mois + séquence) pour être unique
+     * et identifiable sans la base : un renouvellement n'écrase donc pas la facture précédente.
      *
      * Les véhicules et les garanties sont reçus en paramètre et non chargés ici : ce générateur
      * n'a ainsi aucune dépendance vers le service de facturation, ce qui évite une dépendance
@@ -58,9 +59,7 @@ public class FacturePdfGenerator {
             Path dossier = Paths.get(DOSSIER);
             Files.createDirectories(dossier);
 
-            String nom = (contrat.getNumPolice() == null || contrat.getNumPolice().isBlank()
-                    ? "contrat-" + contrat.getIdContrat()
-                    : contrat.getNumPolice()) + ".pdf";
+            String nom = referenceFichier(facture, contrat) + ".pdf";
             Path chemin = dossier.resolve(nom).toAbsolutePath();
 
             Document document = new Document(PageSize.A4, 40, 40, 50, 50);
@@ -87,12 +86,29 @@ public class FacturePdfGenerator {
         titre.setSpacingAfter(4);
         document.add(titre);
 
-        Paragraph ref = new Paragraph("Facture n° " + facture.getIdFacture()
+        Paragraph ref = new Paragraph("Facture n° " + numeroFacture(facture)
                 + (contrat.getNumPolice() == null ? "" : "  -  Police n° " + contrat.getNumPolice()),
                 gras(11));
         ref.setAlignment(Element.ALIGN_CENTER);
         ref.setSpacingAfter(14);
         document.add(ref);
+    }
+
+    /** Numéro de facture, ou à défaut l'identifiant technique, pour l'entête du PDF. */
+    private String numeroFacture(Facture facture) {
+        return facture.getNumFacture() == null || facture.getNumFacture().isBlank()
+                ? String.valueOf(facture.getIdFacture())
+                : facture.getNumFacture();
+    }
+
+    /** Nom de fichier : le numéro de facture, à défaut la police, à défaut l'identifiant du contrat. */
+    private String referenceFichier(Facture facture, Contrat contrat) {
+        if (facture.getNumFacture() != null && !facture.getNumFacture().isBlank()) {
+            return facture.getNumFacture();
+        }
+        return contrat.getNumPolice() == null || contrat.getNumPolice().isBlank()
+                ? "contrat-" + contrat.getIdContrat()
+                : contrat.getNumPolice();
     }
 
     private void ecrireAssure(Document document, Contrat contrat) {

@@ -50,7 +50,7 @@ export class DashboardFactures implements OnInit {
         const url = URL.createObjectURL(blob);
         const lien = document.createElement('a');
         lien.href = url;
-        lien.download = `${facture.numPolice || 'facture-' + facture.idFacture}.pdf`;
+        lien.download = `facture-${facture.numFacture || facture.idFacture}.pdf`;
         lien.click();
         URL.revokeObjectURL(url);
         this.telechargementId = null;

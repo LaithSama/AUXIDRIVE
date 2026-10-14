@@ -31,8 +31,10 @@
           @for (f of factures; track f.idFacture) {
             <tr>
               <td class="fac-num">
-                {{ f.numPolice || '—' }}
-                <span class="fac-id">n°{{ f.idFacture }}</span>
+                {{ f.numFacture || ('n°' + f.idFacture) }}
+                @if (f.numPolice) {
+                  <span class="fac-id">police {{ f.numPolice }}</span>
+                }
               </td>
               <td>{{ libelleType(f.typeFacture) }}</td>
               <td>{{ f.dateEmission | dateFr }}</td>

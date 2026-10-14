@@ -177,8 +177,8 @@ class ContratServiceTest {
     // ---- souscrire ----
 
     @Test
-    @DisplayName("Sans prime fournie, la prime nette vaut le tarif mensuel multiplié par la durée")
-    void souscrireAppliqueLaPrimeMensuelleParDefaut() {
+    @DisplayName("Sans prime fournie, la prime nette prend la valeur par défaut, sans multiplication par la durée")
+    void souscrireAppliqueLaPrimeNetteParDefaut() {
         Vehicule vehicule = vehiculeDuFixture();
         vehicule.setIdVehicule(10L);
 
@@ -196,11 +196,38 @@ class ContratServiceTest {
         Contrat contrat = service.souscrire(demande, 5L, "PORTAL_CLIENT");
 
         assertThat(contrat.getPrimeNetteCourante())
-                .isEqualTo(ContratService.PRIME_MENSUELLE_DEFAUT * 3, org.assertj.core.data.Offset.offset(DELTA));
+                .isEqualTo(ContratService.PRIME_NETTE_DEFAUT, org.assertj.core.data.Offset.offset(DELTA));
         assertThat(contrat.getDureeMois()).isEqualTo(3);
         assertThat(contrat.getDateEffet()).isNull();
         assertThat(contrat.getStatutContrat()).isEqualTo(StatutContrat.EN_ATTENTE);
         verify(contratAutoRepository).save(any(ContratAuto.class));
+    }
+
+    @Test
+    @DisplayName("Sans taux saisi, la souscription retient la commission_totale de la branche")
+    void souscrireAppliqueLaCommissionDeLaBranche() {
+        Vehicule vehicule = vehiculeDuFixture();
+        vehicule.setIdVehicule(10L);
+
+        BrancheParametresCalcul p = parametres();
+        p.setCommissionTotale(18d);
+
+        when(offreRepository.findById(1L)).thenReturn(Optional.of(offre(3)));
+        when(parametresRepository.findByBranche_CdBranche("11")).thenReturn(Optional.of(p));
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+        when(assureRepository.findById(5L)).thenReturn(Optional.of(new Assure()));
+        when(contratRepository.save(any(Contrat.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DemandeSouscription demande = new DemandeSouscription();
+        demande.setIdOffre(1L);
+        demande.setIdVehicules(List.of(10L));
+        demande.setDureeMois(3);
+
+        Contrat contrat = service.souscrire(demande, 5L, "PORTAL_CLIENT");
+
+        // base = prime nette par défaut (20 000) + accessoires (2 000) ; commission 18 % = 3 960
+        assertThat(contrat.getTauxCommission()).isEqualTo(18d, org.assertj.core.data.Offset.offset(DELTA));
+        assertThat(contrat.getMontantCommission()).isEqualTo(3960d, org.assertj.core.data.Offset.offset(DELTA));
     }
 
     @Test
@@ -288,7 +315,6 @@ class ContratServiceTest {
 
         stubsRecalcul(contrat);
         when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
-        when(contratRepository.findAll()).thenReturn(List.of(contrat));
         when(contratRepository.save(any(Contrat.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Contrat valide = service.valider(1L);
@@ -297,7 +323,7 @@ class ContratServiceTest {
         assertThat(valide.getDateExpiration()).isEqualTo(today.plusMonths(3));
         assertThat(valide.getDureeMois()).isEqualTo(3);
         assertThat(valide.getStatutContrat()).isEqualTo(StatutContrat.VALIDE);
-        assertThat(valide.getNumPolice()).isNotBlank();
+        assertThat(valide.getNumPolice()).matches("[A-Z]{3}\\d{3}");
         verify(factureService).emettreSouscription(eq(contrat), any(Detail.class));
     }
 

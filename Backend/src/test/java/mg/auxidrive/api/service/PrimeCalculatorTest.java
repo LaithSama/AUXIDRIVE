@@ -99,6 +99,35 @@ class PrimeCalculatorTest {
         assertThat(sansCommission.ttc()).isEqualTo(d.ttc(), org.assertj.core.data.Offset.offset(DELTA));
     }
 
+    @Test
+    @DisplayName("Sans taux fourni, la commission reprend la commission_totale de la branche")
+    void commissionParDefautVientDeLaBranche() {
+        BrancheParametresCalcul p = parametres(2000d, 4.5d, 18d);
+        p.setCommissionTotale(18d);
+
+        Detail d = PrimeCalculator.calculer(100000d, p,
+                codeTaxe(true, true, true, 20d), codeTarif(true), null);
+
+        // base 102 000 : commission 18 % = 18 360, hors TTC
+        assertThat(d.commission()).isEqualTo(18360d, org.assertj.core.data.Offset.offset(DELTA));
+        assertThat(d.tauxCommission()).isEqualTo(18d, org.assertj.core.data.Offset.offset(DELTA));
+        assertThat(d.ttc()).isEqualTo(149940d, org.assertj.core.data.Offset.offset(DELTA));
+    }
+
+    @Test
+    @DisplayName("Un taux de commission nul retombe sur la commission_totale de la branche")
+    void tauxNulRetombeSurLaBranche() {
+        BrancheParametresCalcul p = parametres(2000d, 4.5d, 18d);
+        p.setCommissionTotale(10d);
+
+        Detail d = PrimeCalculator.calculer(100000d, p,
+                codeTaxe(true, true, true, 20d), codeTarif(true), 0d);
+
+        // base 102 000 : commission 10 % = 10 200
+        assertThat(d.commission()).isEqualTo(10200d, org.assertj.core.data.Offset.offset(DELTA));
+        assertThat(d.tauxCommission()).isEqualTo(10d, org.assertj.core.data.Offset.offset(DELTA));
+    }
+
     // ---- application des taxes ----
 
     @Test

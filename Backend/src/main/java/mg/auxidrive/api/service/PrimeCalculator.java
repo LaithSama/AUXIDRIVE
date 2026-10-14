@@ -31,7 +31,9 @@ import mg.auxidrive.api.model.CodeTaxePolice;
  * commission    = arrondi(base x taux commission / 100, 2)
  * TTC           = base + TE + TACAVA + TVA
  * </pre>
- * La TVA est donc calculée en cascade sur TE et TACAVA, et la commission n'entre pas dans le TTC :
+ * Le taux de commission vient de la requête s'il est fourni et positif, sinon de la
+ * {@code commission_totale} de la branche : c'est le taux de référence quand l'agent n'en saisit
+ * pas. La TVA est calculée en cascade sur TE et TACAVA, et la commission n'entre pas dans le TTC :
  * c'est une rémunération d'intermédiaire, pas une taxe payée par l'assuré.
  */
 public final class PrimeCalculator {
@@ -43,17 +45,33 @@ public final class PrimeCalculator {
     }
 
     /**
-     * Calcule le détail complet d'une prime.
+     * Calcule le détail complet d'une prime, les accessoires venant de la branche.
      *
      * @param primeNette  prime nette saisie, hors accessoires et avant bonus/malus
      * @param parametres  paramètres de calcul de la branche, porteuse des taux
      * @param codeTaxe    code taxe de la police
      * @param codeTarif   code tarifaire du véhicule, peut être absent si le véhicule n'en a pas encore
-     * @param tauxCommission taux de commission saisi pour ce contrat, peut être nul
+     * @param tauxCommission taux de commission demandé, peut être nul (repli sur la branche)
      * @return le détail du calcul
      * @throws CalculPrimeException si une taxe s'applique sans taux, ou si un montant est négatif
      */
     public static Detail calculer(double primeNette,
+                                  BrancheParametresCalcul parametres,
+                                  CodeTaxePolice codeTaxe,
+                                  AutoCodeTarif codeTarif,
+                                  Double tauxCommission) {
+        return calculer(primeNette, null, parametres, codeTaxe, codeTarif, tauxCommission);
+    }
+
+    /**
+     * Variante où l'agent impose lui-même le montant des accessoires. Si {@code accessoiresSaisis}
+     * est nul, les accessoires de la branche sont utilisés : c'est le cas du portail client.
+     * Le reste du calcul est identique.
+     *
+     * @param accessoiresSaisis accessoires saisis par l'agent, ou null pour prendre ceux de la branche
+     */
+    public static Detail calculer(double primeNette,
+                                  Double accessoiresSaisis,
                                   BrancheParametresCalcul parametres,
                                   CodeTaxePolice codeTaxe,
                                   AutoCodeTarif codeTarif,
@@ -74,7 +92,8 @@ public final class PrimeCalculator {
         // le TACAVA doit être autorisé deux fois : par la police et par le tarif du véhicule
         boolean appliqueTacava = vrai(codeTaxe.getAppliquerTacava()) && codeTarif != null && vrai(codeTarif.getAvecTacava());
 
-        double accessoires = parametres.getAccessoires() == null ? 0d : parametres.getAccessoires();
+        double accessoires = accessoiresSaisis != null ? accessoiresSaisis
+                : (parametres.getAccessoires() == null ? 0d : parametres.getAccessoires());
 
         // Étape 2 : une taxe qui s'applique doit avoir un taux, sinon la police est inexploitable.
         double tauxTe = appliqueTe ? exigerTaux(parametres.getTauxTe(), "Veuillez introduire Taux TE") : 0d;
@@ -90,13 +109,17 @@ public final class PrimeCalculator {
         double te = appliqueTe ? arrondir(base * tauxTe / 100) : 0d;
         // Étape 6 : TVA en cascade, elle porte sur la base augmentée de TE et TACAVA.
         double tva = appliqueTva ? arrondir((base + te + tacava) * tauxTva / 100) : 0d;
-        // Étape 7 : commission sur la base, hors TTC.
-        double commission = tauxCommission == null || tauxCommission <= 0 ? 0d : arrondir(base * tauxCommission / 100);
+        // Étape 7 : commission sur la base, hors TTC. Le taux demandé prime ; à défaut (absent ou
+        // nul), c'est celui de la branche : la commission_totale, seule valeur de référence connue.
+        double taux = tauxCommission != null && tauxCommission > 0
+                ? tauxCommission
+                : (parametres.getCommissionTotale() == null ? 0d : parametres.getCommissionTotale());
+        double commission = taux <= 0 ? 0d : arrondir(base * taux / 100);
         // Étape 8 : montant dû par l'assuré.
         double ttc = arrondir(base + te + tacava + tva);
 
         return new Detail(base, accessoires, te, tacava, tva, ttc, commission,
-                tauxCommission == null ? 0d : tauxCommission, appliqueTe, appliqueTva, appliqueTacava);
+                taux, appliqueTe, appliqueTva, appliqueTacava);
     }
 
     private static double exigerTaux(Double taux, String message) {

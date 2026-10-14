@@ -2,6 +2,7 @@ package mg.auxidrive.api.service;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -33,6 +34,9 @@ import mg.auxidrive.api.service.PrimeCalculator.Detail;
 public class FactureService {
 
     private static final Logger log = LoggerFactory.getLogger(FactureService.class);
+
+    /** Préfixe du numéro de facture : année sur quatre chiffres puis mois sur deux. */
+    private static final DateTimeFormatter PREFIXE_NUM_FACTURE = DateTimeFormatter.ofPattern("yyyyMM");
 
     private final FactureRepository factureRepository;
     private final ContratAutoRepository contratAutoRepository;
@@ -110,6 +114,9 @@ public class FactureService {
         facture.setTypeFacture(type);
         facture.setDateEmission(LocalDate.now());
         facture.setStatutFacture(StatutFacture.EMISE);
+        // la facture recopie la police du contrat ; son numéro propre est daté et séquentiel
+        facture.setNumPolice(contrat.getNumPolice());
+        facture.setNumFacture(nextNumFacture());
         // prime_nette porte la base taxable, c'est-à-dire la prime nette plus les accessoires
         facture.setPrimeNette(detail.base());
         facture.setAccessoires(detail.accessoires());
@@ -129,6 +136,25 @@ public class FactureService {
             log.warn("Facture {} enregistrée sans PDF : {}", facture.getIdFacture(), e.getMessage());
         }
         return facture;
+    }
+
+    /**
+     * Numéro de facture : année sur quatre chiffres, mois sur deux, puis une séquence mensuelle de
+     * trois chiffres qui repart de zéro à chaque mois (par exemple 202610001). Le numéro est unique
+     * par mois et sert aussi à nommer le PDF, ce qui évite qu'un renouvellement écrase la facture
+     * de souscription du même contrat.
+     */
+    private String nextNumFacture() {
+        String prefixe = LocalDate.now().format(PREFIXE_NUM_FACTURE);
+        int sequence = factureRepository.findFirstByNumFactureStartingWithOrderByNumFactureDesc(prefixe)
+                .map(Facture::getNumFacture)
+                .map(num -> Integer.parseInt(num.substring(prefixe.length())))
+                .orElse(0) + 1;
+        if (sequence > 999) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "La séquence mensuelle des factures est épuisée (999 numéros par mois)");
+        }
+        return prefixe + String.format("%03d", sequence);
     }
 
     /** Fichier PDF d'une facture, ou une erreur si elle n'a pas de PDF ou si le fichier a disparu. */

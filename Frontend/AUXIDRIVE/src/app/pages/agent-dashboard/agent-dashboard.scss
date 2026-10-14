@@ -557,6 +557,44 @@
   padding: 1rem 1.5rem;
 }
 
+/* ---------- ligne de contrat cliquable (demande en attente) ---------- */
+.agent-ligne-cliquable {
+  cursor: pointer;
+  &:hover { background-color: rgba(26, 122, 138, 0.08); }
+}
+
+/* ---------- calcul de prime dans la modale contrat ---------- */
+.agent-prime-calculer { margin-top: 1.25rem; }
+
+.agent-prime-lignes {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  background: #f6f7f5;
+  border: 1px solid rgba(28, 34, 39, 0.12);
+  border-radius: 10px;
+  font-size: 0.95rem;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+
+    span:last-child { font-weight: 600; }
+  }
+}
+
+.agent-prime-total {
+  border-top: 2px solid rgba(28, 34, 39, 0.15);
+  margin-top: 0.35rem;
+  padding-top: 0.6rem !important;
+
+  span:last-child {
+    color: var(--lagon);
+    font-weight: 700;
+  }
+}
+
 /* ---------- icônes bootstrap-icons ---------- */
 .agent-btn .bi {
   margin-right: 0.4em;

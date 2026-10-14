@@ -71,6 +71,13 @@ public class Contrat {
     @Column(name = "prime_nette_courante")
     private Double primeNetteCourante;
 
+    /**
+     * Accessoires du contrat, saisis par l'agent au moment du calcul de la prime. Ils entrent dans
+     * la base taxable. Null tant que l'agent n'a pas calculé/validé : la branche fait alors foi.
+     */
+    @Column(name = "accessoires")
+    private Double accessoires;
+
     @Column(name = "prime_ttc_courante")
     private Double primeTtcCourante;
 
@@ -238,6 +245,14 @@ public class Contrat {
 
     public void setPrimeNetteCourante(Double primeNetteCourante) {
         this.primeNetteCourante = primeNetteCourante;
+    }
+
+    public Double getAccessoires() {
+        return accessoires;
+    }
+
+    public void setAccessoires(Double accessoires) {
+        this.accessoires = accessoires;
     }
 
     public Double getPrimeTtcCourante() {

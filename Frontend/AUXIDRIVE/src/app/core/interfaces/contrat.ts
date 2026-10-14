@@ -13,6 +13,7 @@ export interface Contrat {
   statutContrat: StatutContrat;
   coefficientBonusMalus: number | null;
   primeNetteCourante: number | null;
+  accessoires: number | null;
   primeTtcCourante: number | null;
   tauxCommission: number | null;
   montantCommission: number | null;

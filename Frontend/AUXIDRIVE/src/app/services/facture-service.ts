@@ -14,6 +14,11 @@ export class FactureService {
     return this.http.get<Facture[]>(`${this.apiUrl}/compte`);
   }
 
+  /** Factures d'un contrat : accessible au client propriétaire du contrat. */
+  facturesDuContrat(idContrat: number): Observable<Facture[]> {
+    return this.http.get<Facture[]>(`${this.apiUrl}/contrat/${idContrat}`);
+  }
+
   telechargerPdf(idFacture: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${idFacture}/pdf`, {
       responseType: 'blob',

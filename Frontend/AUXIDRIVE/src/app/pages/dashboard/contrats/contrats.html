@@ -28,12 +28,13 @@
             <th>Garanties</th>
             <th>Effet</th>
             <th>Expiration</th>
-            <th class="text-end">Prime TTC</th>
+            <th class="text-end">Détail</th>
           </tr>
         </thead>
         <tbody>
           @for (c of contrats; track c.idContrat) {
-            <tr>
+            <tr [class.contrat-ligne-cliquable]="c.statutContrat === 'VALIDE'"
+                (click)="c.statutContrat === 'VALIDE' && ouvrirDetailPrime(c)">
               <td class="contrat-num">
                 {{ c.numPolice || '—' }}
                 <span class="contrat-id">n°{{ c.idContrat }}</span>
@@ -58,7 +59,14 @@
               </td>
               <td>{{ c.dateEffet | dateFr }}</td>
               <td>{{ c.dateExpiration | dateFr }}</td>
-              <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
+              <td class="text-end">
+                @if (c.statutContrat === 'VALIDE') {
+                  <button type="button" class="btn-contour-sombre contrat-detail-bouton"
+                          (click)="ouvrirDetailPrime(c); $event.stopPropagation()">
+                    Voir la prime
+                  </button>
+                }
+              </td>
             </tr>
           } @empty {
             <tr>
@@ -76,7 +84,7 @@
   <h2 class="titre-section contrats-souscription-titre">Souscrire une offre</h2>
 
   <div class="row g-4">
-    <div class="col-lg-7">
+    <div class="col-lg-8">
       <div class="carte carte-bande">
         <div class="champ">
           <label for="offre">Offre</label>
@@ -148,19 +156,10 @@
         <div class="row g-3">
           <div class="col-sm-6">
             <div class="champ mb-0">
-              <label>Prime nette</label>
-              <p class="contrats-prime-fixe">
-                {{ primeMensuelleFixe | montant }} / mois
-                <span class="contrats-prime-total">Prime nette : {{ primeNetteCalculee | montant }}</span>
-              </p>
-            </div>
-          </div>
-          <div class="col-sm-6">
-            <div class="champ mb-0">
               <label for="dureeMois">Nombre de mois du contrat</label>
               <input type="number" id="dureeMois" name="dureeMois" step="1"
                      [min]="offreSelectionnee?.dureeMinMois ?? 1"
-                     [(ngModel)]="formDureeMois" (ngModelChange)="simulation = null" />
+                     [(ngModel)]="formDureeMois" />
               @if (offreSelectionnee && formDureeMois !== null && !dureeValide) {
                 <span class="erreur">
                   Cette offre exige une durée d'au moins {{ offreSelectionnee.dureeMinMois }} mois.
@@ -171,41 +170,60 @@
         </div>
 
         <div class="contrats-actions">
-          <button type="button" class="btn-contour-sombre" [disabled]="!formulairePret || enCours" (click)="simuler()">
-            Simuler la prime
+          <button type="button" class="btn-signal" [disabled]="!formulairePret || enCours" (click)="souscrire()">
+            Souscrire cette offre
           </button>
         </div>
       </div>
     </div>
+  </div>
+}
 
-    <!-- Résultat de simulation -->
-    <div class="col-lg-5">
-      @if (simulation) {
-        <div class="carte carte-bande-lagon contrats-simulation">
-          <p class="contrats-simulation-label">Détail de la simulation</p>
-          <p class="contrats-simulation-ttc">{{ simulation.ttc | montant }}</p>
-          <ul class="contrats-simulation-liste">
-            <li><span>Base taxable</span><span>{{ simulation.base | montant }}</span></li>
-            <li><span>TE</span><span>{{ simulation.te | montant }}</span></li>
-            <li><span>TACAVA</span><span>{{ simulation.tacava | montant }}</span></li>
-            <li><span>TVA</span><span>{{ simulation.tva | montant }}</span></li>
-            <li class="contrats-simulation-total"><span>Total TTC</span><span>{{ simulation.ttc | montant }}</span></li>
-          </ul>
-          <button type="button" class="btn-signal contrats-souscrire"
-                  [disabled]="enCours" (click)="souscrire()">
-            Souscrire cette offre
+<!-- Détail de la prime d'un contrat validé -->
+@if (contratDetail) {
+  <div class="modal d-block" tabindex="-1" role="dialog" (click)="fermerDetailPrime()">
+    <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
+      <div class="modal-content contrat-detail">
+
+        <div class="contrat-detail-entete">
+          <h5 class="contrat-detail-titre">
+            <i class="bi bi-receipt" aria-hidden="true"></i>Prime du contrat
+          </h5>
+          <button type="button" class="contrat-detail-fermer" (click)="fermerDetailPrime()">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
           </button>
         </div>
-      } @else {
-        <div class="carte contrats-astuce">
-          <p class="contrats-simulation-label">Simulation</p>
-          <p class="chapeau mb-0">
-            Renseignez l'offre, les véhicules et la durée du contrat, puis cliquez sur
-            « Simuler la prime » pour obtenir le détail des taxes et le montant TTC.
-            La date d'effet sera fixée à la date de validation par l'agent.
+
+        <div class="modal-body py-4">
+          <p class="mb-3">
+            Police n°<strong>{{ contratDetail.numPolice || '—' }}</strong>
+            — du {{ contratDetail.dateEffet | dateFr }} au {{ contratDetail.dateExpiration | dateFr }}
           </p>
+
+          @if (chargementDetail) {
+            <p class="text-muted mb-0">Chargement…</p>
+          } @else if (erreurDetail) {
+            <div class="message-erreur mb-0">{{ erreurDetail }}</div>
+          } @else if (factureDetail) {
+            <ul class="contrat-detail-lignes">
+              <li><span>Prime nette</span><span>{{ primeNetteDetail | montant }}</span></li>
+              <li><span>Accessoires</span><span>{{ factureDetail.accessoires | montant }}</span></li>
+              <li><span>TE</span><span>{{ factureDetail.montantTe | montant }}</span></li>
+              <li><span>TACAVA</span><span>{{ factureDetail.montantTacava | montant }}</span></li>
+              <li><span>TVA</span><span>{{ factureDetail.montantTva | montant }}</span></li>
+              <li><span>Commission</span><span>{{ contratDetail.montantCommission | montant }}</span></li>
+              <li class="contrat-detail-total"><span>Prime TTC</span><span>{{ factureDetail.montantTtc | montant }}</span></li>
+            </ul>
+          } @else {
+            <p class="message-info mb-0">Le détail de la prime n'est pas disponible pour ce contrat.</p>
+          }
         </div>
-      }
+
+        <div class="contrat-detail-pied">
+          <button type="button" class="btn-contour-sombre" (click)="fermerDetailPrime()">Fermer</button>
+        </div>
+
+      </div>
     </div>
   </div>
 }

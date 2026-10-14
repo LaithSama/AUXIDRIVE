@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Contrat, StatutContrat } from '../../core/interfaces/contrat';
+import { DetailSimulation, ParametresPrime } from '../../core/interfaces/demande-souscription';
 import { Sinistre } from '../../core/interfaces/sinistre';
 import { MontantPipe } from '../../core/pipes/montant.pipe';
 import { DateFrPipe } from '../../core/pipes/date-fr.pipe';
@@ -103,12 +104,19 @@ export class AgentDashboard implements OnInit {
     this.contrats().filter(c => c.statutContrat === 'REFUSE'));
 
   contratSelectionne: Contrat | null = null;
-  modeContrat: 'VALIDER' | 'REFUSER' | null = null;
+
+  /** Champs de la modale de calcul de prime. */
+  parametresPrime: ParametresPrime | null = null;
+  detailPrime: DetailSimulation | null = null;
+  // les champs numériques reçoivent un number (ou null si vidés) via le NumberValueAccessor d'Angular
+  primeNetteSaisie: string | number | null = '';
+  accessoiresSaisis: string | number | null = '';
+  calculPrimeEnCours = false;
 
   // Filtres contrats
   rechercheContrat = signal('');
-  primeMinContrat = signal('');
-  primeMaxContrat = signal('');
+  primeMinContrat = signal<string | number | null>('');
+  primeMaxContrat = signal<string | number | null>('');
   canalContrat = signal('');
   echeanceProche = signal(false);
   triContrat = signal<'recent' | 'ancien' | 'primeDesc' | 'primeAsc'>('recent');
@@ -171,8 +179,8 @@ export class AgentDashboard implements OnInit {
   dateSinistreDepuis = signal('');
   dateSinistreJusqua = signal('');
   responsabiliteFiltre = signal<'toutes' | 'assure' | 'tiers' | 'indeterminee'>('toutes');
-  montantMinSinistre = signal('');
-  montantMaxSinistre = signal('');
+  montantMinSinistre = signal<string | number | null>('');
+  montantMaxSinistre = signal<string | number | null>('');
   rapportRecu = signal<'tous' | 'oui' | 'non'>('tous');
   triSinistre = signal<'recent' | 'ancien' | 'montantDesc' | 'montantAsc'>('recent');
 
@@ -218,7 +226,7 @@ export class AgentDashboard implements OnInit {
   responsabiliteSaisie: boolean | null = null;
 
   // Formulaire de clôture
-  montantSaisi = '';
+  montantSaisi: string | number | null = '';
 
   messageSucces = '';
   messageErreur = '';
@@ -313,14 +321,27 @@ export class AgentDashboard implements OnInit {
     this.demandeSelectionnee = null;
     this.modeAction = null;
     this.contratSelectionne = null;
-    this.modeContrat = null;
+    this.parametresPrime = null;
+    this.detailPrime = null;
+    this.primeNetteSaisie = '';
+    this.accessoiresSaisis = '';
     this.sinistreSelectionne = null;
     this.modeSinistre = null;
   }
 
+  /** Vrai quand la saisie est un numéro d'assuré valide : 1 à 8 chiffres. */
+  get numAssureValide(): boolean {
+    return /^\d{1,8}$/.test(this.numAssureSaisi.trim());
+  }
+
+  /** Ne conserve que les chiffres saisis : le numéro d'assuré est numérique (8 chiffres max). */
+  filtrerNumAssure(): void {
+    this.numAssureSaisi = this.numAssureSaisi.replace(/\D/g, '').slice(0, 8);
+  }
+
   /** POST /api/inscriptions/{id}/valider?numerosAssure=... */
   confirmerValidation(): void {
-    if (!this.numAssureSaisi.trim() || !this.demandeSelectionnee) return;
+    if (!this.numAssureValide || !this.demandeSelectionnee) return;
 
     const id = this.demandeSelectionnee.idInscription;
 
@@ -360,27 +381,78 @@ export class AgentDashboard implements OnInit {
     });
   }
 
-  // ---------- Contrats : validation ----------
+  // ---------- Contrats : calcul de prime et validation ----------
 
-  ouvrirModaleContrat(contrat: Contrat, mode: 'VALIDER' | 'REFUSER'): void {
+  /** Ouvre la modale de calcul de prime et charge les paramètres (code taxe, taux) du contrat. */
+  ouvrirModaleContrat(contrat: Contrat): void {
     this.contratSelectionne = contrat;
-    this.modeContrat = mode;
+    this.parametresPrime = null;
+    this.detailPrime = null;
+    this.primeNetteSaisie = '';
+    this.accessoiresSaisis = '';
+    this.calculPrimeEnCours = false;
     this.messageSucces = '';
     this.messageErreur = '';
+
+    this.http.get<ParametresPrime>(`${this.apiUrl}/contrats/${contrat.idContrat}/parametres-prime`).subscribe({
+      next: (parametres) => {
+        this.parametresPrime = parametres;
+        this.primeNetteSaisie = parametres.primeNetteCourante != null ? String(parametres.primeNetteCourante) : '';
+        this.accessoiresSaisis = parametres.accessoiresDefaut != null ? String(parametres.accessoiresDefaut) : '0';
+      },
+      error: (err) => {
+        console.error(err);
+        this.messageErreur = 'Impossible de charger les paramètres de calcul de ce contrat.';
+      },
+    });
   }
 
-  /** POST /api/contrats/{id}/valider ou /refuser */
-  confirmerContrat(): void {
+  /** POST /api/contrats/{id}/calculer-prime : TE, TACAVA, TVA, commission et prime TTC. */
+  calculerPrimeTtc(): void {
     const contrat = this.contratSelectionne;
-    if (!contrat || !this.modeContrat) return;
+    if (!contrat) return;
+    const primeNette = this.nombreOuNull(this.primeNetteSaisie);
+    if (primeNette === null || primeNette < 0) {
+      this.messageErreur = 'Saisissez une prime nette valide.';
+      return;
+    }
 
-    const action = this.modeContrat === 'VALIDER' ? 'valider' : 'refuser';
+    this.messageErreur = '';
+    this.calculPrimeEnCours = true;
+    this.detailPrime = null;
 
-    this.http.post(`${this.apiUrl}/contrats/${contrat.idContrat}/${action}`, null).subscribe({
+    this.http.post<DetailSimulation>(`${this.apiUrl}/contrats/${contrat.idContrat}/calculer-prime`, {
+      primeNette,
+      accessoires: this.nombreOuNull(this.accessoiresSaisis),
+    }).subscribe({
+      next: (detail) => {
+        this.detailPrime = detail;
+        this.calculPrimeEnCours = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.calculPrimeEnCours = false;
+        this.messageErreur = err.error?.message || 'Calcul impossible : vérifiez les valeurs saisies.';
+      },
+    });
+  }
+
+  /** POST /api/contrats/{id}/valider : la prime nette et les accessoires calculés sont persistés. */
+  validerContrat(): void {
+    const contrat = this.contratSelectionne;
+    if (!contrat) return;
+    if (!this.detailPrime) {
+      this.messageErreur = "Calculez d'abord la prime TTC.";
+      return;
+    }
+
+    this.messageErreur = '';
+    this.http.post<Contrat>(`${this.apiUrl}/contrats/${contrat.idContrat}/valider`, {
+      primeNette: this.nombreOuNull(this.primeNetteSaisie),
+      accessoires: this.nombreOuNull(this.accessoiresSaisis),
+    }).subscribe({
       next: () => {
-        this.messageSucces = this.modeContrat === 'VALIDER'
-          ? `Contrat #${contrat.idContrat} validé : numéro de police attribué, facture émise.`
-          : `Contrat #${contrat.idContrat} refusé.`;
+        this.messageSucces = `Contrat #${contrat.idContrat} validé : numéro de police attribué, facture émise.`;
         this.chargerContrats();
         setTimeout(() => this.fermerModale(), 1500);
       },
@@ -388,7 +460,28 @@ export class AgentDashboard implements OnInit {
         console.error(err);
         this.messageErreur = err.status === 409
           ? 'Seule une demande encore en attente peut être traitée.'
-          : 'Impossible de traiter ce contrat.';
+          : 'Impossible de valider ce contrat.';
+      },
+    });
+  }
+
+  /** POST /api/contrats/{id}/refuser */
+  refuserContrat(): void {
+    const contrat = this.contratSelectionne;
+    if (!contrat) return;
+
+    this.messageErreur = '';
+    this.http.post<Contrat>(`${this.apiUrl}/contrats/${contrat.idContrat}/refuser`, null).subscribe({
+      next: () => {
+        this.messageSucces = `Contrat #${contrat.idContrat} refusé.`;
+        this.chargerContrats();
+        setTimeout(() => this.fermerModale(), 1500);
+      },
+      error: (err) => {
+        console.error(err);
+        this.messageErreur = err.status === 409
+          ? 'Seule une demande encore en attente peut être traitée.'
+          : 'Impossible de refuser ce contrat.';
       },
     });
   }
@@ -426,7 +519,17 @@ export class AgentDashboard implements OnInit {
   }
 
   get indemnisationPrete(): boolean {
-    return this.montantSaisi !== '' && Number(this.montantSaisi) >= 0;
+    return this.montantSaisi !== null
+      && this.montantSaisi !== undefined
+      && String(this.montantSaisi).trim() !== ''
+      && Number(this.montantSaisi) >= 0;
+  }
+
+  /** Vrai tant que la prime nette n'a pas été saisie : le bouton de calcul reste alors désactivé. */
+  get primeNetteSaisieVide(): boolean {
+    return this.primeNetteSaisie === null
+      || this.primeNetteSaisie === undefined
+      || String(this.primeNetteSaisie).trim() === '';
   }
 
   responsabiliteLibelle(valeur: boolean | null): string {
@@ -530,8 +633,9 @@ export class AgentDashboard implements OnInit {
     return q === '' || texte.includes(q);
   }
 
-  private nombreOuNull(valeur: string): number | null {
-    const brut = valeur.trim();
+  private nombreOuNull(valeur: string | number | null | undefined): number | null {
+    if (valeur === null || valeur === undefined) return null;
+    const brut = String(valeur).trim();
     if (brut === '') return null;
     const n = Number(brut);
     return Number.isNaN(n) ? null : n;

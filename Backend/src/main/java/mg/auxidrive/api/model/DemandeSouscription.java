@@ -32,6 +32,9 @@ public class DemandeSouscription {
     /** Prime nette saisie, hors accessoires et avant application du bonus/malus. */
     private Double primeNette;
 
+    /** Accessoires saisis. Facultatif : s'il est absent, ceux de la branche sont appliqués. */
+    private Double accessoires;
+
     /** Taux de commission saisi pour ce contrat. */
     private Double tauxCommission;
 
@@ -84,6 +87,14 @@ public class DemandeSouscription {
 
     public void setPrimeNette(Double primeNette) {
         this.primeNette = primeNette;
+    }
+
+    public Double getAccessoires() {
+        return accessoires;
+    }
+
+    public void setAccessoires(Double accessoires) {
+        this.accessoires = accessoires;
     }
 
     public Double getTauxCommission() {

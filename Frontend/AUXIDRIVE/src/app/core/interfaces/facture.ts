@@ -4,6 +4,7 @@ export type TypeFacture = 'SOUSCRIPTION' | 'RENOUVELLEMENT' | 'MAJORATION' | 'RE
 export interface Facture {
   idFacture: number;
   numPolice: string | null;
+  numFacture: string | null;
   typeFacture: TypeFacture;
   primeNette: number | null;
   montantTaxes: number | null;

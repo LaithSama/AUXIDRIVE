@@ -374,7 +374,6 @@
               <th class="d-none d-md-table-cell">Souscription</th>
               <th class="text-end">Prime TTC</th>
               <th>Statut / N° police</th>
-              @if (ongletContrat() === 'EN_ATTENTE') { <th class="text-end pe-4">Actions</th> }
             </tr>
           </thead>
           <tbody>
@@ -382,21 +381,16 @@
             <!-- EN ATTENTE -->
             @if (ongletContrat() === 'EN_ATTENTE') {
               @for (c of contratsAffiches(); track c.idContrat) {
-                <tr>
+                <tr class="agent-ligne-cliquable" (click)="ouvrirModaleContrat(c)"
+                    title="Cliquer pour calculer la prime et traiter le contrat">
                   <td class="ps-4 agent-num">#{{ c.idContrat }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
                   <td class="d-none d-md-table-cell">{{ c.dateSouscription | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
                   <td><span class="pastille">En attente</span></td>
-                  <td class="text-end pe-4">
-                    <div class="d-inline-flex gap-2">
-                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModaleContrat(c, 'VALIDER')"><i class="bi bi-check-lg" aria-hidden="true"></i>Valider</button>
-                      <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModaleContrat(c, 'REFUSER')"><i class="bi bi-x-lg" aria-hidden="true"></i>Refuser</button>
-                    </div>
-                  </td>
                 </tr>
               } @empty {
-                <tr><td colspan="6"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucune demande de contrat en attente.</span></div></td></tr>
+                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucune demande de contrat en attente.</span></div></td></tr>
               }
             }
 
@@ -411,7 +405,7 @@
                   <td><span class="pastille pastille-lagon font-monospace">{{ c.numPolice || '—' }}</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="6"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat validé pour l'instant.</span></div></td></tr>
+                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat validé pour l'instant.</span></div></td></tr>
               }
             }
 
@@ -426,7 +420,7 @@
                   <td><span class="pastille pastille-rouge">Refusé</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="6"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat refusé.</span></div></td></tr>
+                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat refusé.</span></div></td></tr>
               }
             }
 
@@ -656,8 +650,8 @@
 
             @if (modeAction === 'VALIDER' && !messageSucces) {
               <div class="champ mb-2">
-                <label for="numAssure">Attribuer un numéro d'assuré obligatoire (8 car. max) :</label>
-                <input type="text" id="numAssure" name="numAssureSaisi" class="font-monospace" placeholder="Ex: ASS00001" [(ngModel)]="numAssureSaisi" maxlength="8" required autocomplete="off" />
+                <label for="numAssure">Attribuer un numéro d'assuré obligatoire (8 chiffres max) :</label>
+                <input type="text" id="numAssure" name="numAssureSaisi" class="font-monospace" inputmode="numeric" pattern="[0-9]*" placeholder="Ex : 37015" [(ngModel)]="numAssureSaisi" (input)="filtrerNumAssure()" maxlength="8" required autocomplete="off" />
               </div>
             }
 
@@ -672,7 +666,7 @@
           <div class="agent-modale-piede">
             <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
             @if (modeAction === 'VALIDER' && !messageSucces) {
-              <button type="button" class="btn-signal" [disabled]="!numAssureSaisi.trim()" (click)="confirmerValidation()">Valider l'inscription</button>
+              <button type="button" class="btn-signal" [disabled]="!numAssureValide" (click)="confirmerValidation()">Valider l'inscription</button>
             }
             @if (modeAction === 'REFUSER' && !messageSucces) {
               <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" [disabled]="!motifRefusSaisi.trim()" (click)="confirmerRefus()">Refuser le dossier</button>
@@ -684,19 +678,15 @@
     </div>
   }
 
-  <!-- ==================== MODALE : CONTRAT ==================== -->
+  <!-- ==================== MODALE : CALCUL DE PRIME / CONTRAT ==================== -->
   @if (contratSelectionne) {
     <div class="modal d-block" tabIndex="-1" role="dialog">
-      <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content agent-modale">
 
-          <div class="agent-modale-entete" [class.agent-modale-entete-refus]="modeContrat === 'REFUSER'">
+          <div class="agent-modale-entete">
             <h5 class="agent-modale-titre">
-              @if (modeContrat === 'VALIDER') {
-                <i class="bi bi-check-lg" aria-hidden="true"></i>Valider le contrat
-              } @else {
-                <i class="bi bi-x-lg" aria-hidden="true"></i>Refuser la demande
-              }
+              <i class="bi bi-calculator" aria-hidden="true"></i>Calcul de la prime
             </h5>
             <button type="button" class="agent-modale-fermer" (click)="fermerModale()"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </div>
@@ -705,34 +695,72 @@
             <p class="mb-3">
               Contrat n°<strong>#{{ contratSelectionne.idContrat }}</strong> —
               <span class="fs-5 fw-bold">{{ contratSelectionne.nomAssure }} {{ contratSelectionne.prenomAssure }}</span><br>
-              Prime TTC : <strong>{{ contratSelectionne.primeTtcCourante | montant }}</strong>
-              — souscrit le {{ contratSelectionne.dateSouscription | dateFr }}.
+              Souscrit le {{ contratSelectionne.dateSouscription | dateFr }}
+              @if (parametresPrime?.codeTaxe) {
+                — code taxe <strong>{{ parametresPrime?.codeTaxe }}</strong> ({{ parametresPrime?.libelleCodeTaxe }})
+              }
             </p>
 
             @if (messageSucces) { <div class="message-ok text-center">{{ messageSucces }}</div> }
             @if (messageErreur) { <div class="message-erreur text-center">{{ messageErreur }}</div> }
 
             @if (!messageSucces) {
-              @if (modeContrat === 'VALIDER') {
-                <p class="message-info mb-0">
-                  La validation attribue un numéro de police et émet automatiquement la facture de souscription.
-                </p>
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <div class="champ mb-0">
+                    <label for="primeNetteCalc">Prime nette (Ar) *</label>
+                    <input type="number" id="primeNetteCalc" name="primeNetteSaisie" min="0" step="1"
+                           placeholder="Ex : 100000"
+                           [(ngModel)]="primeNetteSaisie" (ngModelChange)="detailPrime = null" />
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div class="champ mb-0">
+                    <label for="accessoiresCalc">Accessoires (Ar)</label>
+                    <input type="number" id="accessoiresCalc" name="accessoiresSaisis" min="0" step="1"
+                           [(ngModel)]="accessoiresSaisis" (ngModelChange)="detailPrime = null" />
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="btn-contour-sombre agent-prime-calculer"
+                      [disabled]="calculPrimeEnCours || primeNetteSaisieVide"
+                      (click)="calculerPrimeTtc()">
+                <i class="bi bi-calculator" aria-hidden="true"></i>Calculer prime TTC
+              </button>
+
+              @if (detailPrime) {
+                <ul class="agent-prime-lignes">
+                  <li><span>Base taxable (prime nette + accessoires)</span><span>{{ detailPrime.base | montant }}</span></li>
+                  <li><span>TE</span><span>{{ detailPrime.te | montant }}</span></li>
+                  <li><span>TACAVA</span><span>{{ detailPrime.tacava | montant }}</span></li>
+                  <li><span>TVA</span><span>{{ detailPrime.tva | montant }}</span></li>
+                  <li><span>Commission</span><span>{{ detailPrime.commission | montant }}</span></li>
+                  <li class="agent-prime-total"><span>Prime TTC</span><span>{{ detailPrime.ttc | montant }}</span></li>
+                </ul>
               } @else {
                 <p class="message-info mb-0">
-                  La demande passera en statut refusé et le client la verra dans son espace « Mes contrats ».
+                  Saisissez la prime nette, puis cliquez sur « Calculer prime TTC » pour obtenir le
+                  détail des taxes avant de valider.
                 </p>
               }
+
+              <p class="text-muted small mb-0 mt-3">
+                <strong>Valider</strong> attribue un numéro de police et émet la facture de souscription ;
+                <strong>Refuser</strong> rejette la demande, visible par le client dans « Mes contrats ».
+              </p>
             }
           </div>
 
           <div class="agent-modale-piede">
             <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
             @if (!messageSucces) {
-              @if (modeContrat === 'VALIDER') {
-                <button type="button" class="btn-signal" (click)="confirmerContrat()">Valider le contrat</button>
-              } @else {
-                <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" (click)="confirmerContrat()">Refuser la demande</button>
-              }
+              <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" (click)="refuserContrat()">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>Refuser
+              </button>
+              <button type="button" class="btn-signal" [disabled]="!detailPrime" (click)="validerContrat()">
+                <i class="bi bi-check-lg" aria-hidden="true"></i>Valider le contrat
+              </button>
             }
           </div>
 

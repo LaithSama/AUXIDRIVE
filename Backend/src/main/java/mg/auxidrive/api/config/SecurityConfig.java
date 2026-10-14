@@ -60,8 +60,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/contrats/assure/**", "/api/contrats/*/valider", "/api/contrats/*/refuser")
                     .hasAnyRole("AGENT", "ADMIN")
                 .requestMatchers("/api/contrats/**").hasAnyRole("CLIENT", "AGENT", "ADMIN")
-                // factures : mêmes règles que les contrats, l'agent y accède globalement
-                .requestMatchers("/api/factures/contrat/**").hasAnyRole("AGENT", "ADMIN")
+                // factures : l'agent et l'administrateur y accèdent globalement, le client seulement
+                // aux siennes. Les factures par contrat sont contrôlées par appartenance dans le
+                // contrôleur (trouverPourAssure), elles ne doivent donc pas être réservées au staff.
                 .requestMatchers("/api/factures/**").hasAnyRole("CLIENT", "AGENT", "ADMIN")
                 // sinistres : l'assuré déclare et suit, l'agent instruit et clôt
                 .requestMatchers("/api/sinistres/contrat/**", "/api/sinistres/*/rapport",
