@@ -14,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
 import mg.auxidrive.api.model.Assure;
@@ -95,8 +93,10 @@ public class CompteClientService {
 
     /**
      * Crée le compte de connexion d'un assuré existant. Le mot de passe temporaire est envoyé par
-     * e-mail après le commit ; il est également renvoyé à l'administrateur pour qu'il puisse le
-     * communiquer si nécessaire.
+     * e-mail, et le résultat de l'envoi est restitué à l'administrateur, qui dispose du mot de
+     * passe dans la foulée et peut le transmettre lui-même si l'envoi a échoué (MailService
+     * tente également un relais vers l'administrateur). L'envoi a lieu après le flush de
+     * l'entité pour que l'adresse soit déjà validée par la base avant tout envoi.
      */
     @Transactional
     public Map<String, Object> creer(Long idAssure, String emailBrut) {
@@ -124,12 +124,29 @@ public class CompteClientService {
         compte.setStatutCompte(StatutCompte.ACTIF);
         compte.setDateCreation(LocalDateTime.now());
         compteClientRepository.save(compte);
+        try {
+            compteClientRepository.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cette adresse e-mail est déjà utilisée");
+        }
 
-        emailerApresCommit(email, motDePasse);
+        boolean emailEnvoye;
+        try {
+            emailEnvoye = mailService.envoyerIdentifiants(new MailService.DonneesIdentifiants(
+                    email, motDePasse,
+                    assure.getCivilite(), assure.getNomAssure(), assure.getPrenomAssure(),
+                    assure.getNumerosAssure(), MailService.OrigineCompte.COMPTE_CREE));
+        } catch (RuntimeException e) {
+            // le compte est créé : un souci de configuration ou de transport ne doit pas
+            // transformer la requête de l'administrateur en erreur, il perdrait le mot de passe
+            log.error("Envoi des identifiants impossible à {} (compte néanmoins créé)", email, e);
+            emailEnvoye = false;
+        }
 
         Map<String, Object> resultat = new LinkedHashMap<>();
         resultat.put("compte", vue(compte));
         resultat.put("motDePasseTemporaire", motDePasse);
+        resultat.put("emailEnvoye", emailEnvoye);
         return resultat;
     }
 
@@ -199,27 +216,6 @@ public class CompteClientService {
         vue.put("nomAssure", assure == null ? null : assure.getNomAssure());
         vue.put("prenomAssure", assure == null ? null : assure.getPrenomAssure());
         return vue;
-    }
-
-    /** L'envoi est branché après le commit pour que le thread @Async ne travaille que sur des données écrites. */
-    private void emailerApresCommit(String email, String motDePasse) {
-        Runnable envoi = () -> {
-            try {
-                mailService.envoyerIdentifiants(email, motDePasse);
-            } catch (RuntimeException e) {
-                log.error("Envoi des identifiants impossible à {} (compte néanmoins créé)", email, e);
-            }
-        };
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    envoi.run();
-                }
-            });
-        } else {
-            envoi.run();
-        }
     }
 
     private String genererMotDePasse() {

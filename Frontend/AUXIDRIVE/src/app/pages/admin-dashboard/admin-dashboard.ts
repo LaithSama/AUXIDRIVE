@@ -160,6 +160,9 @@ export class AdminDashboard implements OnInit {
   /** Mot de passe temporaire affiché après la création d'un compte client. */
   motDePasseTemporaire = signal<string | null>(null);
 
+  /** false si l'e-mail d'identifiants n'est pas parti : le mot de passe est alors à transmettre à la main. */
+  emailEnvoye = signal(true);
+
   /** Confirmation de suppression en attente. */
   suppression = signal<{ section: SectionModale; id: number; libelle: string } | null>(null);
 
@@ -243,6 +246,7 @@ export class AdminDashboard implements OnInit {
     this.messageSucces = '';
     this.messageErreur = '';
     this.motDePasseTemporaire.set(null);
+    this.emailEnvoye.set(true);
     this.modeModale.set('CREATION');
     this.sectionModale.set(section);
 
@@ -271,6 +275,7 @@ export class AdminDashboard implements OnInit {
     this.messageSucces = '';
     this.messageErreur = '';
     this.motDePasseTemporaire.set(null);
+    this.emailEnvoye.set(true);
     this.modeModale.set('EDITION');
     this.sectionModale.set('utilisateur');
     this.formUtilisateur = {
@@ -287,6 +292,7 @@ export class AdminDashboard implements OnInit {
     this.messageSucces = '';
     this.messageErreur = '';
     this.motDePasseTemporaire.set(null);
+    this.emailEnvoye.set(true);
     this.modeModale.set('EDITION');
     this.sectionModale.set('compte');
     this.formCompte = {
@@ -301,6 +307,7 @@ export class AdminDashboard implements OnInit {
     this.messageSucces = '';
     this.messageErreur = '';
     this.motDePasseTemporaire.set(null);
+    this.emailEnvoye.set(true);
     this.modeModale.set('EDITION');
     this.sectionModale.set('assure');
     this.formAssure = {
@@ -323,6 +330,7 @@ export class AdminDashboard implements OnInit {
   fermerModale(): void {
     this.sectionModale.set(null);
     this.motDePasseTemporaire.set(null);
+    this.emailEnvoye.set(true);
   }
 
   /** Assurés qui n'ont pas encore de compte client (pour la création d'un compte). */
@@ -423,6 +431,7 @@ export class AdminDashboard implements OnInit {
       this.adminService.creerCompteClient(f.idAssure!, f.email.trim()).subscribe({
         next: res => {
           this.motDePasseTemporaire.set(res.motDePasseTemporaire);
+          this.emailEnvoye.set(res.emailEnvoye);
           this.messageSucces = `Compte client créé pour ${res.compte.nomAssure ?? ''} ${res.compte.prenomAssure ?? ''}.`.trim();
           this.rechargerTout();
         },

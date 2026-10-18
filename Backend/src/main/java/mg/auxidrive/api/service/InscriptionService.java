@@ -212,9 +212,10 @@ public class InscriptionService {
 
     /**
      * Valide la demande : attribue le numéro d'assuré, crée le compte client (rôle CLIENT), le lie à l'assuré,
-     * génère un mot de passe temporaire (stocké haché) et l'envoie par e-mail après le commit de la transaction,
-     * afin que le thread @Async de MailService ne s'exécute qu'une fois les données réellement écrites.
-     * Si l'envoi échoue, l'échec est uniquement journalisé et la validation reste effective.
+     * génère un mot de passe temporaire (stocké haché) et envoie les identifiants par e-mail, après le commit
+     * de la transaction afin que l'envoi ne porte que sur des données réellement écrites.
+     * Si l'envoi au client échoue, MailService le relaye à l'administrateur pour transmission manuelle ;
+     * dans tous les cas la validation reste effective.
      */
     @Transactional
     public Inscription valider(Long id, String numerosAssure, String emailAgent) {
@@ -264,29 +265,37 @@ public class InscriptionService {
             }
         }
 
-        final String emailDestinataire = compte.getEmail();
-        final String motDePasseTemporaire = motDePasse;
-
-        Runnable envoiIdentifiants = () -> {
-            try {
-                mailService.envoyerIdentifiants(emailDestinataire, motDePasseTemporaire);
-            } catch (RuntimeException e) {
-                log.error("Envoi des identifiants impossible à {} (compte néanmoins créé)", emailDestinataire, e);
-            }
-        };
+        final MailService.DonneesIdentifiants donneesIdentifiants = new MailService.DonneesIdentifiants(
+                compte.getEmail(), motDePasse,
+                assure.getCivilite(), assure.getNomAssure(), assure.getPrenomAssure(),
+                assure.getNumerosAssure(), MailService.OrigineCompte.INSCRIPTION_VALIDEE);
 
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    envoiIdentifiants.run();
+                    envoyerIdentifiants(donneesIdentifiants);
                 }
             });
         } else {
-            envoiIdentifiants.run();
+            envoyerIdentifiants(donneesIdentifiants);
         }
 
         return inscription;
+    }
+
+    /**
+     * L'envoi se fait après le commit : le mot de passe en clair n'existe plus à ce stade qu'en
+     * mémoire, mais MailService tente un relais vers l'administrateur si le client ne le reçoit
+     * pas, afin qu'il ne soit jamais perdu. Un échec ne remet jamais en cause la validation.
+     */
+    private void envoyerIdentifiants(MailService.DonneesIdentifiants donnees) {
+        try {
+            mailService.envoyerIdentifiants(donnees);
+        } catch (RuntimeException e) {
+            log.error("Envoi des identifiants impossible à {} (compte néanmoins créé)",
+                    donnees.destinataire(), e);
+        }
     }
 
     /** Refuse la demande : aucun compte n'est créé, le motif est conservé. */

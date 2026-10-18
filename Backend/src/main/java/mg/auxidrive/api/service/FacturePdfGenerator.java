@@ -1,7 +1,9 @@
 package mg.auxidrive.api.service;
 
+import java.awt.Color;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
@@ -10,12 +12,16 @@ import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
@@ -33,16 +39,29 @@ import mg.auxidrive.api.model.Vehicule;
 /**
  * Produit le PDF d'une facture de souscription.
  *
- * Le document reprend l'identification du contrat, les véhicules couverts, les garanties incluses
- * par la branche, puis le détail du calcul : base taxable, TE, TACAVA, TVA et montant TTC.
+ * L'en-tête porte le logo de la marque et la mention de lieu et de date d'émission ; viennent ensuite
+ * l'identité de l'assuré, les données du contrat (période de couverture, mode de renouvellement),
+ * les véhicules couverts, les garanties incluses par la branche, puis le détail du calcul :
+ * base taxable, TE, TACAVA, TVA et montant TTC. Le document s'achève sur une zone de signatures,
+ * client à gauche, agent de production à droite.
  * L'assuré doit pouvoir vérifier chaque ligne, c'est la raison d'être des colonnes de détail.
  */
 @Component
 public class FacturePdfGenerator {
 
+    private static final Logger log = LoggerFactory.getLogger(FacturePdfGenerator.class);
+
     private static final DateTimeFormatter DATE_FR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final String DOSSIER = "factures";
     private static final String DEVISE = "Ar";
+
+    /** Logo de la marque, partagé avec le front-end ; absent du classpath, la facture sort sans logo. */
+    private static final String LOGO = "static/img/logo-auximad.png";
+    private static final String LIEU = "Antananarivo";
+    /** Largeur du logo en points ; la hauteur suit le ratio réel de l'image. */
+    private static final float LARGEUR_LOGO = 75f;
+    /** Hauteur réservée à la signature, en points. */
+    private static final float HAUTEUR_SIGNATURE = 38f;
 
     /**
      * Écrit le PDF sur le disque et renvoie son chemin absolu.
@@ -68,10 +87,12 @@ public class FacturePdfGenerator {
 
             ecrireEntete(document, facture, contrat);
             ecrireAssure(document, contrat);
+            ecrireContrat(document, contrat);
             ecrireVehicules(document, vehicules);
             ecrireGaranties(document, garanties);
             ecrireDetailCalcul(document, facture);
             ecrirePied(document, contrat);
+            ecrireSignatures(document);
 
             document.close();
             return chemin.toString();
@@ -80,7 +101,26 @@ public class FacturePdfGenerator {
         }
     }
 
+    /**
+     * En-tête : le logo de la marque et la mention de lieu et de date d'émission, alignés à gauche,
+     * puis le titre et la référence centrés. Le logo est facultatif : s'il manque, la facture est
+     * de toute façon produite, seule son en-tête est dépouillée.
+     */
     private void ecrireEntete(Document document, Facture facture, Contrat contrat) {
+        Image logo = chargerLogo();
+        if (logo != null) {
+            logo.setAlignment(Image.LEFT);
+            logo.setSpacingAfter(2);
+            document.add(logo);
+        }
+        if (facture.getDateEmission() != null) {
+            Paragraph mention = new Paragraph(
+                    "Fait le " + DATE_FR.format(facture.getDateEmission()) + " à " + LIEU, normal(9));
+            mention.setAlignment(Element.ALIGN_LEFT);
+            mention.setSpacingAfter(8);
+            document.add(mention);
+        }
+
         Paragraph titre = new Paragraph("FACTURE DE SOUSCRIPTION", gras(16));
         titre.setAlignment(Element.ALIGN_CENTER);
         titre.setSpacingAfter(4);
@@ -90,8 +130,26 @@ public class FacturePdfGenerator {
                 + (contrat.getNumPolice() == null ? "" : "  -  Police n° " + contrat.getNumPolice()),
                 gras(11));
         ref.setAlignment(Element.ALIGN_CENTER);
-        ref.setSpacingAfter(14);
+        ref.setSpacingAfter(6);
         document.add(ref);
+    }
+
+    /**
+     * Charge le logo depuis les ressources et le met à l'échelle voulue, la hauteur suivant le ratio
+     * réel de l'image pour rester correcte si le fichier change. Toute défaillance est seulement
+     * journalisée : le générateur ne doit jamais faire échouer la facture pour un logo manquant.
+     *
+     * @return l'image, ou null si elle n'a pas pu être chargée
+     */
+    private Image chargerLogo() {
+        try (InputStream flux = new ClassPathResource(LOGO).getInputStream()) {
+            Image image = Image.getInstance(flux.readAllBytes());
+            image.scaleAbsolute(LARGEUR_LOGO, LARGEUR_LOGO * image.getHeight() / image.getWidth());
+            return image;
+        } catch (Exception e) {
+            log.warn("Logo {} introuvable ou illisible : facture produite sans logo", LOGO, e);
+            return null;
+        }
     }
 
     /** Numéro de facture, ou à défaut l'identifiant technique, pour l'entête du PDF. */
@@ -116,7 +174,7 @@ public class FacturePdfGenerator {
         document.add(titreSection("Assuré"));
         PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
-        table.setSpacingAfter(12);
+        table.setSpacingAfter(8);
 
         if (assure != null) {
             ligne(table, "Nom", assure.getNomAssure());
@@ -124,6 +182,23 @@ public class FacturePdfGenerator {
             ligne(table, "Numéro d'assuré", assure.getNumerosAssure());
             ligne(table, "Adresse", assure.getAdresse());
             ligne(table, "Contact", assure.getContact());
+        }
+        document.add(table);
+    }
+
+    /**
+     * Données propres au contrat, séparées de l'identité de l'assuré : la période de couverture
+     * est ce pour quoi l'assuré paie, elle mérite sa propre section plutôt que de figurer au
+     * bas de la fiche assuré. Les lignes sans valeur sont simplement omises.
+     */
+    private void ecrireContrat(Document document, Contrat contrat) {
+        document.add(titreSection("Contrat"));
+        PdfPTable table = new PdfPTable(2);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(8);
+
+        if (contrat.getDateSouscription() != null) {
+            ligne(table, "Date de souscription", contrat.getDateSouscription().format(DATE_FR));
         }
         if (contrat.getDateEffet() != null) {
             ligne(table, "Date d'effet", contrat.getDateEffet().format(DATE_FR));
@@ -184,8 +259,7 @@ public class FacturePdfGenerator {
         document.add(titreSection("Détail du calcul"));
         PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(70);
-        table.setSpacingBefore(6);
-        table.setSpacingAfter(12);
+        table.setSpacingAfter(8);
 
         double accessoires = valeur(facture.getAccessoires());
         double base = valeur(facture.getPrimeNette());
@@ -194,7 +268,7 @@ public class FacturePdfGenerator {
         montant(table, "Prime nette", netHorsAccessoires);
         montant(table, "Accessoires", accessoires);
         montant(table, "Base taxable", base);
-if (facture.getMontantTe() != null && facture.getMontantTe() > 0) {
+        if (facture.getMontantTe() != null && facture.getMontantTe() > 0) {
             montant(table, "TE", facture.getMontantTe());
         }
         if (facture.getMontantTacava() != null && facture.getMontantTacava() > 0) {
@@ -204,6 +278,7 @@ if (facture.getMontantTe() != null && facture.getMontantTe() > 0) {
             montant(table, "TVA", facture.getMontantTva());
         }
         montant(table, "Total des taxes", valeur(facture.getMontantTaxes()));
+        document.add(table);
 
         Paragraph total = new Paragraph("Montant TTC à payer : " + montant(facture.getMontantTtc()) + " " + DEVISE, gras(13));
         total.setSpacingBefore(6);
@@ -214,16 +289,54 @@ if (facture.getMontantTe() != null && facture.getMontantTe() > 0) {
         Paragraph mention = paragraphe("La commission d'intermédiaire est calculée en dehors du montant TTC "
                 + "et n'est pas supportée par l'assuré."
                 + (contrat.getMontantCommission() == null ? "" : " Montant de la commission : " + montant(contrat.getMontantCommission()) + " " + DEVISE + "."));
-        mention.setSpacingBefore(16);
+        mention.setSpacingBefore(10);
         document.add(mention);
+    }
+
+    /**
+     * Zone de signatures, en tout bas de page : un trait vierge dans chaque colonne, sur lequel
+     * l'assuré à gauche et l'agent de production à droite apposent leur signature, chacun sous
+     * son libellé. Le trait est une bordure basse de cellule, la hauteur réservée laisse la place
+     * d'écrire. Les noms ne sont pas pré-remplis : aucun n'est disponible au moment de l'émission.
+     */
+    private void ecrireSignatures(Document document) {
+        PdfPTable table = new PdfPTable(2);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(16);
+
+        table.addCell(celluleLigneVierge());
+        table.addCell(celluleLigneVierge());
+        table.addCell(celluleSansBordure("Le client"));
+        table.addCell(celluleSansBordure("L'agent de production"));
+
+        document.add(table);
+    }
+
+    /** Colonne de la zone de signature : un simple trait, avec la hauteur d'un espace à signer. */
+    private PdfPCell celluleLigneVierge() {
+        PdfPCell cellule = new PdfPCell();
+        cellule.setBorder(PdfPCell.BOTTOM);
+        cellule.setBorderWidth(1f);
+        cellule.setBorderColor(Color.BLACK);
+        cellule.setMinimumHeight(HAUTEUR_SIGNATURE);
+        cellule.setPadding(0);
+        return cellule;
+    }
+
+    /** Légende sous un trait de signature. */
+    private PdfPCell celluleSansBordure(String texte) {
+        PdfPCell cellule = new PdfPCell(new Phrase(texte, normal(9)));
+        cellule.setBorder(PdfPCell.NO_BORDER);
+        cellule.setPaddingTop(3f);
+        return cellule;
     }
 
     // ---- aides de mise en forme ----
 
     private Paragraph titreSection(String texte) {
         Paragraph p = new Paragraph(texte, gras(12));
-        p.setSpacingBefore(10);
-        p.setSpacingAfter(4);
+        p.setSpacingBefore(6);
+        p.setSpacingAfter(3);
         return p;
     }
 
@@ -233,12 +346,16 @@ if (facture.getMontantTe() != null && facture.getMontantTe() > 0) {
 
     private Paragraph espace() {
         Paragraph p = new Paragraph();
-        p.setSpacingAfter(6);
+        p.setSpacingAfter(4);
         return p;
     }
 
     private Font gras(float taille) {
         return new Font(Font.HELVETICA, taille, Font.BOLD);
+    }
+
+    private Font normal(float taille) {
+        return new Font(Font.HELVETICA, taille);
     }
 
     private void ligne(PdfPTable table, String libelle, String valeur) {
@@ -266,7 +383,12 @@ if (facture.getMontantTe() != null && facture.getMontantTe() > 0) {
     }
 
     private PdfPCell cellule(String texte) {
-        return new PdfPCell(new Phrase(texte == null ? "" : texte));
+        PdfPCell c = new PdfPCell(new Phrase(texte == null ? "" : texte));
+        // lignes serrées : la facture doit tenir sur une page dans le cas courant,
+        // un interligne aéré coûte une vingtaine de points par section
+        c.setPaddingTop(1f);
+        c.setPaddingBottom(1f);
+        return c;
     }
 
     private String montant(double valeur) {

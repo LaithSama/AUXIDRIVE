@@ -13,8 +13,10 @@ export interface CompteClientVue {
   prenomAssure?: string | null;
 }
 
-/** Réponse de création : le compte plus le mot de passe temporaire à communiquer. */
+/** Réponse de création : le compte, le mot de passe temporaire à communiquer et le résultat de l'e-mail. */
 export interface CompteClientCree {
   compte: CompteClientVue;
   motDePasseTemporaire: string;
+  /** false si l'e-mail n'est pas parti : le mot de passe doit alors être transmis manuellement. */
+  emailEnvoye: boolean;
 }

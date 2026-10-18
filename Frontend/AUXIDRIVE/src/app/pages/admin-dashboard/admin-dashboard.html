@@ -436,10 +436,17 @@
     <div class="admin-modale-corps">
       <!-- Résultat : mot de passe temporaire -->
       @if (motDePasseTemporaire(); as mdp) {
-        <p class="message-ok">
-          Le compte a été créé et le mot de passe temporaire a été envoyé par e-mail au client.
-          Communiquez-le si nécessaire :
-        </p>
+        @if (emailEnvoye()) {
+          <p class="message-ok">
+            Le compte a été créé et le mot de passe temporaire a été envoyé par e-mail au client.
+            Communiquez-le si nécessaire :
+          </p>
+        } @else {
+          <p class="message-erreur">
+            Le compte a été créé, mais l'e-mail n'a pas pu être envoyé au client.
+            Transmettez-lui ce mot de passe manuellement :
+          </p>
+        }
         <p class="admin-motdepasse">{{ mdp }}</p>
       } @else if (section === 'utilisateur') {
         <div class="champ">
