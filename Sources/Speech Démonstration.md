@@ -1,278 +1,92 @@
-# **Speech Démonstration : 08h01 18/10/2026**
+###### **Nous voici sur la page d’accueil, qui comporte plusieurs sections, notamment « Nos formules », « Comment ça marche » et « Contact ». Pour cette démonstration, nous allons suivre les étapes de la section « Comment ça marche », en commençant par l’inscription d’un nouveau client.**
 
+###### 
 
+###### **Le client doit renseigner ses informations personnelles afin de constituer son dossier. Pour gagner du temps, j’ai déjà préparé les données nécessaires. Concernant l’adresse électronique, nous allons utiliser \*\*Yopmail\*\*, une messagerie temporaire qui nous permettra de recevoir les mails envoyées par l’application.**
 
-##### **Accueil et inscription du client :**
+###### 
 
-Nous allons maintenant passer à la démonstration pratique de mon application web, baptisée "AUXIDRIVE".
+###### **Nous retrouvons ici le dossier d’inscription que nous venons de soumettre. L’agent peut consulter et vérifier les informations fournies par le client. Si le dossier est conforme, il peut le valider. Dans le cas contraire, il peut le refuser en précisant le motif du refus.**
 
+###### 
 
+###### **Pour notre démonstration, nous allons valider ce dossier. Une fois la validation effectuée, \*\*un email contenant les identifiants de connexion et un mot de passe temporaire est automatiquement envoyé au client\*\*.**
 
-Nous arrivons ici sur la page d'accueil, qui présente plusieurs sections, notamment « Nos formules », « Comment ça marche » et « Contact ».
+###### 
 
+###### **Vérifions la boite mail pour récupérer l'identifiants et le mot de passe temporaire qui nous permettra d'accéder a l'espace client.**
 
+###### 
 
-Pour cette démonstration, nous allons suivre les étapes présentées dans la section « Comment ça marche », en commençant par l'inscription d'un nouveau client.
+###### **Nous accédons maintenant à l’espace client, qui comporte plusieurs sections, notamment les véhicules, les contrats, les sinistres et les factures.**
 
+###### 
 
+###### **Nous allons commencer par enregistrer un véhicule en renseignant ses caractéristiques. Une fois celui-ci ajouté, nous pouvons effectuer une demande de souscription.**
 
-\[Ouvrir le formulaire d'inscription.]
+###### 
 
+###### **Pour cet exemple, nous allons choisir la \*\*formule monovéhicule\*\*, puis sélectionner les garanties souhaitées. Une fois les informations vérifiées, nous envoyons notre demande de souscription, qui sera ensuite traitée par un agent.**
 
+###### 
 
-Le client doit renseigner ses informations personnelles et fournir les renseignements demandés pour constituer son dossier.
+###### **L’agent peut consulter les informations du véhicule ainsi que les garanties sélectionnées par le client. Il renseigne ensuite les éléments nécessaires au calcul, notamment la prime nette et les accessoires.**
 
+###### 
 
+###### **En cliquant sur le bouton « Calculer », l’application détermine le montant de la prime d’assurance. Si toutes les informations sont conformes, l’agent peut procéder à la validation du contrat.**
 
-Afin de gagner du temps, j'ai préparé les données nécessaires à cette inscription.
+###### 
 
+###### **Revenons maintenant dans l’espace client. Nous pouvons constater que notre contrat est désormais accessible, accompagné de sa facture, que le client peut \*\*consulter et télécharger au format PDF\*\*.**
 
+###### 
 
-\[Remplir le formulaire avec les données préparées.]
+###### **Passons maintenant à une autre fonctionnalité importante de notre application : \*\*la gestion des sinistres\*\*.**
 
+###### 
 
+###### **Depuis son espace personnel, le client peut déclarer un accident concernant l’un de ses véhicules assurés. Il renseigne les informations relatives au sinistre, puis soumet sa déclaration.**
 
-Pour l'adresse électronique, nous allons utiliser Yopmail, un service de messagerie temporaire, afin de recevoir les notifications envoyées par l'application.
+###### 
 
+###### **Une fois celle-ci envoyée, elle devient accessible depuis l’espace agent. L’agent peut alors consulter et vérifier les informations, compléter le rapport policier et procéder au traitement du dossier.**
 
+###### 
 
-\[Ouvrir Yopmail et préparer la boîte mail.]
+###### **Selon la décision prise, le dossier peut être clôturé \*\*avec ou sans indemnisation\*\*.**
 
+###### 
 
+###### **Cette fonctionnalité permet ainsi de centraliser les déclarations de sinistres et de faciliter leur traitement et leur suivi.**
 
-Une fois les informations renseignées, nous envoyons le dossier d'inscription.
+###### 
 
+###### **Pour terminer cette démonstration, nous allons découvrir l’espace administrateur.**
 
+###### 
 
-\[Soumettre le formulaire.]
+###### **Cet espace dispose d’un \*\*tableau de bord\*\* permettant d’avoir une vue d’ensemble sur les activités de l’application.**
 
+###### 
 
+###### **L’administrateur peut également accéder à plusieurs sections dédiées à la gestion des utilisateurs, des comptes clients, des assurés ainsi qu’à la gestion de son propre profil.**
 
-Le dossier est maintenant transmis et reste en attente de validation par un agent d'assurance.
+###### 
 
+###### **Cet espace permet donc d’assurer la supervision et l’administration générale de l’application.**
 
+###### 
 
-##### **Vérification et validation par l'agent :**
+###### 
 
-Passons maintenant du côté de l'agent d'assurance.
+###### **cette démonstration nous a permis de présenter les principales fonctionnalités d’\*\*AUXIDRIVE\*\*, depuis l’inscription d’un client jusqu’à la gestion des contrats, de la facturation et des sinistres, en passant par la validation des demandes et la supervision administrative.**
 
+###### 
 
+###### **Nous avons également pu observer les interactions entre les trois principaux acteurs de notre système : \*\*le client, l’agent et l’administrateur\*\*.**
 
-\[Ouvrir un nouvel onglet et se connecter avec le compte agent.]
+###### 
 
-
-
-Nous accédons ici à l'espace agent, qui permet de consulter et de traiter les différentes demandes.
-
-
-
-Dans la section consacrée aux dossiers clients, nous retrouvons la demande d'inscription que nous venons d'envoyer.
-
-
-
-\[Ouvrir le dossier du client.]
-
-
-
-L'agent peut vérifier les informations fournies et, si le dossier est conforme, procéder à sa validation. Dans le cas contraire, il peut le refuser en précisant le motif.
-
-
-
-\[Valider le dossier.]
-
-
-
-Une fois le dossier validé, un courrier électronique est automatiquement envoyé au client, contenant son identifiant de connexion ainsi qu'un mot de passe temporaire.
-
-
-
-##### **Connexion client, véhicule et souscription :**
-
-Revenons maintenant du côté du client.
-
-
-
-\[Consulter la boîte Yopmail et récupérer les identifiants.]
-
-
-
-Nous avons reçu le message de confirmation contenant les identifiants nécessaires.
-
-
-
-\[Revenir à l'onglet client et se connecter.]
-
-
-
-Nous accédons maintenant à l'espace client, qui regroupe plusieurs sections : véhicules, contrats, sinistres et factures.
-
-
-
-Pour commencer, nous allons enregistrer un véhicule.
-
-
-
-\[Ouvrir la section Véhicules et compléter le formulaire.]
-
-
-
-Une fois le véhicule enregistré, nous pouvons passer à la souscription d'un contrat d'assurance.
-
-
-
-\[Ouvrir le formulaire de souscription.]
-
-
-
-Dans cet exemple, nous choisissons la formule monovéhicule, puis nous sélectionnons les garanties souhaitées.
-
-
-
-\[Choisir le véhicule, la formule et les garanties, puis envoyer la demande.]
-
-
-
-La demande de souscription est maintenant transmise à l'agent pour traitement.
-
-
-
-##### **Calcul de la prime, validation et facturation :**
-
-Retournons dans l'espace agent pour traiter cette demande de souscription.
-
-
-
-\[Basculer vers l'onglet agent et ouvrir la section Contrats.]
-
-
-
-Nous retrouvons ici la demande du client, avec les informations du véhicule et les garanties sélectionnées.
-
-
-
-L'agent renseigne la prime nette ainsi que les accessoires nécessaires au calcul.
-
-
-
-\[Saisir les montants préparés.]
-
-
-
-Il suffit ensuite de cliquer sur « Calculer » pour obtenir le montant de la prime, puis de valider le contrat si toutes les informations sont conformes.
-
-
-
-\[Calculer puis valider.]
-
-
-
-Comme pour l'inscription, l'agent dispose également d'une possibilité de refus si la demande ne respecte pas les conditions requises.
-
-
-
-Revenons maintenant dans l'espace client.
-
-
-
-\[Basculer vers l'onglet client et actualiser les informations.]
-
-
-
-Le client peut désormais consulter les informations liées à son contrat et accéder à sa facture, qu'il peut télécharger au format PDF.
-
-
-
-\[Afficher la facture et lancer son téléchargement.]
-
-
-
-Cette fonctionnalité facilite l'accès aux documents d'assurance et réduit les manipulations administratives.
-
-
-
-##### **Déclaration et traitement d'un sinistre :**
-
-Passons maintenant à la gestion des sinistres.
-
-
-
-Depuis son espace personnel, le client peut déclarer un sinistre lié à son véhicule assuré.
-
-
-
-\[Ouvrir la section Sinistres et remplir le formulaire avec les données préparées.]
-
-
-
-Il renseigne les informations concernant l'accident, puis soumet sa déclaration.
-
-
-
-\[Envoyer la déclaration.]
-
-
-
-Du côté de l'agent, nous retrouvons cette nouvelle déclaration dans la section Sinistres.
-
-
-
-\[Basculer vers l'onglet agent et ouvrir le sinistre.]
-
-
-
-L'agent peut examiner les informations et rédiger le rapport policier associé au dossier.
-
-
-
-\[Compléter le rapport avec les informations préparées.]
-
-
-
-Après traitement, il peut clôturer le dossier avec ou sans indemnisation, selon la décision prise.
-
-
-
-\[Clôturer le dossier.]
-
-
-
-Cette fonctionnalité permet de centraliser les déclarations et de faciliter le suivi des sinistres.
-
-
-
-##### **Espace administrateur et conclusion :**
-
-Pour terminer cette démonstration, nous allons découvrir l'espace administrateur.
-
-
-
-\[Ouvrir un nouvel onglet et se connecter avec le compte administrateur.]
-
-
-
-L'administrateur dispose d'une vue d'ensemble de l'application, avec plusieurs sections.
-
-
-
-Le tableau de bord permet d'avoir une vision globale des activités.
-
-
-
-La section Utilisateurs est consacrée à la gestion des utilisateurs, tandis que les sections Comptes clients et Assurés permettent de consulter et de gérer les informations correspondantes.
-
-
-
-Enfin, l'administrateur dispose également d'un espace dédié à son profil.
-
-
-
-\[Parcourir rapidement les différentes sections.]
-
-
-
-\*\*Ainsi, cette démonstration nous a permis de parcourir les principales fonctionnalités d'AUXIDRIVE, depuis l'inscription du client jusqu'au traitement des contrats et des sinistres, en passant par la supervision administrative.\*\*
-
-
-
-Je vous remercie de votre attention.
+###### **\*\*Nous allons maintenant revenir aux powerpoint pour conclure la présentation.**
 

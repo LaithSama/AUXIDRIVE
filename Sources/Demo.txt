@@ -1,0 +1,143 @@
+Assuré 2 — Collision entre deux véhicules
+Assuré 2
+- Nom : RAKOTOMALALA
+- Prénom : Andrianina
+- Mail : andrianina.rakoto@yopmail.com
+- Tél : 0345678123
+- Adresse : Lot II M 45, Ankadifotsy, Antananarivo 101
+- Date naissance : 14/06/1992
+- CIN : 101031245678
+- Numéro assuré : 73051482
+Véhicule 2
+- Numéro d'immatriculation : 5826 TAF (Antananarivo)
+- Numéro de châssis : VF3LCYHZRKS123456
+- Marque : PEUGEOT
+- Modèle : 308
+- Code tarifaire : VP (Véhicule Particulier)
+- Énergie : Diesel
+- Nombre de places : 5
+- Puissance fiscale : 6 CV
+- Numéro du moteur : DV6-4587129
+- Type de véhicule : Berline
+- Usage : Personnel
+Sinistre 2
+- Véhicule concerné : PEUGEOT 308 — 5826 TAF
+- Date du sinistre : 05/10/2026
+- Lieu du sinistre : Avenue de l'Indépendance, Analakely, Antananarivo
+- Circonstances : Le véhicule assuré circulait normalement sur l'avenue de l'Indépendance lorsqu'un autre véhicule, sortant brusquement d'une zone de stationnement, a heurté son côté droit. La collision a endommagé les deux portières droites ainsi que le rétroviseur extérieur. Aucun blessé n'a été signalé.
+Rapport de police 2
+- Numéro rapport de police : PV-2026-1015/PN
+- Date du rapport : 05/10/2026
+- Responsabilité de l'assuré : Non
+- Rapport policier : Constat d'accident matériel établi par les agents de police d'Analakely. Le véhicule Peugeot 308 immatriculé 5826 TAF a été percuté latéralement par un automobiliste effectuant une sortie de stationnement sans précaution suffisante. Les constatations indiquent que le conducteur assuré respectait sa voie de circulation. Dégâts matériels constatés sur le côté droit du véhicule, sans dommage corporel.
+CLÔTURE DOSSIER 2
+
+4 500 000 Ar — Réparation des portières et remplacement du rétroviseur.
+
+Assuré 3 — Accident avec responsabilité de l'assuré
+Assuré 3
+- Nom : RAZAFIMANANTSOA
+- Prénom : Tiana
+- Mail : tiana.razafi@yopmail.com
+- Tél : 0336547891
+- Adresse : Lot IV F 28, Ankorondrano, Antananarivo 101
+- Date naissance : 09/11/1999
+- CIN : 101041578963
+- Numéro assuré : 73051483
+Véhicule 3
+- Numéro d'immatriculation : 7634 TBC (Antananarivo)
+- Numéro de châssis : MHFBU3FS8K1234567
+- Marque : TOYOTA
+- Modèle : Yaris
+- Code tarifaire : VP (Véhicule Particulier)
+- Énergie : Essence
+- Nombre de places : 5
+- Puissance fiscale : 5 CV
+- Numéro du moteur : 1NR-6985321
+- Type de véhicule : Citadine
+- Usage : Personnel
+Sinistre 3
+- Véhicule concerné : TOYOTA Yaris — 7634 TBC
+- Date du sinistre : 08/10/2026
+- Lieu du sinistre : Boulevard de l'Europe, Ankorondrano, Antananarivo
+- Circonstances : Lors d'une circulation en fin d'après-midi, le conducteur du véhicule assuré n'a pas maintenu une distance de sécurité suffisante avec le véhicule qui le précédait. À la suite d'un freinage brusque de ce dernier, la Toyota Yaris est entrée en collision avec son pare-chocs arrière. L'accident a provoqué des dommages au pare-chocs avant, au capot et aux phares du véhicule assuré.
+Rapport de police 3
+- Numéro rapport de police : PV-2026-1018/PN
+- Date du rapport : 08/10/2026
+- Responsabilité de l'assuré : Oui
+- Rapport policier : Constat d'accident matériel établi par la police de la circulation d'Antananarivo. La Toyota Yaris immatriculée 7634 TBC a percuté l'arrière d'un véhicule circulant dans la même direction. Les constatations indiquent une distance de sécurité insuffisante de la part du conducteur assuré. Dégâts importants à l'avant de la Toyota Yaris. Aucun blessé déclaré.
+CLÔTURE DOSSIER 3
+
+3 200 000 Ar — Réparation du capot, du pare-chocs avant et des phares.
+
+Assuré 4 — Accident dû aux conditions météorologiques
+Assuré 4
+- Nom : RANDRIANARISOA
+- Prénom : Harimalala
+- Mail : harimalala.randria@yopmail.com
+- Tél : 0327894561
+- Adresse : Lot II A 67, Ambohimanarina, Antananarivo 101
+- Date naissance : 27/02/1988
+- CIN : 101021896547
+- Numéro assuré : 73051484
+Véhicule 4
+- Numéro d'immatriculation : 4298 TAD (Antananarivo)
+- Numéro de châssis : MMBCJKB40KH123456
+- Marque : MITSUBISHI
+- Modèle : L200
+- Code tarifaire : VU (Véhicule Utilitaire)
+- Énergie : Diesel
+- Nombre de places : 5
+- Puissance fiscale : 10 CV
+- Numéro du moteur : 4N15-7854126
+- Type de véhicule : Pick-up
+- Usage : Professionnel
+Sinistre 4
+- Véhicule concerné : MITSUBISHI L200 — 4298 TAD
+- Date du sinistre : 11/10/2026
+- Lieu du sinistre : Route Nationale 4 (RN4), à proximité de Mahitsy
+- Circonstances : Le véhicule assuré circulait sur la RN4 sous une pluie importante. En abordant un virage, le conducteur a perdu le contrôle du véhicule sur une chaussée glissante. Le pick-up a quitté la route avant de heurter un talus. L'accident a provoqué des dommages sur le pare-chocs avant, l'aile gauche et le système de suspension. Aucun autre véhicule n'était impliqué.
+Rapport de police 4
+- Numéro rapport de police : PV-2026-1021/GEND
+- Date du rapport : 11/10/2026
+- Responsabilité de l'assuré : Oui (perte de maîtrise du véhicule)
+- Rapport policier : Constat d'accident de circulation établi par la brigade de gendarmerie de Mahitsy. Le véhicule Mitsubishi L200 immatriculé 4298 TAD a effectué une sortie de route dans un virage sur une chaussée mouillée. Les constatations indiquent une perte de maîtrise du véhicule dans des conditions météorologiques défavorables. Dégâts matériels constatés sur la partie avant gauche. Aucun tiers impliqué et aucun dommage corporel déclaré.
+CLÔTURE DOSSIER 4
+
+6 750 000 Ar — Réparation de la carrosserie avant et du système de suspension.
+
+Assuré 5 — Vol d'équipements automobiles
+Assuré 5
+- Nom : RAKOTOARIVELO
+- Prénom : Mamy
+- Mail : mamy.rakoto@yopmail.com
+- Tél : 0348956123
+- Adresse : Lot III G 32, Ambohibao, Antananarivo 105
+- Date naissance : 18/08/1995
+- CIN : 101051478236
+- Numéro assuré : 73051485
+Véhicule 5
+- Numéro d'immatriculation : 3517 TBE (Antananarivo)
+- Numéro de châssis : WVWZZZ1KZJW123456
+- Marque : VOLKSWAGEN
+- Modèle : Golf 7
+- Code tarifaire : VP (Véhicule Particulier)
+- Énergie : Diesel
+- Nombre de places : 5
+- Puissance fiscale : 7 CV
+- Numéro du moteur : CRBC-6985234
+- Type de véhicule : Berline
+- Usage : Personnel
+Sinistre 5
+- Véhicule concerné : VOLKSWAGEN Golf 7 — 3517 TBE
+- Date du sinistre : 14/10/2026
+- Lieu du sinistre : Parking résidentiel, Ambohibao, Antananarivo
+- Circonstances : Le propriétaire a stationné son véhicule dans un parking résidentiel durant la nuit. Le lendemain matin, il a constaté que la vitre avant droite avait été brisée et que plusieurs équipements avaient été dérobés, notamment l'autoradio et certains accessoires intérieurs. Des dégradations ont également été relevées sur le tableau de bord et le système de verrouillage.
+Rapport de police 5
+- Numéro rapport de police : PV-2026-1024/PN
+- Date du rapport : 14/10/2026
+- Responsabilité de l'assuré : Non
+- Rapport policier : Procès-verbal de constatation de vol avec effraction établi par le commissariat compétent. Le véhicule Volkswagen Golf 7 immatriculé 3517 TBE a été retrouvé avec une vitre latérale brisée et des équipements intérieurs manquants. Les premières constatations indiquent une intrusion forcée dans le véhicule pendant son stationnement nocturne. Une enquête a été ouverte pour identifier les auteurs.
+CLÔTURE DOSSIER 5
+
+2 150 000 Ar — Remplacement de la vitre, de l'autoradio et réparation des éléments endommagés.
