@@ -1,0 +1,44 @@
+/* Donut : piste neutre, arcs colorés et valeur centrale. */
+
+.gr-donut {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gr-donut-svg {
+  display: block;
+  width: 100%;
+  max-width: 11rem;
+  height: auto;
+}
+
+.gr-donut-piste {
+  stroke: var(--chart-fond);
+}
+
+.gr-donut-part {
+  stroke-linecap: butt;
+  transition: stroke-dasharray 0.35s ease, stroke-dashoffset 0.35s ease;
+}
+
+.gr-donut-total {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 34px;
+  fill: var(--nuit);
+}
+
+.gr-donut-libelle {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--gris);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-donut-part { transition: none; }
+}

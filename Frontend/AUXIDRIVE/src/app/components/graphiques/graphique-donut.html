@@ -1,0 +1,34 @@
+@if (aDesDonnees()) {
+  <figure class="gr-donut">
+    <svg class="gr-donut-svg" viewBox="0 0 200 200" role="img" [attr.aria-label]="description()">
+      <title>{{ libelleCentre() || 'Répartition' }}</title>
+      @if (description()) {
+        <desc>{{ description() }}</desc>
+      }
+      <circle class="gr-donut-piste"
+              cx="100" cy="100" [attr.r]="rayon"
+              fill="none" [attr.stroke-width]="epaisseur" />
+      <g transform="rotate(-90 100 100)">
+        @for (segment of segments(); track segment.libelle) {
+          <circle class="gr-donut-part"
+                  cx="100" cy="100" [attr.r]="rayon"
+                  fill="none"
+                  [attr.stroke]="segment.couleur"
+                  [attr.stroke-width]="epaisseur"
+                  [attr.stroke-dasharray]="segment.longueur + ' ' + circonference"
+                  [attr.stroke-dashoffset]="segment.decalage" />
+        }
+      </g>
+      @if (valeurCentre()) {
+        <text class="gr-donut-total" x="100" y="98" text-anchor="middle">{{ valeurCentre() }}</text>
+        <text class="gr-donut-libelle" x="100" y="119" text-anchor="middle">{{ libelleCentre() }}</text>
+      }
+    </svg>
+    <app-graphique-legende [items]="items()" />
+  </figure>
+} @else {
+  <div class="gr-vide">
+    <i class="bi bi-pie-chart" aria-hidden="true"></i>
+    <span>{{ messageVide() }}</span>
+  </div>
+}

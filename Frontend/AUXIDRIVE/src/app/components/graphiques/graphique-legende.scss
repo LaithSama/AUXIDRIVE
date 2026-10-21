@@ -1,0 +1,48 @@
+/* Légende des graphiques : pastille de couleur, libellé, effectif et part. */
+
+.gr-legende {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.gr-legende-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--encre);
+}
+
+.gr-legende-pastille {
+  flex: 0 0 auto;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+  border: 1.5px solid var(--encre);
+}
+
+.gr-legende-libelle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gr-legende-valeur {
+  flex: 0 0 auto;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.gr-legende-part {
+  flex: 0 0 auto;
+  min-width: 2.6rem;
+  text-align: right;
+  color: var(--gris);
+  font-variant-numeric: tabular-nums;
+}

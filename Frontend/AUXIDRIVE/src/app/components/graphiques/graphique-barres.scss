@@ -1,0 +1,36 @@
+/* Barres horizontales : piste neutre, barre colorée, libellé et valeur. */
+
+.gr-barres-svg {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  height: auto;
+  overflow: visible;
+}
+
+.gr-barres-piste {
+  fill: var(--chart-fond);
+}
+
+.gr-barres-barre {
+  transition: width 0.35s ease;
+}
+
+.gr-barres-libelle {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  fill: var(--encre);
+}
+
+.gr-barres-valeur {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  fill: var(--nuit);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-barres-barre { transition: none; }
+}

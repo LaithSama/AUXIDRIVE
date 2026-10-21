@@ -158,6 +158,115 @@
             </span>
           </button>
         </div>
+
+        <!-- Graphiques agrégés côté client (lot E) -->
+        <section class="admin-graphiques" aria-label="Graphiques du tableau de bord">
+          <div class="gr-grille">
+
+            <!-- 1. Statut des contrats -->
+            <article class="gr-carte gr-carte-signal">
+              <header class="gr-carte-entete">
+                <h2 class="gr-carte-titre">Statut des contrats</h2>
+                <p class="gr-carte-sous">Répartition des contrats souscrits</p>
+              </header>
+              <div class="gr-carte-corps">
+                <app-graphique-donut
+                  [parts]="graphiques().donutContrats"
+                  [valeurCentre]="totalContratsGraphique()"
+                  libelleCentre="contrats"
+                  [description]="descriptionDonutContrats()"
+                  [messageVide]="messageGraphique()" />
+              </div>
+            </article>
+
+            <!-- 2. Chiffre d'affaires mensuel -->
+            <article class="gr-carte gr-carte-lagon">
+              <header class="gr-carte-entete">
+                <h2 class="gr-carte-titre">Chiffre d'affaires</h2>
+                <p class="gr-carte-sous">Prime TTC des contrats validés — 12 derniers mois</p>
+              </header>
+              <div class="gr-carte-corps">
+                <app-graphique-aire
+                  [categories]="graphiques().axeChiffreAffaires.categories"
+                  [libellesComplets]="graphiques().axeChiffreAffaires.libellesComplets"
+                  [valeurs]="graphiques().valeursChiffreAffaires"
+                  [maximum]="graphiques().axeChiffreAffaires.maximum"
+                  couleur="var(--lagon)"
+                  format="montaire"
+                  titre="Chiffre d'affaires mensuel"
+                  [description]="descriptionAireCa()"
+                  [messageVide]="messageGraphique()" />
+              </div>
+            </article>
+
+            <!-- 3. Inscriptions reçues / validées -->
+            <article class="gr-carte">
+              <header class="gr-carte-entete">
+                <h2 class="gr-carte-titre">Inscriptions</h2>
+                <p class="gr-carte-sous">Demandes reçues et validées — 6 derniers mois</p>
+              </header>
+              <div class="gr-carte-corps">
+                <app-graphique-colonnes
+                  [categories]="graphiques().axeInscriptions.categories"
+                  [series]="graphiques().seriesInscriptions"
+                  [maximum]="graphiques().axeInscriptions.maximum"
+                  format="nombre"
+                  titre="Inscriptions reçues et validées"
+                  [description]="descriptionColonnesInscriptions()"
+                  [messageVide]="messageGraphique()" />
+              </div>
+            </article>
+
+            <!-- 4. Comptes clients par statut -->
+            <article class="gr-carte gr-carte-ambre">
+              <header class="gr-carte-entete">
+                <h2 class="gr-carte-titre">Comptes clients par statut</h2>
+                <p class="gr-carte-sous">Répartition par statut du compte</p>
+              </header>
+              <div class="gr-carte-corps">
+                <app-graphique-barres
+                  [parts]="graphiques().barresComptes"
+                  format="nombre"
+                  titre="Comptes clients par statut"
+                  [description]="descriptionBarresComptes()"
+                  [messageVide]="messageGraphique()" />
+              </div>
+            </article>
+
+            <!-- 5. Contrats par canal de souscription -->
+            <article class="gr-carte gr-carte-bois">
+              <header class="gr-carte-entete">
+                <h2 class="gr-carte-titre">Contrats par canal</h2>
+                <p class="gr-carte-sous">Nombre de contrats souscrits par canal</p>
+              </header>
+              <div class="gr-carte-corps">
+                <app-graphique-barres
+                  [parts]="graphiques().barresCanaux"
+                  format="nombre"
+                  titre="Contrats par canal de souscription"
+                  [description]="descriptionBarresCanaux()"
+                  [messageVide]="messageGraphique()" />
+              </div>
+            </article>
+
+            <!-- 6. Assurés physiques / morales -->
+            <article class="gr-carte">
+              <header class="gr-carte-entete">
+                <h2 class="gr-carte-titre">Assurés</h2>
+                <p class="gr-carte-sous">Personnes physiques et morales</p>
+              </header>
+              <div class="gr-carte-corps">
+                <app-graphique-donut
+                  [parts]="graphiques().donutAssures"
+                  [valeurCentre]="totalAssuresGraphique()"
+                  libelleCentre="assurés"
+                  [description]="descriptionDonutAssures()"
+                  [messageVide]="messageGraphique()" />
+              </div>
+            </article>
+
+          </div>
+        </section>
       } @else {
         <p class="message-info">Chargement des statistiques…</p>
       }

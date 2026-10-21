@@ -1,0 +1,38 @@
+/* Colonnes groupées : grille, colonnes et étiquettes d'axe. */
+
+.gr-colonnes-svg {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  height: auto;
+  overflow: visible;
+}
+
+.gr-colonnes-grille {
+  stroke: var(--chart-grille);
+  stroke-width: 1;
+}
+
+.gr-colonnes-barre {
+  transition: height 0.35s ease, y 0.35s ease;
+}
+
+.gr-colonnes-graduation,
+.gr-colonnes-categorie {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  fill: var(--gris);
+}
+
+.gr-colonnes-valeur {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  fill: var(--nuit);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-colonnes-barre { transition: none; }
+}

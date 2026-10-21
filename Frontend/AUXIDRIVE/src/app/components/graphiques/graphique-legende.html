@@ -1,0 +1,12 @@
+<ul class="gr-legende">
+  @for (item of items(); track item.libelle) {
+    <li class="gr-legende-item">
+      <span class="gr-legende-pastille" [style.background]="item.couleur" aria-hidden="true"></span>
+      <span class="gr-legende-libelle">{{ item.libelle }}</span>
+      <span class="gr-legende-valeur">{{ item.valeur }}</span>
+      @if (item.pourcentage !== undefined) {
+        <span class="gr-legende-part">{{ item.pourcentage }}&nbsp;%</span>
+      }
+    </li>
+  }
+</ul>

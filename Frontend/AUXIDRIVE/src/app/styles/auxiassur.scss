@@ -17,6 +17,9 @@
   --erreur: #b3261e;
   --sable: #ece2d4;
   --bois: #a9744f;
+  --ambre: #c98a1e;
+  --chart-fond: #eef1f3;
+  --chart-grille: #e3e7ea;
 }
 
 /* ---------- base ---------- */
@@ -224,6 +227,82 @@ select:focus-visible, textarea:focus-visible {
   color: var(--encre);
   padding: 0.8rem 1rem;
   margin-bottom: 1.25rem;
+}
+
+/* ---------- graphiques (SVG maison) ----------
+   Classes partagées par les quatre composants de rendu et par les cartes
+   qui les accueillent : elles vivent dans le thème global pour rester hors
+   du budget de style par composant d'Angular. */
+
+.gr-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 1rem;
+}
+
+.gr-carte {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 2px solid var(--encre);
+  border-left: 6px solid var(--nuit);
+  border-radius: 14px 14px 14px 4px;
+  padding: 1.1rem 1.2rem 1.3rem;
+  box-shadow: 4px 4px 0 rgba(46, 52, 55, 0.07);
+}
+
+.gr-carte-lagon { border-left-color: var(--lagon); }
+.gr-carte-signal { border-left-color: var(--signal); }
+.gr-carte-ambre { border-left-color: var(--ambre); }
+.gr-carte-erreur { border-left-color: var(--erreur); }
+.gr-carte-bois { border-left-color: var(--bois); }
+
+.gr-carte-entete {
+  margin-bottom: 0.75rem;
+}
+
+.gr-carte-titre {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--nuit);
+}
+
+.gr-carte-sous {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--gris);
+}
+
+.gr-carte-corps {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* État vide affiché quand une série n'a aucune donnée. */
+.gr-vide {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 8rem;
+  padding: 1rem;
+  text-align: center;
+  color: var(--gris);
+  font-size: 0.9rem;
+  background: var(--chart-fond);
+  border: 1.5px dashed var(--chart-grille);
+  border-radius: 12px;
+}
+
+.gr-vide .bi {
+  font-size: 1.6rem;
+  color: var(--gris);
+  opacity: 0.6;
 }
 
 /* ---------- pages de formulaire ---------- */

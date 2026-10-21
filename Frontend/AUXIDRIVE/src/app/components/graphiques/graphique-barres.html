@@ -1,0 +1,45 @@
+@if (aDesDonnees()) {
+  <svg class="gr-barres-svg"
+       viewBox="0 0 320 200"
+       preserveAspectRatio="xMidYMid meet"
+       role="img"
+       [attr.aria-label]="description()">
+    <title>{{ titre() }}</title>
+    @if (description()) {
+      <desc>{{ description() }}</desc>
+    }
+
+    @for (barre of barres(); track barre.libelle) {
+      <!-- Piste : rappelle l'échelle complète de la série. -->
+      <rect class="gr-barres-piste"
+            [attr.x]="margeGauche"
+            [attr.y]="barre.y"
+            [attr.width]="largeurUtile"
+            [attr.height]="barre.hauteur"
+            rx="3" />
+
+      <rect class="gr-barres-barre"
+            [attr.x]="margeGauche"
+            [attr.y]="barre.y"
+            [attr.width]="barre.largeur"
+            [attr.height]="barre.hauteur"
+            [attr.fill]="barre.couleur"
+            rx="3" />
+
+      <text class="gr-barres-libelle"
+            [attr.x]="margeGauche - 8"
+            [attr.y]="barre.y + barre.hauteur / 2 + 4"
+            text-anchor="end">{{ barre.libelleAxe }}</text>
+
+      <text class="gr-barres-valeur"
+            [attr.x]="margeGauche + barre.largeur + 6"
+            [attr.y]="barre.y + barre.hauteur / 2 + 4"
+            text-anchor="start">{{ barre.valeur }}</text>
+    }
+  </svg>
+} @else {
+  <div class="gr-vide">
+    <i class="bi bi-bar-chart" aria-hidden="true"></i>
+    <span>{{ messageVide() }}</span>
+  </div>
+}

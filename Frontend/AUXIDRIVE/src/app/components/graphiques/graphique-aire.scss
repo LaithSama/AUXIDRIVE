@@ -1,0 +1,72 @@
+/* Aire : dégradé sous la courbe, courbe contrastée et dernier point marqué. */
+
+.gr-aire {
+  display: flex;
+  flex-direction: column;
+}
+
+.gr-aire-svg {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  height: auto;
+  overflow: visible;
+}
+
+.gr-aire-grille {
+  stroke: var(--chart-grille);
+  stroke-width: 1;
+}
+
+.gr-aire-remplissage {
+  transition: d 0.35s ease;
+}
+
+.gr-aire-courbe {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: d 0.35s ease;
+}
+
+.gr-aire-point {
+  fill: var(--blanc);
+  stroke-width: 2.5;
+}
+
+.gr-aire-graduation,
+.gr-aire-categorie {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  fill: var(--gris);
+}
+
+.gr-aire-pied {
+  margin: 0.4rem 0 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--gris);
+}
+
+.gr-aire-pied-libelle {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.gr-aire-pied-valeur {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--nuit);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-aire-remplissage,
+  .gr-aire-courbe { transition: none; }
+}

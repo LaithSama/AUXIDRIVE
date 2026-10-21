@@ -242,6 +242,11 @@
   .bi { flex: 0 0 auto; font-size: 1.6rem; color: var(--gris); }
 }
 
+/* ---------- graphiques du tableau de bord ---------- */
+.admin-graphiques {
+  margin-top: 1.4rem;
+}
+
 .admin-kpi-lagon { border-left-color: var(--lagon); }
 .admin-kpi-erreur { border-left-color: var(--erreur); }
 .admin-kpi-signal { border-left-color: var(--signal); }

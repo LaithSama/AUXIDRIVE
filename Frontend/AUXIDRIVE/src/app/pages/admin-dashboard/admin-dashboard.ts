@@ -1,13 +1,23 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { Assure } from '../../core/interfaces/assure';
 import { CompteClientVue, StatutCompte } from '../../core/interfaces/compte-client';
+import { Contrat } from '../../core/interfaces/contrat';
+import { Inscription } from '../../core/interfaces/inscription';
 import { Statistiques } from '../../core/interfaces/statistiques';
 import { Role, StatutUtilisateur, Utilisateur } from '../../core/interfaces/utilisateur';
 import { DateFrPipe } from '../../core/pipes/date-fr.pipe';
+import { GraphiqueAire } from '../../components/graphiques/graphique-aire';
+import { GraphiqueBarres } from '../../components/graphiques/graphique-barres';
+import { GraphiqueColonnes } from '../../components/graphiques/graphique-colonnes';
+import { GraphiqueDonut } from '../../components/graphiques/graphique-donut';
+import { construireGraphiques, GraphiquesAdmin } from '../../core/charts/graphiques-admin';
+import { formaterMontant, formaterNombre } from '../../core/charts/chart-series';
 import { AdminService } from '../../services/admin-service';
 import { AuthService } from '../../services/auth-service';
+import { GraphiquesAdminService } from '../../services/graphiques-admin.service';
 import { UtilisateurService } from '../../services/utilisateur-service';
 import { ProfilStaffPanel } from '../../components/profil-staff/profil-staff';
 
@@ -18,14 +28,23 @@ type ModeModale = 'CREATION' | 'EDITION';
 /** Espace d'administration : tableau de bord + gestion des utilisateurs, comptes clients et assurés. */
 @Component({
   selector: 'app-admin-dashboard',
-  standalone: true,
-  imports: [FormsModule, RouterLink, DateFrPipe, ProfilStaffPanel],
+  imports: [
+    FormsModule,
+    RouterLink,
+    DateFrPipe,
+    ProfilStaffPanel,
+    GraphiqueDonut,
+    GraphiqueBarres,
+    GraphiqueColonnes,
+    GraphiqueAire,
+  ],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.scss',
 })
 export class AdminDashboard implements OnInit {
   private adminService = inject(AdminService);
   private utilisateurService = inject(UtilisateurService);
+  private graphiquesService = inject(GraphiquesAdminService);
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -42,6 +61,20 @@ export class AdminDashboard implements OnInit {
 
   // ---------- Tableau de bord ----------
   statistiques = signal<Statistiques | null>(null);
+  contratsListe = signal<Contrat[]>([]);
+  inscriptionsListe = signal<Inscription[]>([]);
+  graphiquesChargement = signal(true);
+
+  /** Séries agrégées côté client pour les six graphiques. */
+  graphiques = computed<GraphiquesAdmin>(() =>
+    construireGraphiques({
+      statistiques: this.statistiques(),
+      comptes: this.comptes(),
+      assures: this.assures(),
+      contrats: this.contratsListe(),
+      inscriptions: this.inscriptionsListe(),
+    })
+  );
 
   // ---------- Utilisateurs ----------
   utilisateurs = signal<Utilisateur[]>([]);
@@ -171,6 +204,7 @@ export class AdminDashboard implements OnInit {
     this.chargerUtilisateurs();
     this.chargerComptes();
     this.chargerAssures();
+    this.chargerGraphiques();
     this.adminService.getRoles().subscribe({
       next: roles => this.roles.set(roles),
       error: err => this.signalerErreur(err, 'Impossible de charger les rôles.'),
@@ -207,11 +241,97 @@ export class AdminDashboard implements OnInit {
     });
   }
 
+  /** Charge les listes brutes utilisées pour l'agrégation côté client des graphiques. */
+  chargerGraphiques(): void {
+    this.graphiquesChargement.set(true);
+    forkJoin({
+      contrats: this.graphiquesService.getContrats(),
+      inscriptions: this.graphiquesService.getInscriptions(),
+    }).subscribe({
+      next: res => {
+        this.contratsListe.set(res.contrats ?? []);
+        this.inscriptionsListe.set(res.inscriptions ?? []);
+        this.graphiquesChargement.set(false);
+      },
+      error: err => {
+        console.error(err);
+        this.contratsListe.set([]);
+        this.inscriptionsListe.set([]);
+        this.graphiquesChargement.set(false);
+        this.signalerErreur(err, 'Impossible de charger les données des graphiques.');
+      },
+    });
+  }
+
   rechargerTout(): void {
     this.chargerStatistiques();
     this.chargerUtilisateurs();
     this.chargerComptes();
     this.chargerAssures();
+    this.chargerGraphiques();
+  }
+
+  /** Libellé du message vide selon l'état de chargement. */
+  messageGraphique(): string {
+    return this.graphiquesChargement() ? 'Chargement des données…' : 'Aucune donnée à afficher.';
+  }
+
+  /** Total des contrats affiché au centre du donut « Statut des contrats ». */
+  totalContratsGraphique(): string {
+    const total = this.statistiques()?.contrats ?? this.graphiques().donutContrats.reduce((s, p) => s + p.valeur, 0);
+    return formaterNombre(total);
+  }
+
+  /** Total des assurés affiché au centre du donut « Assurés ». */
+  totalAssuresGraphique(): string {
+    const total = this.assures().length;
+    return formaterNombre(total);
+  }
+
+  /** Description chiffrée du donut contrats pour les lecteurs d'écran. */
+  descriptionDonutContrats(): string {
+    const d = this.graphiques().donutContrats;
+    const total = d.reduce((s, p) => s + p.valeur, 0);
+    return `Répartition de ${formaterNombre(total)} contrats : ${d
+      .map(p => `${p.libelle} ${p.pourcentage}%`)
+      .join(', ')}.`;
+  }
+
+  /** Description chiffrée du donut assurés pour les lecteurs d'écran. */
+  descriptionDonutAssures(): string {
+    const d = this.graphiques().donutAssures;
+    const total = d.reduce((s, p) => s + p.valeur, 0);
+    return `Répartition de ${formaterNombre(total)} assurés : ${d
+      .map(p => `${p.libelle} ${p.pourcentage}%`)
+      .join(', ')}.`;
+  }
+
+  /** Période couverte par le graphique de chiffre d'affaires. */
+  descriptionAireCa(): string {
+    const axe = this.graphiques().axeChiffreAffaires;
+    if (!axe.libellesComplets.length) {
+      return 'Chiffre d’affaires par mois : aucun mois disponible.';
+    }
+    return `Chiffre d’affaires par mois, de ${axe.libellesComplets[0]} à ${axe.libellesComplets[axe.libellesComplets.length - 1]}.`;
+  }
+
+  /** Période couverte par le graphique des inscriptions. */
+  descriptionColonnesInscriptions(): string {
+    const axe = this.graphiques().axeInscriptions;
+    if (!axe.libellesComplets.length) {
+      return 'Inscriptions reçues et validées : aucun mois disponible.';
+    }
+    return `Inscriptions reçues et validées, de ${axe.libellesComplets[0]} à ${axe.libellesComplets[axe.libellesComplets.length - 1]}.`;
+  }
+
+  descriptionBarresComptes(): string {
+    const d = this.graphiques().barresComptes;
+    return `Comptes clients par statut : ${d.map(p => `${p.libelle} ${formaterNombre(p.valeur)}`).join(', ')}.`;
+  }
+
+  descriptionBarresCanaux(): string {
+    const d = this.graphiques().barresCanaux;
+    return `Contrats par canal de souscription : ${d.map(p => `${p.libelle} ${formaterNombre(p.valeur)}`).join(', ')}.`;
   }
 
   // ------------------------------------------------------------------ navigation
