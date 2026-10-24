@@ -1,3 +1,5 @@
 # Backend
 Backend/src/main/resources/application.properties
 Backend/target/
+Backend/factures
+Sources/*.pptx
