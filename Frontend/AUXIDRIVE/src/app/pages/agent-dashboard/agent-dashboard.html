@@ -186,12 +186,15 @@
           <thead>
             <tr>
               <th class="ps-4">N° Dossier</th>
+              @if (ongletActif() === 'VALIDEE') { <th>N° Assuré Attribué</th> }
               <th>Nom & Prénom</th>
               <th>Contact / E-mail</th>
 
               @if (ongletActif() === 'EN_ATTENTE') { <th class="d-none d-md-table-cell">Identifiant (CIN)</th> }
-              @if (ongletActif() === 'VALIDEE') { <th>N° Assuré Attribué</th> }
+              @if (ongletActif() === 'VALIDEE') { <th>Date de validation</th> }
+              @if (ongletActif() === 'VALIDEE') { <th>Validé par</th> }
               @if (ongletActif() === 'REFUSEE') { <th>Raison du Rejet</th> }
+              @if (ongletActif() === 'REFUSEE') { <th>Date de décision</th> }
 
               <th class="text-end pe-4">Actions</th>
             </tr>
@@ -226,20 +229,22 @@
               @for (d of inscriptionsAffichees(); track d.idInscription) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ok">#{{ d.idInscription }}</td>
-                  <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
-                  <td>
-                    <div class="small">{{ d.assure?.contact }}</div>
-                    <small class="text-muted font-monospace">{{ d.assure?.mail }}</small>
-                  </td>
                   <td>
                     <span class="pastille pastille-lagon font-monospace">
                       {{ d.assure?.numerosAssure || 'N/A' }}
                     </span>
                   </td>
+                  <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
+                  <td>
+                    <div class="small">{{ d.assure?.contact }}</div>
+                    <small class="text-muted font-monospace">{{ d.assure?.mail }}</small>
+                  </td>
+                  <td>{{ d.dateDecision | dateFr }}</td>
+                  <td class="small">{{ d.agentNom || '—' }}</td>
                   <td class="text-end pe-4 text-muted small fst-italic">Approuvé</td>
                 </tr>
               } @empty {
-                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun dossier validé pour l'instant.</span></div></td></tr>
+                <tr><td colspan="8"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun dossier validé pour l'instant.</span></div></td></tr>
               }
             }
 
@@ -259,10 +264,11 @@
                       {{ d.motifRefus || d.motif || 'Aucun motif renseigné' }}
                     </span>
                   </td>
+                  <td>{{ d.dateDecision | dateFr }}</td>
                   <td class="text-end pe-4 text-muted small fst-italic">Rejeté</td>
                 </tr>
               } @empty {
-                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun historique de refus enregistré.</span></div></td></tr>
+                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun historique de refus enregistré.</span></div></td></tr>
               }
             }
 
@@ -370,10 +376,15 @@
           <thead>
             <tr>
               <th class="ps-4">N° Contrat</th>
+              @if (ongletContrat() === 'VALIDE') {
+                <th>N° Police</th>
+              }
               <th>Client</th>
-              <th class="d-none d-md-table-cell">Souscription</th>
+              <th>Date d'émission</th>
+              <th>Date d'effet</th>
+              <th>Date d'expiration</th>
               <th class="text-end">Prime TTC</th>
-              <th>Statut / N° police</th>
+              <th>Statut</th>
             </tr>
           </thead>
           <tbody>
@@ -385,12 +396,14 @@
                     title="Cliquer pour calculer la prime et traiter le contrat">
                   <td class="ps-4 agent-num">#{{ c.idContrat }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
-                  <td class="d-none d-md-table-cell">{{ c.dateSouscription | dateFr }}</td>
+                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td>{{ c.dateEffet | dateFr }}</td>
+                  <td>{{ c.dateExpiration | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
                   <td><span class="pastille">En attente</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucune demande de contrat en attente.</span></div></td></tr>
+                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucune demande de contrat en attente.</span></div></td></tr>
               }
             }
 
@@ -399,13 +412,16 @@
               @for (c of contratsAffiches(); track c.idContrat) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ok">#{{ c.idContrat }}</td>
+                  <td class="font-monospace">{{ c.numPolice || '—' }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
-                  <td class="d-none d-md-table-cell">{{ c.dateSouscription | dateFr }}</td>
+                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td>{{ c.dateEffet | dateFr }}</td>
+                  <td>{{ c.dateExpiration | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
-                  <td><span class="pastille pastille-lagon font-monospace">{{ c.numPolice || '—' }}</span></td>
+                  <td><span class="pastille pastille-lagon">Validé</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat validé pour l'instant.</span></div></td></tr>
+                <tr><td colspan="8"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat validé pour l'instant.</span></div></td></tr>
               }
             }
 
@@ -415,12 +431,14 @@
                 <tr>
                   <td class="ps-4 agent-num agent-num-ko">#{{ c.idContrat }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
-                  <td class="d-none d-md-table-cell">{{ c.dateSouscription | dateFr }}</td>
+                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td>{{ c.dateEffet | dateFr }}</td>
+                  <td>{{ c.dateExpiration | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
                   <td><span class="pastille pastille-rouge">Refusé</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat refusé.</span></div></td></tr>
+                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat refusé.</span></div></td></tr>
               }
             }
 
@@ -439,7 +457,7 @@
         <i class="bi bi-inbox-fill" aria-hidden="true"></i>
         <span>
           <span class="agent-kpi-valeur">{{ sinistresDeclares().length }}</span>
-          <span class="agent-kpi-libelle">À instruire</span>
+          <span class="agent-kpi-libelle">Rapport en cours</span>
         </span>
       </button>
       <button type="button" class="agent-kpi agent-kpi-signal"
@@ -448,7 +466,7 @@
         <i class="bi bi-pencil-fill" aria-hidden="true"></i>
         <span>
           <span class="agent-kpi-valeur">{{ sinistresEnCours().length }}</span>
-          <span class="agent-kpi-libelle">Rapport en cours</span>
+          <span class="agent-kpi-libelle">Indemnisation et clôturation</span>
         </span>
       </button>
       <button type="button" class="agent-kpi agent-kpi-lagon"
@@ -467,14 +485,14 @@
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletSinistre() === 'DECLARE'"
                 (click)="changerOngletSinistre('DECLARE')">
-          <i class="bi bi-inbox-fill" aria-hidden="true"></i>À instruire ({{ sinistresDeclares().length }})
+          <i class="bi bi-inbox-fill" aria-hidden="true"></i>Rapport en cours ({{ sinistresDeclares().length }})
         </button>
       </li>
       <li>
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletSinistre() === 'RAPPORT_EN_COURS'"
                 (click)="changerOngletSinistre('RAPPORT_EN_COURS')">
-          <i class="bi bi-pencil-fill" aria-hidden="true"></i>Rapport en cours ({{ sinistresEnCours().length }})
+          <i class="bi bi-pencil-fill" aria-hidden="true"></i>Indemnisation et clôturation ({{ sinistresEnCours().length }})
         </button>
       </li>
       <li>
@@ -708,7 +726,7 @@
               <div class="row g-3">
                 <div class="col-sm-6">
                   <div class="champ mb-0">
-                    <label for="primeNetteCalc">Prime nette (Ar) *</label>
+                    <label for="primeNetteCalc">Prime nette (Ar)</label>
                     <input type="number" id="primeNetteCalc" name="primeNetteSaisie" min="0" step="1"
                            placeholder="Ex : 100000"
                            [(ngModel)]="primeNetteSaisie" (ngModelChange)="detailPrime = null" />
@@ -796,7 +814,7 @@
 
             @if (!messageSucces) {
               <div class="champ mb-2">
-                <label for="numRapport">N° du rapport de police *</label>
+                <label for="numRapport">N° du rapport de police</label>
                 <input type="text" id="numRapport" name="numRapportSaisi" class="font-monospace"
                        placeholder="Ex : PV-2026-00451" maxlength="30"
                        [(ngModel)]="numRapportSaisi" autocomplete="off" />
@@ -818,7 +836,7 @@
               </div>
 
               <div class="champ mb-2">
-                <label for="rapportPolicier">Rapport policier *</label>
+                <label for="rapportPolicier">Rapport policier</label>
                 <textarea id="rapportPolicier" name="rapportSaisi" rows="4"
                           placeholder="Constat des dégâts, témoins, circonstances établies…"
                           [(ngModel)]="rapportSaisi"></textarea>

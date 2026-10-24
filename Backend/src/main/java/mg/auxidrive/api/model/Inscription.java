@@ -30,8 +30,8 @@ public class Inscription {
     @Column(name = "motif_refus", length = 255)
     private String motifRefus;
 
-    @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"motDePasse", "role", "statutUtilisateur", "dateCreation", "derniereConnexion", "hibernateLazyInitializer", "handler"})
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_agent")
     private Utilisateur agent;
 
@@ -101,5 +101,20 @@ public class Inscription {
 
     public void setAgent(Utilisateur agent) {
         this.agent = agent;
+    }
+
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("agentNom")
+    public String getAgentNom() {
+        if (agent == null) {
+            return null;
+        }
+        if (agent.getNomUtil() != null && !agent.getNomUtil().isBlank()) {
+            return agent.getNomUtil().trim();
+        }
+        if (agent.getEmail() != null && !agent.getEmail().isBlank()) {
+            return agent.getEmail().trim();
+        }
+        return null;
     }
 }

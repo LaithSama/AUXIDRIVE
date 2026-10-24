@@ -15,13 +15,13 @@ public interface InscriptionRepository extends JpaRepository<Inscription, Long> 
     /* open-in-view est désactivé : l'assuré est chargé d'avance pour la sérialisation. */
 
     @Override
-    @EntityGraph(attributePaths = "assure")
+    @EntityGraph(attributePaths = {"assure", "agent"})
     Optional<Inscription> findById(Long id);
 
-    @EntityGraph(attributePaths = "assure")
+    @EntityGraph(attributePaths = {"assure", "agent"})
     List<Inscription> findAllByOrderByDateDemandeDesc();
 
-    @EntityGraph(attributePaths = "assure")
+    @EntityGraph(attributePaths = {"assure", "agent"})
     List<Inscription> findByStatutInscriptionOrderByDateDemandeDesc(StatutInscription statutInscription);
 
     boolean existsByAssure_MailAndStatutInscription(String mail, StatutInscription statutInscription);

@@ -652,15 +652,43 @@ export class AgentDashboard implements OnInit {
     return true;
   }
 
+  private dateTri(valeur: unknown): string {
+    if (valeur === null || valeur === undefined) {
+      return '';
+    }
+    const brut = valeur.toString();
+    if (brut.includes('T')) {
+      return brut;
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(brut)) {
+      return brut + 'T00:00:00';
+    }
+    return brut;
+  }
+
   private trierInscriptions(liste: any[]): any[] {
     return [...liste].sort((a, b) => {
       switch (this.triInscription()) {
         case 'ancien':
-          return this.dateIso(a.dateDemande).localeCompare(this.dateIso(b.dateDemande));
+          const dateAAncien = this.dateTri(a.dateDemande);
+          const dateBAncien = this.dateTri(b.dateDemande);
+          if (dateAAncien && dateBAncien && dateAAncien !== dateBAncien) {
+            return dateAAncien.localeCompare(dateBAncien);
+          }
+          if (dateAAncien && !dateBAncien) return -1;
+          if (!dateAAncien && dateBAncien) return 1;
+          return (a.idInscription ?? 0) - (b.idInscription ?? 0);
         case 'nom':
           return this.nomAssure(a).localeCompare(this.nomAssure(b));
         default:
-          return this.dateIso(b.dateDemande).localeCompare(this.dateIso(a.dateDemande));
+          const dateARecent = this.dateTri(a.dateDemande);
+          const dateBRecent = this.dateTri(b.dateDemande);
+          if (dateARecent && dateBRecent && dateARecent !== dateBRecent) {
+            return dateBRecent.localeCompare(dateARecent);
+          }
+          if (dateARecent && !dateBRecent) return -1;
+          if (!dateARecent && dateBRecent) return 1;
+          return (b.idInscription ?? 0) - (a.idInscription ?? 0);
       }
     });
   }
@@ -669,28 +697,57 @@ export class AgentDashboard implements OnInit {
     return [...liste].sort((a, b) => {
       switch (this.triContrat()) {
         case 'ancien':
-          return this.dateIso(a.dateSouscription).localeCompare(this.dateIso(b.dateSouscription));
+          const dateAAncien = this.dateTri(a.dateSouscription);
+          const dateBAncien = this.dateTri(b.dateSouscription);
+          if (dateAAncien && dateBAncien && dateAAncien !== dateBAncien) {
+            return dateAAncien.localeCompare(dateBAncien);
+          }
+          if (dateAAncien && !dateBAncien) return -1;
+          if (!dateAAncien && dateBAncien) return 1;
+          return (a.idContrat ?? 0) - (b.idContrat ?? 0);
         case 'primeDesc':
           return (b.primeTtcCourante ?? 0) - (a.primeTtcCourante ?? 0);
         case 'primeAsc':
           return (a.primeTtcCourante ?? 0) - (b.primeTtcCourante ?? 0);
         default:
-          return this.dateIso(b.dateSouscription).localeCompare(this.dateIso(a.dateSouscription));
+          const dateARecent = this.dateTri(a.dateSouscription);
+          const dateBRecent = this.dateTri(b.dateSouscription);
+          if (dateARecent && dateBRecent && dateARecent !== dateBRecent) {
+            return dateBRecent.localeCompare(dateARecent);
+          }
+          if (dateARecent && !dateBRecent) return -1;
+          if (!dateARecent && dateBRecent) return 1;
+          return (b.idContrat ?? 0) - (a.idContrat ?? 0);
       }
     });
   }
 
   private trierSinistres(liste: Sinistre[]): Sinistre[] {
+    const useCloture = this.ongletSinistre() === 'CLOTURES';
     return [...liste].sort((a, b) => {
       switch (this.triSinistre()) {
         case 'ancien':
-          return this.dateIso(a.dateSinistre).localeCompare(this.dateIso(b.dateSinistre));
+          const dateAAncien = useCloture ? this.dateTri((a as any).dateCloture) : this.dateTri(a.dateSinistre);
+          const dateBAncien = useCloture ? this.dateTri((b as any).dateCloture) : this.dateTri(b.dateSinistre);
+          if (dateAAncien && dateBAncien && dateAAncien !== dateBAncien) {
+            return dateAAncien.localeCompare(dateBAncien);
+          }
+          if (dateAAncien && !dateBAncien) return -1;
+          if (!dateAAncien && dateBAncien) return 1;
+          return (a.idSinistre ?? 0) - (b.idSinistre ?? 0);
         case 'montantDesc':
           return (b.montantIndemnisation ?? 0) - (a.montantIndemnisation ?? 0);
         case 'montantAsc':
           return (a.montantIndemnisation ?? 0) - (b.montantIndemnisation ?? 0);
         default:
-          return this.dateIso(b.dateSinistre).localeCompare(this.dateIso(a.dateSinistre));
+          const dateARecent = useCloture ? this.dateTri((a as any).dateCloture) : this.dateTri(a.dateSinistre);
+          const dateBRecent = useCloture ? this.dateTri((b as any).dateCloture) : this.dateTri(b.dateSinistre);
+          if (dateARecent && dateBRecent && dateARecent !== dateBRecent) {
+            return dateBRecent.localeCompare(dateARecent);
+          }
+          if (dateARecent && !dateBRecent) return -1;
+          if (!dateARecent && dateBRecent) return 1;
+          return (b.idSinistre ?? 0) - (a.idSinistre ?? 0);
       }
     });
   }

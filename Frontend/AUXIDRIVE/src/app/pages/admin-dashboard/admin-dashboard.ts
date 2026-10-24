@@ -138,7 +138,7 @@ export class AdminDashboard implements OnInit {
   rechercheAssure = signal('');
   filtreTypeAssure = signal<'tous' | 'physique' | 'morale'>('tous');
   filtreMailAssure = signal<'tous' | 'avec' | 'sans'>('tous');
-  triAssure = signal<'nomAsc' | 'nomDesc' | 'numeroAsc' | 'recent'>('nomAsc');
+  triAssure = signal<'nomAsc' | 'nomDesc' | 'numeroAsc' | 'recent' | 'ancien'>('nomAsc');
 
   assuresAffiches = computed(() => {
     const liste = this.assures().filter(a => {
@@ -700,9 +700,13 @@ export class AdminDashboard implements OnInit {
         case 'emailAsc':
           return (a.email ?? '').localeCompare(b.email ?? '');
         case 'recent':
-          return this.dateIso(b.dateCreation).localeCompare(this.dateIso(a.dateCreation));
+          const dateRecent = this.dateIso(b.dateCreation).localeCompare(this.dateIso(a.dateCreation));
+          if (dateRecent !== 0) return dateRecent;
+          return (b.idCompteClient ?? 0) - (a.idCompteClient ?? 0);
         case 'ancien':
-          return this.dateIso(a.dateCreation).localeCompare(this.dateIso(b.dateCreation));
+          const dateAncien = this.dateIso(a.dateCreation).localeCompare(this.dateIso(b.dateCreation));
+          if (dateAncien !== 0) return dateAncien;
+          return (a.idCompteClient ?? 0) - (b.idCompteClient ?? 0);
         default:
           return this.nomComplet(a).localeCompare(this.nomComplet(b));
       }
@@ -717,7 +721,13 @@ export class AdminDashboard implements OnInit {
         case 'numeroAsc':
           return (a.numerosAssure ?? '').localeCompare(b.numerosAssure ?? '');
         case 'recent':
-          return this.dateIso(b.dateCreation).localeCompare(this.dateIso(a.dateCreation));
+          const dateRecent = this.dateIso(b.dateCreation).localeCompare(this.dateIso(a.dateCreation));
+          if (dateRecent !== 0) return dateRecent;
+          return (b.idAssure ?? 0) - (a.idAssure ?? 0);
+        case 'ancien':
+          const dateAncien = this.dateIso(a.dateCreation).localeCompare(this.dateIso(b.dateCreation));
+          if (dateAncien !== 0) return dateAncien;
+          return (a.idAssure ?? 0) - (b.idAssure ?? 0);
         default:
           return (a.nomAssure ?? '').localeCompare(b.nomAssure ?? '');
       }
