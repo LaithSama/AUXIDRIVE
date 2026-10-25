@@ -14,6 +14,20 @@
   margin-left: 0.35rem;
 }
 
+.menu-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
 /* ---------- sidebar ---------- */
 .sidebar {
   background: var(--nuit);
@@ -119,10 +133,19 @@
 
 @media (max-width: 767.98px) {
   .sidebar {
+    display: none;
     position: static;
     top: auto;
     height: auto;
     overflow: visible;
     min-height: auto;
   }
+
+  .sidebar.sidebar-ouverte { display: flex; }
+
+  .dashboard-contenu { padding-top: 1.5rem !important; }
+}
+
+@media (max-width: 419.98px) {
+  .dashboard-entete .marque-suffixe { display: none; }
 }

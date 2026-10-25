@@ -47,3 +47,8 @@
 .profil-bouton {
   margin-top: 0.35rem;
 }
+
+@media (max-width: 575.98px) {
+  .profil-lecture { display: grid; gap: 0.4rem; }
+  .profil-bouton { width: 100%; text-align: center; }
+}

@@ -6,7 +6,7 @@
 </div>
 
 @if (chargement) {
-  <p class="text-muted">Chargement…</p>
+  <p class="text-muted" role="status">Chargement de votre espace…</p>
 }
 
 @if (erreur) {
@@ -14,54 +14,77 @@
 }
 
 @if (!chargement && !erreur) {
-  <div class="row g-4">
+  <section aria-labelledby="accueil-apercu">
+    <h2 id="accueil-apercu" class="accueil-section-titre">En un coup d'œil</h2>
+    <div class="row g-3">
     <div class="col-md-6 col-xl-4">
-      <div class="carte carte-bande accueil-carte">
-        <p class="accueil-carte-label">Contrats actifs</p>
+      <a routerLink="/dashboard/contrats" class="carte carte-bande accueil-carte accueil-carte-lien">
+        <div class="accueil-carte-entete">
+          <p class="accueil-carte-label">Contrats actifs</p>
+          <i class="bi bi-file-earmark-check" aria-hidden="true"></i>
+        </div>
         <p class="accueil-carte-valeur">{{ contratsActifs }}</p>
-        <small class="accueil-carte-aide">
+        <span class="accueil-carte-aide">
           @if (contratsEnAttente > 0) {
-            {{ contratsEnAttente }} en attente de validation
+            {{ contratsEnAttente }} {{ contratsEnAttente === 1 ? 'dossier' : 'dossiers' }} en attente de validation
+          } @else if (contratsActifs === 0) {
+            Aucun contrat actif pour le moment
           } @else {
             Aucun dossier en attente
           }
-        </small>
-      </div>
+        </span>
+        <span class="accueil-carte-suivre">Voir mes contrats <span aria-hidden="true">→</span></span>
+      </a>
     </div>
 
     <div class="col-md-6 col-xl-4">
-      <a routerLink="/dashboard/sinistres" class="carte carte-bande accueil-carte accueil-carte-lien">
-        <p class="accueil-carte-label">Sinistres en cours</p>
+      <a routerLink="/dashboard/sinistres" class="carte accueil-carte accueil-carte-lien">
+        <div class="accueil-carte-entete">
+          <p class="accueil-carte-label">Sinistres en cours</p>
+          <i class="bi bi-shield-exclamation" aria-hidden="true"></i>
+        </div>
         <p class="accueil-carte-valeur">{{ sinistresEnCours }}</p>
-        <small class="accueil-carte-aide">Déclarer ou suivre un sinistre →</small>
+        <span class="accueil-carte-aide">{{ sinistresEnCours === 0 ? 'Aucun sinistre en cours' : 'Suivez vos déclarations' }}</span>
+        <span class="accueil-carte-suivre">Voir mes sinistres <span aria-hidden="true">→</span></span>
       </a>
     </div>
 
     <div class="col-md-6 col-xl-4">
-      <a routerLink="/dashboard/factures" class="carte carte-bande-lagon accueil-carte accueil-carte-lien">
-        <p class="accueil-carte-label">Factures</p>
-        <p class="accueil-carte-valeur">{{ facturesEmises }}</p>
-        <small class="accueil-carte-aide">
-          {{ facturesEmises === 0 ? 'Aucune' : 'À régler' }} — {{ totalFactures }} au total
-        </small>
+      <a routerLink="/dashboard/factures" class="carte accueil-carte accueil-carte-lien">
+        <div class="accueil-carte-entete">
+          <p class="accueil-carte-label">Mes factures</p>
+          <i class="bi bi-receipt" aria-hidden="true"></i>
+        </div>
+        <p class="accueil-carte-valeur">{{ totalFactures }}</p>
+        <span class="accueil-carte-aide">
+          @if (totalFactures === 0) { Aucune facture disponible }
+          @else { {{ facturesEmises }} {{ facturesEmises === 1 ? 'facture émise' : 'factures émises' }} }
+        </span>
+        <span class="accueil-carte-suivre">Consulter mes factures <span aria-hidden="true">→</span></span>
       </a>
     </div>
-  </div>
+    </div>
+  </section>
 
-  <div class="row g-4 mt-1">
+  <section class="accueil-actions" aria-labelledby="accueil-actions-titre">
+    <h2 id="accueil-actions-titre" class="accueil-section-titre">Actions rapides</h2>
+    <div class="row g-3">
     <div class="col-md-6">
-      <div class="carte carte-bande-lagon accueil-raccourci">
-        <h2 class="accueil-raccourci-titre">Mes contrats</h2>
-        <p class="chapeau">Consultez le statut de vos contrats et souscrivez une nouvelle offre.</p>
-        <a routerLink="/dashboard/contrats" class="btn-signal">Accéder à mes contrats</a>
+      <div class="carte carte-bande-lagon accueil-raccourci accueil-raccourci-principal">
+        <i class="bi bi-file-earmark-plus accueil-raccourci-icone" aria-hidden="true"></i>
+        <h3 class="accueil-raccourci-titre">Gérer mes contrats</h3>
+        <p class="chapeau">Consultez vos contrats et découvrez les offres disponibles.</p>
+        <a routerLink="/dashboard/contrats" class="btn-signal">Voir mes contrats <span aria-hidden="true">→</span></a>
       </div>
     </div>
     <div class="col-md-6">
       <div class="carte accueil-raccourci">
-        <h2 class="accueil-raccourci-titre">Déclarer un sinistre</h2>
-        <p class="chapeau">Un accident, un dommage ? Déclarez-le en quelques clics.</p>
-        <a routerLink="/dashboard/sinistres" class="btn-signal">Déclarer un sinistre</a>
+        <i class="bi bi-shield-exclamation accueil-raccourci-icone" aria-hidden="true"></i>
+        <h3 class="accueil-raccourci-titre">Besoin de déclarer un sinistre ?</h3>
+        <p class="chapeau">Signalez un accident ou un dommage et suivez votre dossier.</p>
+        <a routerLink="/dashboard/sinistres" class="btn-contour-sombre">Déclarer un sinistre <span aria-hidden="true">→</span></a>
       </div>
     </div>
-  </div>
+    </div>
+  </section>
 }

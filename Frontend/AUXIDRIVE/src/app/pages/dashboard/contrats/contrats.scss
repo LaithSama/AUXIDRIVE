@@ -16,6 +16,8 @@
   margin-bottom: 2.5rem;
 }
 
+.liste-mobile.contrats-liste { box-shadow: none; }
+
 .contrat-num {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700;
@@ -228,4 +230,11 @@
   background: #f6f7f5;
   border-top: 2px solid rgba(28, 34, 39, 0.12);
   padding: 1rem 1.5rem;
+}
+
+@media (max-width: 575.98px) {
+  .contrats-vehicule, .contrats-garantie { overflow-wrap: anywhere; }
+  .contrats-actions .btn-signal { width: 100%; }
+  .contrat-detail-entete, .contrat-detail-pied { padding: 0.85rem 1rem; }
+  .contrat-detail-lignes li { flex-wrap: wrap; }
 }

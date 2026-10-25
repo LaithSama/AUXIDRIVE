@@ -1,6 +1,7 @@
 <header class="entete agent-barre">
   <div class="container-fluid d-flex align-items-center py-3">
-    <button type="button" class="agent-hamburger d-lg-none" (click)="basculerSidebar()" aria-label="Ouvrir le menu">
+    <button type="button" class="agent-hamburger d-lg-none" (click)="basculerSidebar()" aria-controls="agent-menu"
+            [attr.aria-expanded]="sidebarOuverte()" [attr.aria-label]="sidebarOuverte() ? 'Fermer le menu' : 'Ouvrir le menu'">
       <i class="bi bi-list" aria-hidden="true"></i>
     </button>
     <span class="marque"><img class="marque-logo" src="img/logo-auximad.png" alt="" />Auxiassur <span class="marque-suffixe">Espace Gestion</span></span>
@@ -9,9 +10,16 @@
 
 <div class="agent-layout">
   <!-- Sidebar agent -->
-  <nav class="agent-sidebar" [class.agent-sidebar-ouverte]="sidebarOuverte()" aria-label="Espaces de gestion">
+  <nav id="agent-menu" class="agent-sidebar" [class.agent-sidebar-ouverte]="sidebarOuverte()" aria-label="Espaces de gestion">
     <div class="agent-sidebar-navigation">
       <p class="agent-sidebar-titre">Espaces de gestion</p>
+
+      <button type="button" class="agent-sidebar-lien"
+              [class.agent-sidebar-lien-actif]="vue() === 'tableau'"
+              (click)="changerVue('tableau')">
+        <i class="bi bi-speedometer2" aria-hidden="true"></i>
+        <span>Tableau de bord</span>
+      </button>
 
       <button type="button" class="agent-sidebar-lien"
               [class.agent-sidebar-lien-actif]="vue() === 'inscriptions'"
@@ -80,7 +88,10 @@
   @if (vue() !== 'profil') {
   <div class="agent-entete">
     <div>
-      @if (vue() === 'inscriptions') {
+      @if (vue() === 'tableau') {
+        <h1 class="titre-section agent-titre">Tableau de bord</h1>
+        <p class="chapeau mb-0">Vos dossiers à suivre, en un coup d'œil.</p>
+      } @else if (vue() === 'inscriptions') {
         <h1 class="titre-section agent-titre">Suivi des dossiers d'inscription</h1>
         <p class="chapeau mb-0">Consultez, validez ou suivez l'historique des requêtes de souscription. <span class="agent-entete-compte">{{ demandesEnAttente().length }} en attente · {{ demandesValidees().length }} validés · {{ demandesRefusees().length }} refusés</span></p>
       } @else if (vue() === 'contrats') {
@@ -92,6 +103,60 @@
       }
     </div>
   </div>
+  }
+
+  <!-- ==================== TABLEAU DE BORD ==================== -->
+  @if (vue() === 'tableau') {
+    @if (chargementTableau()) {
+      <p class="message-info" role="status">Chargement des dossiers…</p>
+    } @else if (erreurTableau()) {
+      <div class="message-erreur" role="alert">Impossible de charger tous les dossiers. Les indicateurs ne sont pas disponibles pour le moment.</div>
+      <button type="button" class="agent-btn agent-btn-annuler" (click)="actualiserTableau()">Réessayer</button>
+    } @else {
+      <section class="agent-apercu" aria-labelledby="agent-apercu-titre">
+        <div class="agent-apercu-entete">
+          <div>
+            <h2 id="agent-apercu-titre">À traiter</h2>
+            <p>Accédez directement aux listes des dossiers qui demandent une action.</p>
+          </div>
+        </div>
+        <div class="agent-apercu-grille">
+          <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="demandesEnAttente().length > 0"
+                  (click)="ouvrirDossiers('inscriptions')">
+            <span class="agent-apercu-icone" aria-hidden="true"><i class="bi bi-clipboard2-check-fill"></i></span>
+            <span class="agent-apercu-valeur">{{ demandesEnAttente().length }}</span>
+            <span class="agent-apercu-libelle">Inscriptions à vérifier</span>
+            <span class="agent-apercu-detail">{{ demandesEnAttente().length === 0 ? 'Aucune demande en attente' : 'Consulter les demandes' }}</span>
+            <span class="agent-apercu-lien">Voir les inscriptions <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+          </button>
+          <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="contratsAttente().length > 0"
+                  (click)="ouvrirDossiers('contrats')">
+            <span class="agent-apercu-icone" aria-hidden="true"><i class="bi bi-file-earmark-text-fill"></i></span>
+            <span class="agent-apercu-valeur">{{ contratsAttente().length }}</span>
+            <span class="agent-apercu-libelle">Contrats à valider</span>
+            <span class="agent-apercu-detail">{{ contratsAttente().length === 0 ? 'Aucun contrat en attente' : 'Consulter les contrats' }}</span>
+            <span class="agent-apercu-lien">Voir les contrats <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+          </button>
+          <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="sinistresDeclares().length > 0"
+                  (click)="ouvrirDossiers('sinistres')">
+            <span class="agent-apercu-icone" aria-hidden="true"><i class="bi bi-car-front-fill"></i></span>
+            <span class="agent-apercu-valeur">{{ sinistresDeclares().length }}</span>
+            <span class="agent-apercu-libelle">Sinistres à instruire</span>
+            <span class="agent-apercu-detail">{{ sinistresDeclares().length === 0 ? 'Aucun sinistre déclaré' : 'Consulter les sinistres' }}</span>
+            <span class="agent-apercu-lien">Voir les sinistres <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="agent-apercu-suite" aria-labelledby="agent-apercu-suite-titre">
+        <h2 id="agent-apercu-suite-titre">Suivi des dossiers</h2>
+        <div class="agent-apercu-suite-grille">
+          <div><strong>{{ demandesValidees().length }}</strong><span>inscriptions validées</span></div>
+          <div><strong>{{ contratsValides().length }}</strong><span>contrats validés</span></div>
+          <div><strong>{{ sinistresEnCours().length }}</strong><span>rapports de sinistre en cours</span></div>
+        </div>
+      </section>
+    }
   }
 
   <!-- ==================== INSCRIPTIONS ==================== -->
@@ -180,7 +245,7 @@
       <span class="agent-filtres-compteur">{{ inscriptionsAffichees().length }} résultat(s)</span>
     </div>
 
-    <div class="carte agent-tableau-carte p-0 overflow-hidden">
+    <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-md-block">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
           <thead>
@@ -276,6 +341,40 @@
         </table>
       </div>
     </div>
+    <div class="liste-mobile d-md-none">
+      @for (d of inscriptionsAffichees(); track d.idInscription) {
+        <article class="liste-mobile-carte">
+          <div class="liste-mobile-entete">
+            <div><small class="agent-num">#{{ d.idInscription }}</small><h2 class="liste-mobile-titre">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</h2></div>
+            @switch (ongletActif()) {
+              @case ('EN_ATTENTE') { <span class="pastille">En attente</span> }
+              @case ('VALIDEE') { <span class="pastille pastille-lagon">Validé</span> }
+              @case ('REFUSEE') { <span class="pastille pastille-rouge">Refusé</span> }
+            }
+          </div>
+          <dl class="liste-mobile-details">
+            <div><dt>Contact</dt><dd>{{ d.assure?.contact || '—' }}</dd></div>
+            <div><dt>E-mail</dt><dd>{{ d.assure?.mail || '—' }}</dd></div>
+            @if (ongletActif() === 'EN_ATTENTE') { <div><dt>CIN</dt><dd>{{ d.identifiants?.cin || 'Absent' }}</dd></div> }
+            @if (ongletActif() === 'VALIDEE') {
+              <div><dt>N° assuré</dt><dd>{{ d.assure?.numerosAssure || 'N/A' }}</dd></div>
+              <div><dt>Validé le</dt><dd>{{ d.dateDecision | dateFr }}</dd></div>
+              <div><dt>Par</dt><dd>{{ d.agentNom || '—' }}</dd></div>
+            }
+            @if (ongletActif() === 'REFUSEE') {
+              <div><dt>Motif</dt><dd>{{ d.motifRefus || d.motif || 'Aucun motif renseigné' }}</dd></div>
+              <div><dt>Décision</dt><dd>{{ d.dateDecision | dateFr }}</dd></div>
+            }
+          </dl>
+          @if (ongletActif() === 'EN_ATTENTE') {
+            <div class="agent-actions-mobile">
+              <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')">Valider</button>
+              <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')">Refuser</button>
+            </div>
+          }
+        </article>
+      } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun dossier pour ce statut.</div> }
+    </div>
   }
 
   <!-- ==================== CONTRATS ==================== -->
@@ -370,7 +469,7 @@
       <span class="agent-filtres-compteur">{{ contratsAffiches().length }} résultat(s)</span>
     </div>
 
-    <div class="carte agent-tableau-carte p-0 overflow-hidden">
+    <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-md-block">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
           <thead>
@@ -445,6 +544,30 @@
           </tbody>
         </table>
       </div>
+    </div>
+    <div class="liste-mobile d-md-none">
+      @for (c of contratsAffiches(); track c.idContrat) {
+        <article class="liste-mobile-carte">
+          <div class="liste-mobile-entete">
+            <div><small class="agent-num">#{{ c.idContrat }}</small><h2 class="liste-mobile-titre">{{ c.nomAssure }} {{ c.prenomAssure }}</h2></div>
+            @switch (ongletContrat()) {
+              @case ('EN_ATTENTE') { <span class="pastille">En attente</span> }
+              @case ('VALIDE') { <span class="pastille pastille-lagon">Validé</span> }
+              @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+            }
+          </div>
+          <dl class="liste-mobile-details">
+            @if (ongletContrat() === 'VALIDE') { <div><dt>N° police</dt><dd>{{ c.numPolice || '—' }}</dd></div> }
+            <div><dt>Émission</dt><dd>{{ c.dateSouscription | dateFr }}</dd></div>
+            <div><dt>Effet</dt><dd>{{ c.dateEffet | dateFr }}</dd></div>
+            <div><dt>Expiration</dt><dd>{{ c.dateExpiration | dateFr }}</dd></div>
+            <div><dt>Prime TTC</dt><dd><strong>{{ c.primeTtcCourante | montant }}</strong></dd></div>
+          </dl>
+          @if (ongletContrat() === 'EN_ATTENTE') {
+            <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirModaleContrat(c)">Traiter le contrat</button>
+          }
+        </article>
+      } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun contrat pour ce statut.</div> }
     </div>
   }
 
@@ -546,7 +669,7 @@
       <span class="agent-filtres-compteur">{{ sinistresAffiches().length }} résultat(s)</span>
     </div>
 
-    <div class="carte agent-tableau-carte p-0 overflow-hidden">
+    <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-md-block">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
           <thead>
@@ -632,6 +755,31 @@
           </tbody>
         </table>
       </div>
+    </div>
+    <div class="liste-mobile d-md-none">
+      @for (s of sinistresAffiches(); track s.idSinistre) {
+        <article class="liste-mobile-carte">
+          <div class="liste-mobile-entete">
+            <div><small class="agent-num">#{{ s.idSinistre }}</small><h2 class="liste-mobile-titre">{{ s.nomAssure }} {{ s.prenomAssure }}</h2></div>
+            @switch (s.statutSinistre) {
+              @case ('DECLARE') { <span class="pastille">Déclaré</span> }
+              @case ('RAPPORT_EN_COURS') { <span class="pastille pastille-sombre">Rapport reçu</span> }
+              @case ('INDEMNISE') { <span class="pastille pastille-lagon">Indemnisé</span> }
+              @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+            }
+          </div>
+          <dl class="liste-mobile-details">
+            <div><dt>Date</dt><dd>{{ s.dateSinistre | dateFr }}</dd></div>
+            <div><dt>Contrat</dt><dd>{{ s.numPolice || '—' }}</dd></div>
+            <div><dt>Indemnisation</dt><dd><strong>{{ s.montantIndemnisation | montant }}</strong></dd></div>
+          </dl>
+          @switch (ongletSinistre()) {
+            @case ('DECLARE') { <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirRapport(s)">Rédiger le rapport</button> }
+            @case ('RAPPORT_EN_COURS') { <button type="button" class="agent-btn agent-btn-valider liste-mobile-action" (click)="ouvrirCloture(s)">Clôturer</button> }
+            @case ('CLOTURES') { <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirDetail(s)">Voir le détail</button> }
+          }
+        </article>
+      } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun sinistre pour ce statut.</div> }
     </div>
   }
 

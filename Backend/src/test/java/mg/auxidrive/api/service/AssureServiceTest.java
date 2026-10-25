@@ -139,6 +139,20 @@ class AssureServiceTest {
     }
 
     @Test
+    @DisplayName("PUT : vider un champ facultatif le retire réellement de la fiche")
+    void putEffaceChampFacultatif() {
+        charge();
+
+        Assure resultat = service.modifier(1L, donnees("RANDRIANA", null, null,
+                null, null, null, null, null, "   ", ""));
+
+        assertThat(resultat.getAdresse()).isNull();
+        assertThat(resultat.getContact()).isNull();
+        assertThat(resultat.getPrenomAssure()).isEqualTo("Toky");
+        assertThat(resultat.getDateNaissance()).isEqualTo(LocalDate.of(1990, 5, 14));
+    }
+
+    @Test
     @DisplayName("PUT : nom manquant -> 400")
     void putSansNomRenvoie400() {
         charge();

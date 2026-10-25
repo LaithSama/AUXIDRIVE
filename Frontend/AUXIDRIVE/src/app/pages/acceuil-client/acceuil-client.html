@@ -9,6 +9,19 @@
       <a href="#demarches" class="lien d-none d-md-inline">Comment ça marche</a>
       <a href="#contact" class="lien d-none d-md-inline">Contact</a>
       <a routerLink="/connexion" class="btn btn-outline-light btn-sm px-3">Se connecter</a>
+      <button type="button" class="accueil-menu-bouton d-md-none" aria-controls="accueil-menu"
+              [attr.aria-expanded]="menuOuvert()" [attr.aria-label]="menuOuvert() ? 'Fermer le menu' : 'Ouvrir le menu'"
+              (click)="menuOuvert.set(!menuOuvert())">
+        <i class="bi" [class.bi-list]="!menuOuvert()" [class.bi-x-lg]="menuOuvert()" aria-hidden="true"></i>
+      </button>
+    </div>
+  </nav>
+  <nav id="accueil-menu" class="accueil-menu-mobile d-md-none" [class.accueil-menu-ouvert]="menuOuvert()"
+       aria-label="Navigation mobile">
+    <div class="container">
+      <a href="#formules" (click)="menuOuvert.set(false)">Nos formules</a>
+      <a href="#demarches" (click)="menuOuvert.set(false)">Comment ça marche</a>
+      <a href="#contact" (click)="menuOuvert.set(false)">Contact</a>
     </div>
   </nav>
 </header>

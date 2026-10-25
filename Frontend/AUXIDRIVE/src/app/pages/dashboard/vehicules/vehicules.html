@@ -130,7 +130,7 @@
 
     <!-- Liste des véhicules -->
     <div class="col-lg-7">
-      <div class="carte p-0 overflow-hidden veh-liste">
+      <div class="carte p-0 overflow-hidden veh-liste d-none d-md-block">
         <div class="table-responsive">
           <table class="tableau">
             <thead>
@@ -162,6 +162,29 @@
             </tbody>
           </table>
         </div>
+      </div>
+      <div class="liste-mobile d-md-none">
+        @for (v of vehicules; track v.idVehicule) {
+          <article class="liste-mobile-carte">
+            <div class="liste-mobile-entete">
+              <div>
+                <h2 class="liste-mobile-titre">{{ v.marque }} {{ v.modele }}</h2>
+                <span class="veh-plaque">{{ v.numImmatriculation }}</span>
+              </div>
+            </div>
+            <dl class="liste-mobile-details">
+              <div><dt>Type</dt><dd>{{ v.typeVehicule || 'Véhicule' }}</dd></div>
+              <div><dt>Énergie</dt><dd>{{ v.energie }}</dd></div>
+              <div><dt>Puissance</dt><dd>{{ v.puissanceFiscale }} CV</dd></div>
+              <div><dt>Places</dt><dd>{{ v.nombrePlaces }}</dd></div>
+              @if (v.codeTarif?.tarifCode) {
+                <div><dt>Tarif</dt><dd>{{ v.codeTarif!.tarifCode }}</dd></div>
+              }
+            </dl>
+          </article>
+        } @empty {
+          <div class="liste-mobile-carte liste-mobile-vide">Aucun véhicule enregistré. Ajoutez-en un ci-dessus pour pouvoir souscrire.</div>
+        }
       </div>
     </div>
   </div>

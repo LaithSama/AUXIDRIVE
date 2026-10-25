@@ -214,7 +214,7 @@
 
 .admin-nouveau .bi { font-size: 1.05rem; }
 
-/* ---------- bandeau KPI ---------- */
+/* ---------- indicateurs ---------- */
 .admin-kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
@@ -237,7 +237,11 @@
   cursor: pointer;
   transition: transform 0.12s, box-shadow 0.12s;
 
-  &:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.12); }
+  &:hover, &:focus-visible {
+    transform: translate(-1px, -1px);
+    box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.12);
+  }
+  &:focus-visible { outline: 3px solid var(--lagon); outline-offset: 3px; }
 
   .bi { flex: 0 0 auto; font-size: 1.6rem; color: var(--gris); }
 }
@@ -549,4 +553,25 @@
 
 @media (max-width: 575.98px) {
   .admin-form-grille { grid-template-columns: minmax(0, 1fr); }
+
+  .admin-contenu { padding: 1.25rem 1rem 2rem; }
+  .admin-entete { flex-wrap: wrap; }
+  .admin-entete-compte { white-space: normal; }
+  .admin-nouveau { width: 100%; justify-content: center; }
+  .admin-kpis { grid-template-columns: minmax(0, 1fr); }
+  .admin-filtres .saisie, .admin-filtres-recherche, .admin-btn-reset { width: 100%; flex: 1 1 100%; }
+  .admin-filtres-compteur { margin-left: 0; }
+  .admin-modale { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); }
+  .admin-modale-entete, .admin-modale-corps, .admin-modale-pied { padding: 1rem; }
+  .admin-modale-pied { flex-wrap: wrap; }
+  .admin-modale-pied button { flex: 1 1 100%; }
 }
+
+.admin-actions-mobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.admin-actions-mobile button { flex: 1 1 7rem; text-align: center; }

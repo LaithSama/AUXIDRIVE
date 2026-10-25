@@ -26,4 +26,21 @@ describe('Dashboard', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('ouvre et ferme le menu mobile', () => {
+    fixture.detectChanges();
+    const bouton: HTMLButtonElement = fixture.nativeElement.querySelector('.menu-bouton');
+    const navigation: HTMLElement = fixture.nativeElement.querySelector('#sidebarMenu');
+
+    expect(bouton.getAttribute('aria-expanded')).toBe('false');
+    bouton.click();
+    fixture.detectChanges();
+    expect(bouton.getAttribute('aria-expanded')).toBe('true');
+    expect(navigation.classList.contains('sidebar-ouverte')).toBe(true);
+
+    navigation.querySelector<HTMLAnchorElement>('a.sidebar-lien')!.click();
+    fixture.detectChanges();
+    expect(bouton.getAttribute('aria-expanded')).toBe('false');
+    expect(navigation.classList.contains('sidebar-ouverte')).toBe(false);
+  });
 });

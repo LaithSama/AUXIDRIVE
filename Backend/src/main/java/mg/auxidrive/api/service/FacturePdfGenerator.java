@@ -1,6 +1,5 @@
 package mg.auxidrive.api.service;
 
-import java.awt.Color;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +13,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +34,7 @@ import mg.auxidrive.api.model.Contrat;
 import mg.auxidrive.api.model.ContratAuto;
 import mg.auxidrive.api.model.Facture;
 import mg.auxidrive.api.model.GarantieType;
+import mg.auxidrive.api.model.TypeFacture;
 import mg.auxidrive.api.model.Vehicule;
 
 /**
@@ -52,16 +53,21 @@ public class FacturePdfGenerator {
     private static final Logger log = LoggerFactory.getLogger(FacturePdfGenerator.class);
 
     private static final DateTimeFormatter DATE_FR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final String DOSSIER = "factures";
     private static final String DEVISE = "Ar";
+    private final Path dossier;
+
+    public FacturePdfGenerator(@Value("${app.factures.dir:${APP_FACTURES_DIR:factures}}") String dossier) {
+        this.dossier = Paths.get(dossier).toAbsolutePath().normalize();
+    }
 
     /** Logo de la marque, partagé avec le front-end ; absent du classpath, la facture sort sans logo. */
     private static final String LOGO = "static/img/logo-auximad.png";
     private static final String LIEU = "Antananarivo";
     /** Largeur du logo en points ; la hauteur suit le ratio réel de l'image. */
     private static final float LARGEUR_LOGO = 75f;
-    /** Hauteur réservée à la signature, en points. */
-    private static final float HAUTEUR_SIGNATURE = 38f;
+    /** Hauteur réservée aux libellés et aux signatures, sur la dernière page. */
+    private static final float HAUTEUR_SIGNATURE = 65f;
+    private static final float ESPACE_AVANT_SIGNATURES = 16f;
 
     /**
      * Écrit le PDF sur le disque et renvoie son chemin absolu.
@@ -75,14 +81,13 @@ public class FacturePdfGenerator {
     public String generer(Facture facture, List<ContratAuto> vehicules, List<GarantieType> garanties) {
         Contrat contrat = facture.getContrat();
         try {
-            Path dossier = Paths.get(DOSSIER);
             Files.createDirectories(dossier);
 
             String nom = referenceFichier(facture, contrat) + ".pdf";
-            Path chemin = dossier.resolve(nom).toAbsolutePath();
+            Path chemin = dossier.resolve(nom);
 
             Document document = new Document(PageSize.A4, 40, 40, 50, 50);
-            PdfWriter.getInstance(document, new FileOutputStream(chemin.toFile()));
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(chemin.toFile()));
             document.open();
 
             ecrireEntete(document, facture, contrat);
@@ -91,8 +96,7 @@ public class FacturePdfGenerator {
             ecrireVehicules(document, vehicules);
             ecrireGaranties(document, garanties);
             ecrireDetailCalcul(document, facture);
-            ecrirePied(document, contrat);
-            ecrireSignatures(document);
+            ecrireSignatures(document, writer);
 
             document.close();
             return chemin.toString();
@@ -121,7 +125,7 @@ public class FacturePdfGenerator {
             document.add(mention);
         }
 
-        Paragraph titre = new Paragraph("FACTURE DE SOUSCRIPTION", gras(16));
+        Paragraph titre = new Paragraph(titreFacture(facture), gras(16));
         titre.setAlignment(Element.ALIGN_CENTER);
         titre.setSpacingAfter(4);
         document.add(titre);
@@ -157,6 +161,16 @@ public class FacturePdfGenerator {
         return facture.getNumFacture() == null || facture.getNumFacture().isBlank()
                 ? String.valueOf(facture.getIdFacture())
                 : facture.getNumFacture();
+    }
+
+    private String titreFacture(Facture facture) {
+        TypeFacture type = facture.getTypeFacture();
+        return type == null ? "FACTURE DE SOUSCRIPTION" : switch (type) {
+            case SOUSCRIPTION -> "FACTURE DE SOUSCRIPTION";
+            case RENOUVELLEMENT -> "FACTURE DE RENOUVELLEMENT";
+            case MAJORATION -> "FACTURE DE MAJORATION";
+            case RESILIATION -> "FACTURE DE RÉSILIATION";
+        };
     }
 
     /** Nom de fichier : le numéro de facture, à défaut la police, à défaut l'identifiant du contrat. */
@@ -280,54 +294,60 @@ public class FacturePdfGenerator {
         montant(table, "Total des taxes", valeur(facture.getMontantTaxes()));
         document.add(table);
 
-        Paragraph total = new Paragraph("Montant TTC à payer : " + montant(facture.getMontantTtc()) + " " + DEVISE, gras(13));
+        PdfPTable total = new PdfPTable(2);
+        total.setWidthPercentage(70);
         total.setSpacingBefore(6);
+        total.setKeepTogether(true);
+        BigDecimal ttcAffiche = BigDecimal.valueOf(valeur(facture.getMontantTtc()))
+                .setScale(2, RoundingMode.HALF_UP);
+        PdfPCell libelle = new PdfPCell(new Phrase("Montant TTC à payer", gras(12)));
+        PdfPCell valeur = new PdfPCell(new Phrase(ttcAffiche.toPlainString() + " " + DEVISE, gras(12)));
+        for (PdfPCell cellule : new PdfPCell[]{libelle, valeur}) {
+            cellule.setBackgroundColor(new java.awt.Color(230, 243, 238));
+            cellule.setPadding(7f);
+        }
+        valeur.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        total.addCell(libelle);
+        total.addCell(valeur);
+        PdfPCell enLettres = new PdfPCell(new Phrase(
+                "Arrêtée à la somme de : " + MontantEnLettres.ariary(ttcAffiche), normal(10)));
+        enLettres.setColspan(2);
+        enLettres.setBorder(PdfPCell.NO_BORDER);
+        enLettres.setPaddingTop(6f);
+        total.addCell(enLettres);
         document.add(total);
     }
 
-    private void ecrirePied(Document document, Contrat contrat) {
-        Paragraph mention = paragraphe("La commission d'intermédiaire est calculée en dehors du montant TTC "
-                + "et n'est pas supportée par l'assuré."
-                + (contrat.getMontantCommission() == null ? "" : " Montant de la commission : " + montant(contrat.getMontantCommission()) + " " + DEVISE + "."));
-        mention.setSpacingBefore(10);
-        document.add(mention);
-    }
-
     /**
-     * Zone de signatures, en tout bas de page : un trait vierge dans chaque colonne, sur lequel
-     * l'assuré à gauche et l'agent de production à droite apposent leur signature, chacun sous
-     * son libellé. Le trait est une bordure basse de cellule, la hauteur réservée laisse la place
-     * d'écrire. Les noms ne sont pas pré-remplis : aucun n'est disponible au moment de l'émission.
+     * Zone de signatures en bas de la dernière page. Les deux libellés sont soulignés (et non
+     * précédés d'un trait continu), avec une zone libre dessous pour signer. Si le corps de la
+     * facture empiète sur cette zone, les signatures seules passent sur une nouvelle page.
+     * Les noms ne sont pas pré-remplis : aucun n'est disponible au moment de l'émission.
      */
-    private void ecrireSignatures(Document document) {
+    private void ecrireSignatures(Document document, PdfWriter writer) {
         PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(100);
-        table.setSpacingBefore(16);
+        table.setTotalWidth(document.right() - document.left());
+        table.setLockedWidth(true);
+        table.addCell(celluleSignature("Le client", Element.ALIGN_LEFT));
+        table.addCell(celluleSignature("L'agent de production", Element.ALIGN_RIGHT));
 
-        table.addCell(celluleLigneVierge());
-        table.addCell(celluleLigneVierge());
-        table.addCell(celluleSansBordure("Le client"));
-        table.addCell(celluleSansBordure("L'agent de production"));
-
-        document.add(table);
+        float hautSignatures = document.bottom() + table.getTotalHeight();
+        if (writer.getVerticalPosition(true) < hautSignatures + ESPACE_AVANT_SIGNATURES) {
+            document.newPage();
+        }
+        table.writeSelectedRows(0, -1, document.left(), hautSignatures, writer.getDirectContent());
+        // Les éléments dessinés directement doivent aussi marquer une nouvelle page comme non vide.
+        writer.setPageEmpty(false);
     }
 
-    /** Colonne de la zone de signature : un simple trait, avec la hauteur d'un espace à signer. */
-    private PdfPCell celluleLigneVierge() {
-        PdfPCell cellule = new PdfPCell();
-        cellule.setBorder(PdfPCell.BOTTOM);
-        cellule.setBorderWidth(1f);
-        cellule.setBorderColor(Color.BLACK);
-        cellule.setMinimumHeight(HAUTEUR_SIGNATURE);
-        cellule.setPadding(0);
-        return cellule;
-    }
-
-    /** Légende sous un trait de signature. */
-    private PdfPCell celluleSansBordure(String texte) {
-        PdfPCell cellule = new PdfPCell(new Phrase(texte, normal(9)));
+    private PdfPCell celluleSignature(String texte, int alignement) {
+        Font police = new Font(Font.HELVETICA, 10, Font.BOLD | Font.UNDERLINE);
+        PdfPCell cellule = new PdfPCell(new Phrase(texte, police));
         cellule.setBorder(PdfPCell.NO_BORDER);
-        cellule.setPaddingTop(3f);
+        cellule.setHorizontalAlignment(alignement);
+        cellule.setVerticalAlignment(Element.ALIGN_TOP);
+        cellule.setMinimumHeight(HAUTEUR_SIGNATURE);
+        cellule.setPadding(4f);
         return cellule;
     }
 
@@ -367,7 +387,9 @@ public class FacturePdfGenerator {
         PdfPCell c1 = cellule(libelle);
         c1.setHorizontalAlignment(Element.ALIGN_LEFT);
         table.addCell(c1);
-        table.addCell(cellule(montant(montant)));
+        PdfPCell c2 = cellule(montant(montant));
+        c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        table.addCell(c2);
     }
 
     private PdfPTable tableEntete(String[] entetes) {
@@ -392,7 +414,7 @@ public class FacturePdfGenerator {
     }
 
     private String montant(double valeur) {
-        return new BigDecimal(valeur).setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return BigDecimal.valueOf(valeur).setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private double valeur(Double v) {

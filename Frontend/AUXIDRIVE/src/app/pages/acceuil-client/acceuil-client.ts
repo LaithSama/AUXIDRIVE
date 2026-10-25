@@ -30,6 +30,7 @@ export class AcceuilClient implements OnInit, OnDestroy {
 
   /** L'en-tête reçoit une ombre dès que la page est défilée. */
   estScroll = signal(false);
+  menuOuvert = signal(false);
 
   immatriculation = '';
   offres = signal<Offre[]>(OFFRES_PAR_DEFAUT);

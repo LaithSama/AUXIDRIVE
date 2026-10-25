@@ -407,6 +407,34 @@ mvn spring-boot:run
 
 Le port dépend de la configuration de l'application. Par défaut, Spring Boot utilise généralement le port `8080`.
 
+#### Stockage des PDF de factures
+
+Les PDF sont des fichiers de données, **non versionnés** (`Backend/factures/` est ignoré par Git).
+Par défaut, ils sont créés dans `factures/` relativement au répertoire de lancement du backend
+(avec `cd Backend`, il s'agit de `Backend/factures/`). Pour une installation durable, définir
+`app.factures.dir` dans la configuration du backend, ou la variable d'environnement `APP_FACTURES_DIR`,
+avec un **chemin absolu vers un dossier persistant**, hors du dépôt, accessible en écriture :
+
+```properties
+app.factures.dir=C:/Dossier/auxidrive-data/factures
+```
+
+Le dossier est créé automatiquement à l'émission d'une facture. Sauvegarder **la base de données et
+les PDF ensemble** : chaque facture conserve en base le chemin absolu du fichier émis. Changer le
+dossier de sortie ne déplace pas les anciens PDF et ne modifie pas leurs chemins enregistrés ;
+restaurer les fichiers d'origine à leurs chemins historiques (ou migrer les chemins en base après
+sauvegarde) si les téléchargements des anciennes factures renvoient une erreur 404.
+
+Pour récupérer les PDF historiques retirés du dépôt au commit `3cbba63`, uniquement si le dossier
+local ne contient aucun PDF plus récent à préserver, lancer depuis la racine du dépôt :
+
+```bash
+git restore --source=3cbba63^ --worktree -- Backend/factures
+```
+
+Les fichiers restaurés restent ignorés par Git ; cette commande ne restaure pas les PDF créés
+après ce commit sur d'autres machines.
+
 ### 5. Exécuter le frontend
 
 Ouvrir un autre terminal depuis la racine du dépôt :

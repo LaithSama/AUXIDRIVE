@@ -14,6 +14,7 @@ export class Dashboard implements OnInit {
 
   userRole: string | null = '';
   emailClient = this.authService.getEmail() ?? '';
+  menuOuvert = false;
 
   get roleAffiche(): string {
     switch (this.userRole) {

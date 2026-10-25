@@ -10,7 +10,7 @@ import { DateFrPipe } from '../../core/pipes/date-fr.pipe';
 import { AuthService } from '../../services/auth-service';
 import { ProfilStaffPanel } from '../../components/profil-staff/profil-staff';
 
-type VueAgent = 'inscriptions' | 'contrats' | 'sinistres' | 'profil';
+type VueAgent = 'tableau' | 'inscriptions' | 'contrats' | 'sinistres' | 'profil';
 type OngletSinistre = 'DECLARE' | 'RAPPORT_EN_COURS' | 'CLOTURES';
 
 @Component({
@@ -27,8 +27,8 @@ export class AgentDashboard implements OnInit {
 
   private apiUrl = 'http://localhost:8080/api';
 
-  /** Espace affiché : inscriptions, contrats ou sinistres. */
-  vue = signal<VueAgent>('inscriptions');
+  /** Vue d'ensemble affichée dès l'ouverture de l'espace agent. */
+  vue = signal<VueAgent>('tableau');
 
   /** Sidebar dépliable (mobile). */
   sidebarOuverte = signal(false);
@@ -230,8 +230,19 @@ export class AgentDashboard implements OnInit {
 
   messageSucces = '';
   messageErreur = '';
+  chargementInscriptions = signal(true);
+  chargementContrats = signal(true);
+  chargementSinistres = signal(true);
+  chargementTableau = computed(() => this.chargementInscriptions()
+    || this.chargementContrats() || this.chargementSinistres());
+  erreurTableau = signal(false);
 
   ngOnInit(): void {
+    this.actualiserTableau();
+  }
+
+  actualiserTableau(): void {
+    this.erreurTableau.set(false);
     this.chargerInitialisation();
     this.chargerContrats();
     this.chargerSinistres();
@@ -239,23 +250,26 @@ export class AgentDashboard implements OnInit {
 
   /** Récupère l'intégralité des dossiers auprès du backend */
   chargerInitialisation(): void {
+    this.chargementInscriptions.set(true);
     this.http.get<any[]>(this.apiUrlInscriptions).subscribe({
-      next: (liste) => this.toutesLesInscriptions.set(liste),
-      error: (err) => this.erreurChargement(err),
+      next: (liste) => { this.toutesLesInscriptions.set(liste); this.chargementInscriptions.set(false); },
+      error: (err) => { this.chargementInscriptions.set(false); this.erreurChargement(err); },
     });
   }
 
   chargerContrats(): void {
+    this.chargementContrats.set(true);
     this.http.get<Contrat[]>(`${this.apiUrl}/contrats`).subscribe({
-      next: (liste) => this.contrats.set(liste),
-      error: (err) => this.erreurChargement(err),
+      next: (liste) => { this.contrats.set(liste); this.chargementContrats.set(false); },
+      error: (err) => { this.chargementContrats.set(false); this.erreurChargement(err); },
     });
   }
 
   chargerSinistres(): void {
+    this.chargementSinistres.set(true);
     this.http.get<Sinistre[]>(`${this.apiUrl}/sinistres`).subscribe({
-      next: (liste) => this.sinistres.set(liste),
-      error: (err) => this.erreurChargement(err),
+      next: (liste) => { this.sinistres.set(liste); this.chargementSinistres.set(false); },
+      error: (err) => { this.chargementSinistres.set(false); this.erreurChargement(err); },
     });
   }
 
@@ -263,7 +277,9 @@ export class AgentDashboard implements OnInit {
     console.error('Erreur lors de la récupération :', err);
     if (err.status === 401 || err.status === 403) {
       this.deconnexion();
+      return;
     }
+    this.erreurTableau.set(true);
   }
 
   // ---------- Navigation ----------
@@ -273,6 +289,14 @@ export class AgentDashboard implements OnInit {
     this.messageSucces = '';
     this.messageErreur = '';
     this.fermerSidebar();
+  }
+
+  /** Les raccourcis ouvrent l'onglet qui correspond au dossier à traiter. */
+  ouvrirDossiers(vue: 'inscriptions' | 'contrats' | 'sinistres'): void {
+    if (vue === 'inscriptions') this.ongletActif.set('EN_ATTENTE');
+    if (vue === 'contrats') this.ongletContrat.set('EN_ATTENTE');
+    if (vue === 'sinistres') this.ongletSinistre.set('DECLARE');
+    this.changerVue(vue);
   }
 
   basculerSidebar(): void {

@@ -18,7 +18,7 @@
 
 @if (!chargement) {
   <!-- Liste des contrats -->
-  <div class="carte p-0 overflow-hidden contrats-liste">
+  <div class="carte p-0 overflow-hidden contrats-liste d-none d-md-block">
     <div class="table-responsive">
       <table class="tableau">
         <thead>
@@ -78,6 +78,47 @@
         </tbody>
       </table>
     </div>
+  </div>
+
+  <div class="liste-mobile contrats-liste d-md-none">
+    @for (c of contrats; track c.idContrat) {
+      <article class="liste-mobile-carte">
+        <div class="liste-mobile-entete">
+          <div>
+            <h2 class="liste-mobile-titre">{{ c.numPolice || 'Contrat n°' + c.idContrat }}</h2>
+            <small class="contrat-id">n°{{ c.idContrat }}</small>
+          </div>
+          @switch (c.statutContrat) {
+            @case ('VALIDE') { <span class="pastille pastille-lagon">Validé</span> }
+            @case ('EN_ATTENTE') { <span class="pastille">En attente</span> }
+            @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+          }
+        </div>
+        <dl class="liste-mobile-details">
+          <div><dt>Effet</dt><dd>{{ c.dateEffet | dateFr }}</dd></div>
+          <div><dt>Expiration</dt><dd>{{ c.dateExpiration | dateFr }}</dd></div>
+          <div>
+            <dt>Garanties</dt>
+            <dd>
+              @if (c.garanties && c.garanties.length > 0) {
+                <span class="contrat-garanties">
+                  @for (g of c.garanties; track g.cdGarantie) {
+                    <span class="pastille pastille-sombre contrat-garantie">{{ g.libelleGarantie }}</span>
+                  }
+                </span>
+              } @else { Aucune }
+            </dd>
+          </div>
+        </dl>
+        @if (c.statutContrat === 'VALIDE') {
+          <button type="button" class="btn-contour-sombre liste-mobile-action" (click)="ouvrirDetailPrime(c)">
+            Voir la prime
+          </button>
+        }
+      </article>
+    } @empty {
+      <div class="liste-mobile-carte liste-mobile-vide">Aucun contrat pour le moment. Souscrivez une offre ci-dessous.</div>
+    }
   </div>
 
   <!-- Souscription -->

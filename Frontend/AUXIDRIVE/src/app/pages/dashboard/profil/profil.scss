@@ -117,3 +117,10 @@
     transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   }
 }
+
+@media (max-width: 575.98px) {
+  .profil-lecture { display: grid; gap: 0.4rem; }
+  .profil-bouton, .btn-zone, .zone-actions .btn-contour-sombre { width: 100%; text-align: center; }
+  .zone-actions { flex-direction: column; }
+  .profil-carte .row > [class*='col-'] .champ.mb-0 { margin-bottom: 1rem !important; }
+}

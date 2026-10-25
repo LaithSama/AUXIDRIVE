@@ -29,4 +29,20 @@ describe('AcceuilClient', () => {
     expect(component.reflexes.length).toBe(4);
     expect(component.telephones.length).toBe(2);
   });
+
+  it('affiche les liens de navigation mobile puis ferme le menu après sélection', () => {
+    fixture.detectChanges();
+    const bouton: HTMLButtonElement = fixture.nativeElement.querySelector('.accueil-menu-bouton');
+    const menu: HTMLElement = fixture.nativeElement.querySelector('#accueil-menu');
+
+    bouton.click();
+    fixture.detectChanges();
+    expect(bouton.getAttribute('aria-expanded')).toBe('true');
+    expect(menu.classList.contains('accueil-menu-ouvert')).toBe(true);
+
+    menu.querySelector<HTMLAnchorElement>('a')!.click();
+    fixture.detectChanges();
+    expect(bouton.getAttribute('aria-expanded')).toBe('false');
+    expect(menu.classList.contains('accueil-menu-ouvert')).toBe(false);
+  });
 });

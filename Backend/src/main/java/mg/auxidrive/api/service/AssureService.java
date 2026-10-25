@@ -74,15 +74,15 @@ public class AssureService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le nom est obligatoire");
         }
         assure.setNomAssure(donnees.getNomAssure().trim());
-        if (!vide(donnees.getPrenomAssure())) assure.setPrenomAssure(donnees.getPrenomAssure().trim());
+        if (donnees.getPrenomAssure() != null) assure.setPrenomAssure(trimOuNull(donnees.getPrenomAssure()));
         if (donnees.getPersonneMorale() != null) assure.setPersonneMorale(donnees.getPersonneMorale());
         if (donnees.getDateNaissance() != null) assure.setDateNaissance(donnees.getDateNaissance());
-        if (!vide(donnees.getSexe())) assure.setSexe(donnees.getSexe().trim());
-        if (!vide(donnees.getCivilite())) assure.setCivilite(donnees.getCivilite().trim());
-        if (!vide(donnees.getNationalite())) assure.setNationalite(donnees.getNationalite().trim());
-        if (!vide(donnees.getPaysResidence())) assure.setPaysResidence(donnees.getPaysResidence().trim());
-        if (!vide(donnees.getAdresse())) assure.setAdresse(donnees.getAdresse().trim());
-        if (!vide(donnees.getContact())) assure.setContact(donnees.getContact().trim());
+        if (donnees.getSexe() != null) assure.setSexe(trimOuNull(donnees.getSexe()));
+        if (donnees.getCivilite() != null) assure.setCivilite(trimOuNull(donnees.getCivilite()));
+        if (donnees.getNationalite() != null) assure.setNationalite(trimOuNull(donnees.getNationalite()));
+        if (donnees.getPaysResidence() != null) assure.setPaysResidence(trimOuNull(donnees.getPaysResidence()));
+        if (donnees.getAdresse() != null) assure.setAdresse(trimOuNull(donnees.getAdresse()));
+        if (donnees.getContact() != null) assure.setContact(trimOuNull(donnees.getContact()));
         return assure;
     }
 

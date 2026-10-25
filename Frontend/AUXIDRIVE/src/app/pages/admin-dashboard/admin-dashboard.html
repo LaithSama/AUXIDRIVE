@@ -1,6 +1,7 @@
 <header class="entete admin-barre">
   <div class="container-fluid d-flex align-items-center py-3">
-    <button type="button" class="admin-hamburger d-lg-none" (click)="basculerSidebar()" aria-label="Ouvrir le menu">
+    <button type="button" class="admin-hamburger d-lg-none" (click)="basculerSidebar()" aria-controls="admin-menu"
+            [attr.aria-expanded]="sidebarOuverte()" [attr.aria-label]="sidebarOuverte() ? 'Fermer le menu' : 'Ouvrir le menu'">
       <i class="bi bi-list" aria-hidden="true"></i>
     </button>
     <span class="marque"><img class="marque-logo" src="img/logo-auximad.png" alt="" />Auxiassur <span class="marque-suffixe">Administration</span></span>
@@ -9,7 +10,7 @@
 
 <div class="admin-layout">
   <!-- Sidebar d'administration -->
-  <nav class="admin-sidebar" [class.admin-sidebar-ouverte]="sidebarOuverte()" aria-label="Espace d'administration">
+  <nav id="admin-menu" class="admin-sidebar" [class.admin-sidebar-ouverte]="sidebarOuverte()" aria-label="Espace d'administration">
     <div class="admin-sidebar-navigation">
       <p class="admin-sidebar-titre">Pilotage</p>
 
@@ -62,7 +63,7 @@
           <small>{{ emailAdmin }}</small>
         </div>
       </div>
-      <a class="admin-sidebar-lien admin-sidebar-bascule" routerLink="/agent-dashboard">
+      <a class="admin-sidebar-lien admin-sidebar-bascule" routerLink="/agent-dashboard" (click)="fermerSidebar()">
         <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
         <span>Espace agent</span>
       </a>
@@ -82,7 +83,7 @@
         @switch (vue()) {
           @case ('tableau') {
             <h1 class="titre-section">Tableau de bord</h1>
-            <p class="chapeau mb-0">Vue d'ensemble de la plateforme Auxiassur.</p>
+            <p class="chapeau mb-0">Les dossiers à suivre et les indicateurs clés de la plateforme.</p>
           }
           @case ('utilisateurs') {
             <h1 class="titre-section">Utilisateurs</h1>
@@ -113,7 +114,44 @@
     <!-- ==================== TABLEAU DE BORD ==================== -->
     @if (vue() === 'tableau') {
       @if (statistiques(); as s) {
-        <div class="admin-kpis">
+        <section class="admin-suivi" aria-labelledby="admin-suivi-titre">
+          <div class="admin-section-entete">
+            <div>
+              <h2 id="admin-suivi-titre" class="admin-section-titre">À suivre</h2>
+              <p class="admin-section-description">Dossiers en attente de traitement dans l'espace agent.</p>
+            </div>
+          </div>
+          <div class="admin-suivi-grille">
+            <article class="admin-suivi-carte" [class.admin-suivi-carte-active]="s.inscriptionsEnAttente > 0">
+              <span class="admin-suivi-icone" aria-hidden="true"><i class="bi bi-inbox-fill"></i></span>
+              <div class="admin-suivi-corps">
+                <span class="admin-suivi-valeur">{{ s.inscriptionsEnAttente }}</span>
+                <h3>Inscriptions en attente</h3>
+                <p>{{ s.inscriptionsEnAttente === 0 ? 'Aucune inscription à traiter' : 'Demandes à examiner' }}</p>
+              </div>
+            </article>
+            <article class="admin-suivi-carte" [class.admin-suivi-carte-active]="s.contratsEnAttente > 0">
+              <span class="admin-suivi-icone" aria-hidden="true"><i class="bi bi-file-earmark-check"></i></span>
+              <div class="admin-suivi-corps">
+                <span class="admin-suivi-valeur">{{ s.contratsEnAttente }}</span>
+                <h3>Contrats en attente</h3>
+                <p>{{ s.contratsEnAttente === 0 ? 'Aucun contrat à traiter' : 'Contrats à examiner' }}</p>
+              </div>
+            </article>
+          </div>
+          <button type="button" class="btn-contour-sombre admin-suivi-action" (click)="allerEspaceAgent()">
+            Ouvrir l'espace agent <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </button>
+        </section>
+
+        <section class="admin-vue-ensemble" aria-labelledby="admin-vue-ensemble-titre">
+          <div class="admin-section-entete">
+            <div>
+              <h2 id="admin-vue-ensemble-titre" class="admin-section-titre">Vue d'ensemble</h2>
+              <p class="admin-section-description">Cliquez sur un indicateur pour accéder à la section correspondante.</p>
+            </div>
+          </div>
+          <div class="admin-kpis">
           <button type="button" class="admin-kpi admin-kpi-signal" (click)="changerVue('utilisateurs')">
             <i class="bi bi-people-fill" aria-hidden="true"></i>
             <span class="admin-kpi-corps">
@@ -145,28 +183,26 @@
             <span class="admin-kpi-corps">
               <span class="admin-kpi-valeur">{{ s.contrats }}</span>
               <span class="admin-kpi-libelle">Contrats</span>
-              <span class="admin-kpi-detail">{{ s.contratsEnAttente }} en attente · {{ s.contratsValides }} validés · {{ s.contratsRefuses }} refusés</span>
+              <span class="admin-kpi-detail">{{ s.contratsValides }} validés · {{ s.contratsRefuses }} refusés</span>
             </span>
           </button>
-
-          <button type="button" class="admin-kpi admin-kpi-erreur" (click)="allerEspaceAgent()">
-            <i class="bi bi-inbox-fill" aria-hidden="true"></i>
-            <span class="admin-kpi-corps">
-              <span class="admin-kpi-valeur">{{ s.inscriptionsEnAttente }}</span>
-              <span class="admin-kpi-libelle">Inscriptions en attente</span>
-              <span class="admin-kpi-detail">à traiter dans l'espace agent</span>
-            </span>
-          </button>
-        </div>
+          </div>
+        </section>
 
         <!-- Graphiques agrégés côté client (lot E) -->
-        <section class="admin-graphiques" aria-label="Graphiques du tableau de bord">
+        <section class="admin-graphiques" aria-labelledby="admin-graphiques-titre">
+          <div class="admin-section-entete">
+            <div>
+              <h2 id="admin-graphiques-titre" class="admin-section-titre">Tendances et répartitions</h2>
+              <p class="admin-section-description">Les contrats, inscriptions et comptes clients en détail.</p>
+            </div>
+          </div>
           <div class="gr-grille">
 
             <!-- 1. Statut des contrats -->
             <article class="gr-carte gr-carte-signal">
               <header class="gr-carte-entete">
-                <h2 class="gr-carte-titre">Statut des contrats</h2>
+                <h3 class="gr-carte-titre">Statut des contrats</h3>
                 <p class="gr-carte-sous">Répartition des contrats souscrits</p>
               </header>
               <div class="gr-carte-corps">
@@ -182,7 +218,7 @@
             <!-- 2. Chiffre d'affaires mensuel -->
             <article class="gr-carte gr-carte-lagon">
               <header class="gr-carte-entete">
-                <h2 class="gr-carte-titre">Chiffre d'affaires</h2>
+                <h3 class="gr-carte-titre">Chiffre d'affaires</h3>
                 <p class="gr-carte-sous">Prime TTC des contrats validés — 12 derniers mois</p>
               </header>
               <div class="gr-carte-corps">
@@ -202,7 +238,7 @@
             <!-- 3. Inscriptions reçues / validées -->
             <article class="gr-carte">
               <header class="gr-carte-entete">
-                <h2 class="gr-carte-titre">Inscriptions</h2>
+                <h3 class="gr-carte-titre">Inscriptions</h3>
                 <p class="gr-carte-sous">Demandes reçues et validées — 6 derniers mois</p>
               </header>
               <div class="gr-carte-corps">
@@ -220,7 +256,7 @@
             <!-- 4. Comptes clients par statut -->
             <article class="gr-carte gr-carte-ambre">
               <header class="gr-carte-entete">
-                <h2 class="gr-carte-titre">Comptes clients par statut</h2>
+                <h3 class="gr-carte-titre">Comptes clients par statut</h3>
                 <p class="gr-carte-sous">Répartition par statut du compte</p>
               </header>
               <div class="gr-carte-corps">
@@ -236,7 +272,7 @@
             <!-- 5. Contrats par canal de souscription -->
             <article class="gr-carte gr-carte-bois">
               <header class="gr-carte-entete">
-                <h2 class="gr-carte-titre">Contrats par canal</h2>
+                <h3 class="gr-carte-titre">Contrats par canal</h3>
                 <p class="gr-carte-sous">Nombre de contrats souscrits par canal</p>
               </header>
               <div class="gr-carte-corps">
@@ -252,7 +288,7 @@
             <!-- 6. Assurés physiques / morales -->
             <article class="gr-carte">
               <header class="gr-carte-entete">
-                <h2 class="gr-carte-titre">Assurés</h2>
+                <h3 class="gr-carte-titre">Assurés</h3>
                 <p class="gr-carte-sous">Personnes physiques et morales</p>
               </header>
               <div class="gr-carte-corps">
@@ -307,7 +343,7 @@
         </button>
         <span class="admin-filtres-compteur">{{ utilisateursAffiches().length }} résultat(s)</span>
       </div>
-      <div class="admin-tableau-carte">
+      <div class="admin-tableau-carte d-none d-md-block">
         <table class="tableau">
           <thead>
             <tr>
@@ -351,6 +387,28 @@
           </tbody>
         </table>
       </div>
+      <div class="liste-mobile d-md-none">
+        @for (u of utilisateursAffiches(); track u.idUtil) {
+          <article class="liste-mobile-carte">
+            <div class="liste-mobile-entete">
+              <h2 class="liste-mobile-titre">{{ u.nomUtil }}</h2>
+              @switch (u.statutUtilisateur) {
+                @case ('ACTIF') { <span class="pastille pastille-lagon">Actif</span> }
+                @case ('SUSPENDU') { <span class="pastille">Suspendu</span> }
+                @default { <span class="pastille pastille-rouge">Inactif</span> }
+              }
+            </div>
+            <dl class="liste-mobile-details">
+              <div><dt>E-mail</dt><dd>{{ u.email }}</dd></div>
+              <div><dt>Rôle</dt><dd>{{ u.role.libRole }}</dd></div>
+            </dl>
+            <div class="admin-actions-mobile">
+              <button type="button" class="btn-contour-sombre" (click)="ouvrirEditionUtilisateur(u)">Modifier</button>
+              <button type="button" class="admin-btn-danger" (click)="demanderSuppression('utilisateur', u.idUtil, nomUtilisateur(u))">Supprimer</button>
+            </div>
+          </article>
+        } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun utilisateur trouvé.</div> }
+      </div>
     }
 
     <!-- ==================== COMPTES CLIENTS ==================== -->
@@ -388,7 +446,7 @@
         </button>
         <span class="admin-filtres-compteur">{{ comptesAffiches().length }} résultat(s)</span>
       </div>
-      <div class="admin-tableau-carte">
+      <div class="admin-tableau-carte d-none d-md-block">
         <table class="tableau">
           <thead>
             <tr>
@@ -434,6 +492,29 @@
           </tbody>
         </table>
       </div>
+      <div class="liste-mobile d-md-none">
+        @for (c of comptesAffiches(); track c.idCompteClient) {
+          <article class="liste-mobile-carte">
+            <div class="liste-mobile-entete">
+              <h2 class="liste-mobile-titre">{{ libelleAssure(c) }}</h2>
+              @switch (c.statutCompte) {
+                @case ('ACTIF') { <span class="pastille pastille-lagon">Actif</span> }
+                @case ('SUSPENDU') { <span class="pastille">Suspendu</span> }
+                @default { <span class="pastille pastille-rouge">Inactif</span> }
+              }
+            </div>
+            <dl class="liste-mobile-details">
+              <div><dt>N° assuré</dt><dd>{{ c.numerosAssure || '—' }}</dd></div>
+              <div><dt>E-mail</dt><dd>{{ c.email }}</dd></div>
+              <div><dt>Créé le</dt><dd>{{ c.dateCreation?.slice(0, 10) | dateFr }}</dd></div>
+            </dl>
+            <div class="admin-actions-mobile">
+              <button type="button" class="btn-contour-sombre" (click)="ouvrirEditionCompte(c)">Modifier</button>
+              <button type="button" class="admin-btn-danger" (click)="demanderSuppression('compte', c.idCompteClient, c.email)">Supprimer</button>
+            </div>
+          </article>
+        } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun compte client trouvé.</div> }
+      </div>
     }
 
     <!-- ==================== ASSURÉS ==================== -->
@@ -471,7 +552,7 @@
         </button>
         <span class="admin-filtres-compteur">{{ assuresAffiches().length }} résultat(s)</span>
       </div>
-      <div class="admin-tableau-carte">
+      <div class="admin-tableau-carte d-none d-md-block">
         <table class="tableau">
           <thead>
             <tr>
@@ -514,6 +595,25 @@
           </tbody>
         </table>
       </div>
+      <div class="liste-mobile d-md-none">
+        @for (a of assuresAffiches(); track a.idAssure) {
+          <article class="liste-mobile-carte">
+            <div class="liste-mobile-entete">
+              <h2 class="liste-mobile-titre">{{ a.nomAssure }} {{ a.prenomAssure || '' }}</h2>
+              @if (a.personneMorale) { <span class="pastille pastille-sombre">Morale</span> }
+            </div>
+            <dl class="liste-mobile-details">
+              <div><dt>N° assuré</dt><dd>{{ a.numerosAssure || '—' }}</dd></div>
+              <div><dt>Contact</dt><dd>{{ a.contact || '—' }}</dd></div>
+              <div><dt>E-mail</dt><dd>{{ a.mail || '—' }}</dd></div>
+            </dl>
+            <div class="admin-actions-mobile">
+              <button type="button" class="btn-contour-sombre" (click)="ouvrirEditionAssure(a)">Modifier</button>
+              <button type="button" class="admin-btn-danger" (click)="demanderSuppression('assure', a.idAssure, libelleAssure(a))">Supprimer</button>
+            </div>
+          </article>
+        } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun assuré enregistré.</div> }
+      </div>
     }
     <!-- ==================== PROFIL ==================== -->
     @if (vue() === 'profil') {
@@ -544,6 +644,7 @@
     </div>
 
     <div class="admin-modale-corps">
+      @if (messageErreur) { <p class="message-erreur" role="alert">{{ messageErreur }}</p> }
       <!-- Résultat : mot de passe temporaire -->
       @if (motDePasseTemporaire(); as mdp) {
         @if (emailEnvoye()) {
@@ -636,7 +737,7 @@
           <div class="champ">
             <label for="a-num">Numéro d'assuré</label>
             @if (modeModale() === 'EDITION') {
-              <input id="a-num" type="text" [value]="formAssure.numerosAssure" disabled />
+              <input id="a-num" type="text" [value]="formAssure.numerosAssure || 'Non renseigné'" disabled />
               <span class="aide">Le numéro d'assuré n'est pas modifiable.</span>
             } @else {
               <input id="a-num" type="text" name="numerosAssure" [(ngModel)]="formAssure.numerosAssure" maxlength="8" placeholder="Saisi par l'administrateur" />
@@ -712,8 +813,13 @@
           <i class="bi bi-check-lg" aria-hidden="true"></i> Terminé
         </button>
       } @else {
+        @if (!pret) {
+          <span class="aide" role="status">{{ section === 'assure' && modeModale() === 'EDITION'
+            ? 'Renseignez le nom pour enregistrer cet assuré.'
+            : 'Renseignez les champs obligatoires pour activer « Enregistrer ».' }}</span>
+        }
         <button type="button" class="btn-contour-sombre" (click)="fermerModale()">Annuler</button>
-        <button type="button" class="btn-signal" [disabled]="!pret" (click)="enregistrer()">
+        <button type="button" class="btn-signal" [disabled]="!pret || enregistrementEnCours()" (click)="enregistrer()">
           <i class="bi bi-check-lg" aria-hidden="true"></i>
           {{ modeModale() === 'CREATION' ? 'Créer' : 'Enregistrer' }}
         </button>

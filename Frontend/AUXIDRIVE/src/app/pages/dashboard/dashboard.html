@@ -1,16 +1,23 @@
 <header class="entete dashboard-entete">
   <div class="container d-flex align-items-center justify-content-between py-3">
     <a routerLink="/dashboard" class="marque"><img class="marque-logo" src="img/logo-auximad.png" alt="" />Auxiassur <span class="marque-suffixe">Espace</span></a>
+    <button type="button" class="menu-bouton d-md-none" aria-controls="sidebarMenu"
+            [attr.aria-expanded]="menuOuvert" [attr.aria-label]="menuOuvert ? 'Fermer le menu' : 'Ouvrir le menu'"
+            (click)="menuOuvert = !menuOuvert">
+      <i class="bi" [class.bi-list]="!menuOuvert" [class.bi-x-lg]="menuOuvert" aria-hidden="true"></i>
+      <span>Menu</span>
+    </button>
   </div>
 </header>
 
 <div class="container-fluid">
   <div class="row">
     <!-- Barre latérale de navigation (Sidebar) -->
-    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar py-4">
+    <nav id="sidebarMenu" class="col-md-3 col-lg-2 sidebar py-4" aria-label="Navigation de l'espace client"
+         [class.sidebar-ouverte]="menuOuvert">
       <ul class="nav flex-column gap-1">
         <li class="nav-item">
-          <a class="nav-link sidebar-lien" routerLink="/dashboard"
+          <a class="nav-link sidebar-lien" routerLink="/dashboard" (click)="menuOuvert = false"
              routerLinkActive="sidebar-lien-actif" [routerLinkActiveOptions]="{exact: true}">
             <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Tableau de bord
           </a>
@@ -19,27 +26,27 @@
         <!-- Liens visibles uniquement pour les clients -->
         @if (userRole === 'ROLE_CLIENT' || userRole === 'CLIENT') {
           <li class="nav-item">
-            <a class="nav-link sidebar-lien" routerLink="/dashboard/vehicules" routerLinkActive="sidebar-lien-actif">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/vehicules" routerLinkActive="sidebar-lien-actif" (click)="menuOuvert = false">
               <i class="bi bi-car-front-fill me-2" aria-hidden="true"></i>Mes véhicules
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link sidebar-lien" routerLink="/dashboard/contrats" routerLinkActive="sidebar-lien-actif">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/contrats" routerLinkActive="sidebar-lien-actif" (click)="menuOuvert = false">
               <i class="bi bi-file-earmark-check-fill me-2" aria-hidden="true"></i>Mes contrats
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link sidebar-lien" routerLink="/dashboard/sinistres" routerLinkActive="sidebar-lien-actif">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/sinistres" routerLinkActive="sidebar-lien-actif" (click)="menuOuvert = false">
               <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>Déclarer un sinistre
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link sidebar-lien" routerLink="/dashboard/factures" routerLinkActive="sidebar-lien-actif">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/factures" routerLinkActive="sidebar-lien-actif" (click)="menuOuvert = false">
               <i class="bi bi-receipt me-2" aria-hidden="true"></i>Mes factures
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link sidebar-lien" routerLink="/dashboard/profil" routerLinkActive="sidebar-lien-actif">
+            <a class="nav-link sidebar-lien" routerLink="/dashboard/profil" routerLinkActive="sidebar-lien-actif" (click)="menuOuvert = false">
               <i class="bi bi-person-fill me-2" aria-hidden="true"></i>Mon profil
             </a>
           </li>

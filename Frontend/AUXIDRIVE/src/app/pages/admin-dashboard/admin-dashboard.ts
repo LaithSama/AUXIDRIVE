@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { Assure } from '../../core/interfaces/assure';
 import { CompteClientVue, StatutCompte } from '../../core/interfaces/compte-client';
 import { Contrat } from '../../core/interfaces/contrat';
@@ -58,6 +58,7 @@ export class AdminDashboard implements OnInit {
 
   messageSucces = '';
   messageErreur = '';
+  enregistrementEnCours = signal(false);
 
   // ---------- Tableau de bord ----------
   statistiques = signal<Statistiques | null>(null);
@@ -418,8 +419,8 @@ export class AdminDashboard implements OnInit {
     this.formCompte = {
       idCompteClient: c.idCompteClient,
       idAssure: c.idAssure ?? null,
-      email: c.email,
-      statutCompte: c.statutCompte,
+      email: c.email ?? '',
+      statutCompte: c.statutCompte ?? 'ACTIF',
     };
   }
 
@@ -432,8 +433,8 @@ export class AdminDashboard implements OnInit {
     this.sectionModale.set('assure');
     this.formAssure = {
       idAssure: a.idAssure,
-      numerosAssure: a.numerosAssure,
-      nomAssure: a.nomAssure,
+      numerosAssure: a.numerosAssure ?? '',
+      nomAssure: a.nomAssure ?? '',
       prenomAssure: a.prenomAssure ?? '',
       personneMorale: !!a.personneMorale,
       dateNaissance: a.dateNaissance ?? '',
@@ -482,10 +483,16 @@ export class AdminDashboard implements OnInit {
     if (this.modeModale() === 'CREATION') {
       return this.formCompte.idAssure !== null && !!this.formCompte.email.trim();
     }
-    return !!this.formCompte.email.trim();
+    // Un compte ancien sans e-mail doit au moins pouvoir changer de statut.
+    return !!this.formCompte.email.trim() || !!this.formCompte.statutCompte;
   }
 
   get assurePret(): boolean {
+    if (this.modeModale() === 'EDITION') {
+      // Les anciennes fiches peuvent ne pas avoir de numéro/prénom : ces champs ne sont
+      // pas obligatoires pour la mise à jour (le numéro est même en lecture seule).
+      return !!this.formAssure.nomAssure.trim();
+    }
     const identiteOk = this.formAssure.personneMorale || !!this.formAssure.prenomAssure.trim();
     return !!this.formAssure.numerosAssure.trim() && !!this.formAssure.nomAssure.trim() && identiteOk;
   }
@@ -509,11 +516,18 @@ export class AdminDashboard implements OnInit {
   }
 
   enregistrer(): void {
-    if (!this.pret) return;
+    if (this.enregistrementEnCours()) return;
+    if (!this.pret) {
+      this.messageErreur = 'Veuillez renseigner les champs obligatoires avant d’enregistrer.';
+      return;
+    }
+    this.messageErreur = '';
+    this.enregistrementEnCours.set(true);
     switch (this.sectionModale()) {
       case 'utilisateur': this.enregistrerUtilisateur(); break;
       case 'compte': this.enregistrerCompte(); break;
       case 'assure': this.enregistrerAssure(); break;
+      default: this.enregistrementEnCours.set(false);
     }
   }
 
@@ -533,7 +547,7 @@ export class AdminDashboard implements OnInit {
       ? this.utilisateurService.creer(corps)
       : this.utilisateurService.modifier(f.idUtil, corps);
 
-    requete.subscribe({
+    requete.pipe(finalize(() => this.enregistrementEnCours.set(false))).subscribe({
       next: () => {
         this.messageSucces = f.idUtil === null
           ? `Utilisateur « ${corps.nomUtil} » créé.`
@@ -548,7 +562,8 @@ export class AdminDashboard implements OnInit {
   private enregistrerCompte(): void {
     const f = this.formCompte;
     if (f.idCompteClient === null) {
-      this.adminService.creerCompteClient(f.idAssure!, f.email.trim()).subscribe({
+      this.adminService.creerCompteClient(f.idAssure!, f.email.trim())
+        .pipe(finalize(() => this.enregistrementEnCours.set(false))).subscribe({
         next: res => {
           this.motDePasseTemporaire.set(res.motDePasseTemporaire);
           this.emailEnvoye.set(res.emailEnvoye);
@@ -562,7 +577,7 @@ export class AdminDashboard implements OnInit {
     this.adminService.modifierCompteClient(f.idCompteClient, {
       email: f.email.trim(),
       statutCompte: f.statutCompte,
-    }).subscribe({
+    }).pipe(finalize(() => this.enregistrementEnCours.set(false))).subscribe({
       next: () => {
         this.messageSucces = 'Compte client modifié.';
         this.rechargerTout();
@@ -593,7 +608,7 @@ export class AdminDashboard implements OnInit {
       ? this.adminService.creerAssure(corps)
       : this.adminService.modifierAssure(f.idAssure, corps);
 
-    requete.subscribe({
+    requete.pipe(finalize(() => this.enregistrementEnCours.set(false))).subscribe({
       next: () => {
         this.messageSucces = f.idAssure === null
           ? `Assuré n° ${corps.numerosAssure} créé.`

@@ -11,17 +11,42 @@
   h1 { margin: 0 0 0.35rem; }
 }
 
+.accueil-section-titre {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--encre);
+  margin: 0 0 0.9rem;
+}
+
+.accueil-actions { margin-top: 2rem; }
+
 .accueil-carte {
-  display: block;
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  min-height: 12.5rem;
   text-decoration: none;
   color: inherit;
   box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.07);
 }
 
 .accueil-carte-lien {
-  transition: transform 0.15s;
-  &:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 rgba(46, 52, 55, 0.1); }
+  transition: transform 0.15s, box-shadow 0.15s;
+  &:hover, &:focus-visible {
+    color: inherit;
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 rgba(46, 52, 55, 0.1);
+  }
+  &:focus-visible { outline: 3px solid var(--lagon); outline-offset: 4px; }
+}
+
+.accueil-carte-entete {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  .bi { font-size: 1.4rem; line-height: 1; color: var(--lagon); }
 }
 
 .accueil-carte-label {
@@ -43,12 +68,42 @@
 }
 
 .accueil-carte-aide {
+  display: block;
   color: var(--gris);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.accueil-carte-suivre {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 1.1rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--nuit);
 }
 
 .accueil-raccourci {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.07);
+  .chapeau { margin: 0 0 1.25rem; }
+  .btn-signal, .btn-contour-sombre { align-self: flex-start; margin-top: auto; }
+}
+
+.accueil-raccourci-principal {
+  background: #eef7f4;
+}
+
+.accueil-raccourci-icone {
+  display: block;
+  color: var(--lagon);
+  font-size: 1.7rem;
+  line-height: 1;
+  margin-bottom: 0.8rem;
 }
 
 .accueil-raccourci-titre {
@@ -57,6 +112,14 @@
   margin: 0 0 0.35rem;
 }
 
-.accueil-raccourci .chapeau {
-  margin: 0 0 1.25rem;
+@media (max-width: 575.98px) {
+  .entete-contenu { padding-bottom: 1rem; margin-bottom: 1rem; }
+  .accueil-actions { margin-top: 1.5rem; }
+  .accueil-carte, .accueil-raccourci { padding: 1.25rem; }
+  .accueil-raccourci .btn-signal, .accueil-raccourci .btn-contour-sombre {
+    display: block;
+    align-self: stretch;
+    text-align: center;
+  }
+  .accueil-carte { min-height: 0; box-shadow: 3px 3px 0 rgba(46, 52, 55, 0.07); }
 }

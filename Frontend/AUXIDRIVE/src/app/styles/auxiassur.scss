@@ -206,6 +206,77 @@ select:focus-visible, textarea:focus-visible {
   tbody tr:last-child td { border-bottom: 0; }
 }
 
+/* Listes en cartes sur téléphone ; les tableaux restent visibles dès 768 px. */
+.liste-mobile {
+  display: grid;
+  gap: 1rem;
+}
+
+.liste-mobile-carte {
+  background: #fff;
+  border: 1px solid #d5dcd9;
+  border-left: 4px solid var(--lagon);
+  border-radius: 12px;
+  padding: 1rem;
+  min-width: 0;
+  box-shadow: 3px 3px 0 rgba(46, 52, 55, 0.06);
+}
+
+.liste-mobile-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.liste-mobile-titre {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.35;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.liste-mobile-details {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.liste-mobile-details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.liste-mobile-details dt {
+  color: var(--gris);
+  font-weight: 400;
+  flex: 0 0 auto;
+}
+
+.liste-mobile-details dd {
+  margin: 0;
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.liste-mobile-action {
+  width: 100%;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.liste-mobile-vide {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--gris);
+}
+
 /* ---------- messages (succès / erreur / info) ---------- */
 .message-erreur {
   background: #fdecea;
@@ -236,7 +307,7 @@ select:focus-visible, textarea:focus-visible {
 
 .gr-grille {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
   gap: 1rem;
 }
 
@@ -342,6 +413,32 @@ select:focus-visible, textarea:focus-visible {
 }
 .champ.invalide input, .champ.invalide select { border-color: var(--erreur); }
 .champ .erreur { display: block; color: var(--erreur); font-size: 0.92rem; margin-top: 0.25rem; }
+
+@media (max-width: 575.98px) {
+  .carte { padding: 1.25rem; }
+  .titre-section { overflow-wrap: anywhere; }
+  .agent-barre .marque-suffixe, .admin-barre .marque-suffixe { display: none; }
+}
+
+/* L'espace agent partage ses ajustements mobiles avec le thème global
+   afin de ne pas dépasser le budget de styles par composant. */
+.agent-actions-mobile { display: flex; gap: 0.65rem; margin-top: 1rem; }
+.agent-actions-mobile button { flex: 1; }
+
+@media (max-width: 575.98px) {
+  .agent-layout .agent-contenu { padding: 1.25rem 1rem 2rem; }
+  .agent-layout .agent-entete-compte { white-space: normal; }
+  .agent-layout .agent-kpis { grid-template-columns: minmax(0, 1fr); }
+  .agent-layout .agent-filtres .saisie, .agent-layout .agent-filtres-recherche { width: 100%; flex: 1 1 100%; }
+  .agent-filtres > .agent-btn { width: 100%; }
+  .agent-layout .agent-filtres-compteur { margin-left: 0; }
+  .agent-layout .onglets { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+  .agent-layout .onglet { width: 100%; padding: 0.6rem 0.85rem; }
+  .modal .agent-modale-entete, .modal .agent-modale-piede { padding: 0.85rem 1rem; }
+  .modal .agent-modale-piede { flex-wrap: wrap; }
+  .modal .agent-modale-piede button { flex: 1 1 100%; }
+  .modal .agent-modale { max-height: calc(100dvh - 1rem); overflow-y: auto; }
+}
 
 /* ---------- titres de section ---------- */
 .titre-section {

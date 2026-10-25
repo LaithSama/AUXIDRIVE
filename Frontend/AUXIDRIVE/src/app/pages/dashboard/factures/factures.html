@@ -14,7 +14,7 @@
 }
 
 @if (!chargement) {
-  <div class="carte p-0 overflow-hidden fac-liste">
+  <div class="carte p-0 overflow-hidden fac-liste d-none d-md-block">
     <div class="table-responsive">
       <table class="tableau">
         <thead>
@@ -64,5 +64,33 @@
         </tbody>
       </table>
     </div>
+  </div>
+  <div class="liste-mobile d-md-none">
+    @for (f of factures; track f.idFacture) {
+      <article class="liste-mobile-carte">
+        <div class="liste-mobile-entete">
+          <div>
+            <h2 class="liste-mobile-titre">{{ f.numFacture || ('n°' + f.idFacture) }}</h2>
+            @if (f.numPolice) { <small class="fac-id">police {{ f.numPolice }}</small> }
+          </div>
+          @switch (f.statutFacture) {
+            @case ('EMISE') { <span class="pastille">Émise</span> }
+            @case ('PAYEE') { <span class="pastille pastille-lagon">Payée</span> }
+            @case ('ANNULEE') { <span class="pastille pastille-rouge">Annulée</span> }
+          }
+        </div>
+        <dl class="liste-mobile-details">
+          <div><dt>Type</dt><dd>{{ libelleType(f.typeFacture) }}</dd></div>
+          <div><dt>Émission</dt><dd>{{ f.dateEmission | dateFr }}</dd></div>
+          <div><dt>Montant TTC</dt><dd><strong>{{ f.montantTtc | montant }}</strong></dd></div>
+        </dl>
+        <button type="button" class="btn-contour-sombre liste-mobile-action"
+                [disabled]="telechargementId === f.idFacture" (click)="telechargerPdf(f)">
+          {{ telechargementId === f.idFacture ? 'Téléchargement…' : 'Télécharger le PDF' }}
+        </button>
+      </article>
+    } @empty {
+      <div class="liste-mobile-carte liste-mobile-vide">Aucune facture pour le moment.</div>
+    }
   </div>
 }

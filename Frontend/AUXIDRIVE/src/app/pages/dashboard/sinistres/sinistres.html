@@ -85,7 +85,7 @@
 
     <!-- Liste des sinistres -->
     <div class="col-lg-7">
-      <div class="carte p-0 overflow-hidden sin-liste">
+      <div class="carte p-0 overflow-hidden sin-liste d-none d-md-block">
         <div class="table-responsive">
           <table class="tableau">
             <thead>
@@ -123,6 +123,28 @@
             </tbody>
           </table>
         </div>
+      </div>
+      <div class="liste-mobile d-md-none">
+        @for (s of sinistres; track s.idSinistre) {
+          <article class="liste-mobile-carte">
+            <div class="liste-mobile-entete">
+              <h2 class="liste-mobile-titre">Sinistre #{{ s.idSinistre }}</h2>
+              @switch (s.statutSinistre) {
+                @case ('DECLARE') { <span class="pastille">Déclaré</span> }
+                @case ('RAPPORT_EN_COURS') { <span class="pastille">Rapport en cours</span> }
+                @case ('INDEMNISE') { <span class="pastille pastille-lagon">Indemnisé</span> }
+                @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+              }
+            </div>
+            <dl class="liste-mobile-details">
+              <div><dt>Date</dt><dd>{{ s.dateSinistre | dateFr }}</dd></div>
+              <div><dt>Lieu</dt><dd>{{ s.lieuSinistre || '—' }}</dd></div>
+              <div><dt>Indemnisation</dt><dd><strong>{{ s.montantIndemnisation | montant }}</strong></dd></div>
+            </dl>
+          </article>
+        } @empty {
+          <div class="liste-mobile-carte liste-mobile-vide">Aucun sinistre déclaré.</div>
+        }
       </div>
     </div>
   </div>

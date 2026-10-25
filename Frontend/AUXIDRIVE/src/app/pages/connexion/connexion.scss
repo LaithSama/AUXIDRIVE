@@ -32,3 +32,10 @@
   color: var(--gris);
   font-size: 0.95rem;
 }
+
+@media (max-width: 575.98px) {
+  .connexion-main { padding: 1.5rem 0.75rem 2rem; }
+  .entete .marque { font-size: 1.1rem; }
+  .entete .marque-logo { height: 28px; }
+  .entete .btn-contour { padding: 0.4rem 0.6rem; font-size: 0.85rem; }
+}

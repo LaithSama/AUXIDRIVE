@@ -1,0 +1,102 @@
+/* Tableau de bord de l'agent, séparé des styles du composant pour son budget CSS. */
+.agent-contenu {
+  .agent-apercu, .agent-apercu-suite {
+    h2 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--nuit);
+      margin: 0 0 0.3rem;
+    }
+  }
+
+  .agent-apercu-entete { margin-bottom: 1rem; }
+  .agent-apercu-entete p { margin: 0; font-size: 0.9rem; color: var(--gris); }
+
+  .agent-apercu-grille {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .agent-apercu-carte {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+    min-width: 0;
+    min-height: 13.5rem;
+    padding: 1.3rem;
+    text-align: left;
+    font: inherit;
+    color: var(--encre);
+    background: #fff;
+    border: 2px solid var(--encre);
+    border-left: 6px solid var(--lagon);
+    border-radius: 14px 14px 14px 4px;
+    box-shadow: 4px 4px 0 rgba(46, 52, 55, 0.07);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+
+    &:hover, &:focus-visible {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.12);
+    }
+    &:focus-visible { outline: 3px solid var(--lagon); outline-offset: 3px; }
+  }
+
+  .agent-apercu-carte-active { border-left-color: var(--ambre); }
+  .agent-apercu-icone { color: var(--lagon); font-size: 1.35rem; line-height: 1; }
+  .agent-apercu-carte-active .agent-apercu-icone { color: #8a560c; }
+  .agent-apercu-valeur {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-top: 0.3rem;
+  }
+  .agent-apercu-libelle { font-weight: 700; }
+  .agent-apercu-detail { font-size: 0.87rem; color: var(--gris); }
+  .agent-apercu-lien {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    color: var(--nuit);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .agent-apercu-suite { margin-top: 2rem; }
+  .agent-apercu-suite-grille {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .agent-apercu-suite-grille > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 1rem 1.2rem;
+    border: 1px solid #d5dcd9;
+    border-radius: 10px;
+    background: #f6f8f6;
+    color: var(--gris);
+    font-size: 0.88rem;
+    strong { color: var(--nuit); font: 700 1.8rem 'Barlow Condensed', sans-serif; line-height: 1; }
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .agent-contenu .agent-apercu-grille { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+}
+
+@media (max-width: 767.98px) {
+  .agent-contenu .agent-apercu-suite-grille { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 575.98px) {
+  .agent-contenu .agent-apercu-carte { min-height: 0; padding: 1rem; }
+}

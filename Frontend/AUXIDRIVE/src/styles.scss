@@ -1,5 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 @use 'app/styles/auxiassur';
+@use 'app/styles/admin-overview';
+@use 'app/styles/agent-overview';
 
 /* Défilement fluide vers les ancres (navbar accueil) */
 html { scroll-behavior: smooth; }

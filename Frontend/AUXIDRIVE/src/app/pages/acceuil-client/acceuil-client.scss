@@ -45,6 +45,37 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 /* barre fixe : les ancres de la navbar s'arrêtent juste en dessous */
 section[id] { scroll-margin-top: 5rem; }
 
+.accueil-menu-bouton {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+}
+
+.accueil-menu-mobile { display: none; }
+
+@media (max-width: 767.98px) {
+  .accueil-menu-mobile.accueil-menu-ouvert { display: block; }
+  .accueil-menu-mobile .container {
+    display: grid;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    padding-block: 0.5rem;
+  }
+  .accueil-menu-mobile a {
+    color: #fff;
+    text-decoration: none;
+    padding: 0.7rem 0.25rem;
+  }
+  .accueil-menu-mobile a + a { border-top: 1px solid rgba(255, 255, 255, 0.12); }
+  .accueil .btn-signal { width: 100%; text-align: center; }
+  :host .accueil { padding-block: 2.5rem 3rem; }
+  .plaque { max-width: 100%; }
+  :host .plaque input { font-size: clamp(1.7rem, 8vw, 2.25rem); padding-inline: 0.5rem; }
+}
+
 /* ---------- animations du navbar ---------- */
 @keyframes entree-gauche {
   from { opacity: 0; transform: translateX(-10px); }
