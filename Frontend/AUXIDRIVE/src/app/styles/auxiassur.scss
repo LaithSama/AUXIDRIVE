@@ -206,7 +206,7 @@ select:focus-visible, textarea:focus-visible {
   tbody tr:last-child td { border-bottom: 0; }
 }
 
-/* Listes en cartes sur téléphone ; les tableaux restent visibles dès 768 px. */
+/* Listes en cartes sur téléphone et tablette ; les tableaux reviennent dès 992 px. */
 .liste-mobile {
   display: grid;
   gap: 1rem;
@@ -424,6 +424,11 @@ select:focus-visible, textarea:focus-visible {
    afin de ne pas dépasser le budget de styles par composant. */
 .agent-actions-mobile { display: flex; gap: 0.65rem; margin-top: 1rem; }
 .agent-actions-mobile button { flex: 1; }
+
+@media (max-width: 991.98px) {
+  .agent-layout .agent-entete-compte { display: block; margin-top: 0.35rem; white-space: normal; }
+  .agent-layout .agent-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 @media (max-width: 575.98px) {
   .agent-layout .agent-contenu { padding: 1.25rem 1rem 2rem; }

@@ -1,7 +1,7 @@
 <header class="entete dashboard-entete">
   <div class="container d-flex align-items-center justify-content-between py-3">
     <a routerLink="/dashboard" class="marque"><img class="marque-logo" src="img/logo-auximad.png" alt="" />Auxiassur <span class="marque-suffixe">Espace</span></a>
-    <button type="button" class="menu-bouton d-md-none" aria-controls="sidebarMenu"
+    <button type="button" class="menu-bouton d-lg-none" aria-controls="sidebarMenu"
             [attr.aria-expanded]="menuOuvert" [attr.aria-label]="menuOuvert ? 'Fermer le menu' : 'Ouvrir le menu'"
             (click)="menuOuvert = !menuOuvert">
       <i class="bi" [class.bi-list]="!menuOuvert" [class.bi-x-lg]="menuOuvert" aria-hidden="true"></i>
@@ -13,7 +13,7 @@
 <div class="container-fluid">
   <div class="row">
     <!-- Barre latérale de navigation (Sidebar) -->
-    <nav id="sidebarMenu" class="col-md-3 col-lg-2 sidebar py-4" aria-label="Navigation de l'espace client"
+    <nav id="sidebarMenu" class="col-lg-2 sidebar py-4" aria-label="Navigation de l'espace client"
          [class.sidebar-ouverte]="menuOuvert">
       <ul class="nav flex-column gap-1">
         <li class="nav-item">
@@ -69,7 +69,7 @@
     </nav>
 
     <!-- Contenu principal (pages enfants) -->
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-5 dashboard-contenu">
+    <main class="col-lg-10 px-md-4 py-5 dashboard-contenu">
       <router-outlet />
     </main>
   </div>

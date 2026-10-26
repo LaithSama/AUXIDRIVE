@@ -518,6 +518,7 @@
 /* ---------- responsive ---------- */
 @media (max-width: 991.98px) {
   .admin-layout { min-height: auto; }
+  .admin-entete-compte { display: block; margin-top: 0.35rem; white-space: normal; }
 
   .admin-sidebar {
     position: fixed;

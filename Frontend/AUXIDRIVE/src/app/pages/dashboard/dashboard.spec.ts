@@ -31,6 +31,9 @@ describe('Dashboard', () => {
     fixture.detectChanges();
     const bouton: HTMLButtonElement = fixture.nativeElement.querySelector('.menu-bouton');
     const navigation: HTMLElement = fixture.nativeElement.querySelector('#sidebarMenu');
+    expect(bouton.classList.contains('d-lg-none')).toBe(true);
+    expect(navigation.classList.contains('col-lg-2')).toBe(true);
+    expect(fixture.nativeElement.querySelector('.dashboard-contenu').classList.contains('col-lg-10')).toBe(true);
 
     expect(bouton.getAttribute('aria-expanded')).toBe('false');
     bouton.click();

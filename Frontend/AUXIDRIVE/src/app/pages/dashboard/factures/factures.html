@@ -14,7 +14,7 @@
 }
 
 @if (!chargement) {
-  <div class="carte p-0 overflow-hidden fac-liste d-none d-md-block">
+  <div class="carte p-0 overflow-hidden fac-liste d-none d-lg-block">
     <div class="table-responsive">
       <table class="tableau">
         <thead>
@@ -65,7 +65,7 @@
       </table>
     </div>
   </div>
-  <div class="liste-mobile d-md-none">
+  <div class="liste-mobile d-lg-none">
     @for (f of factures; track f.idFacture) {
       <article class="liste-mobile-carte">
         <div class="liste-mobile-entete">

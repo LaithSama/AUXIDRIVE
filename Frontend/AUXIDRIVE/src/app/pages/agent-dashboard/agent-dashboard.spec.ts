@@ -65,6 +65,15 @@ describe('AgentDashboard', () => {
     expect(page.ongletContrat()).toBe('EN_ATTENTE');
   });
 
+  it('affiche les dossiers sous forme de cartes jusqu’à la largeur ordinateur', () => {
+    const fixture = TestBed.createComponent(AgentDashboard);
+    fixture.detectChanges();
+    fixture.componentInstance.changerVue('inscriptions');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.agent-tableau-carte').classList.contains('d-lg-block')).toBe(true);
+    expect(fixture.nativeElement.querySelector('.liste-mobile').classList.contains('d-lg-none')).toBe(true);
+  });
+
   it('distingue aucun dossier à traiter d’un échec de chargement', () => {
     const fixture = TestBed.createComponent(AgentDashboard);
     const page = fixture.componentInstance;

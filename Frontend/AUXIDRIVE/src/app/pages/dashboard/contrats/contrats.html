@@ -18,7 +18,7 @@
 
 @if (!chargement) {
   <!-- Liste des contrats -->
-  <div class="carte p-0 overflow-hidden contrats-liste d-none d-md-block">
+  <div class="carte p-0 overflow-hidden contrats-liste d-none d-lg-block">
     <div class="table-responsive">
       <table class="tableau">
         <thead>
@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  <div class="liste-mobile contrats-liste d-md-none">
+  <div class="liste-mobile contrats-liste d-lg-none">
     @for (c of contrats; track c.idContrat) {
       <article class="liste-mobile-carte">
         <div class="liste-mobile-entete">

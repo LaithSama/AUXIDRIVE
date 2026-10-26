@@ -71,6 +71,14 @@ describe('AdminDashboard : modification', () => {
     expect(page.messageSucces).toContain('modifié');
   });
 
+  it('prévoit les cartes pour les listes sur tablette', () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    fixture.componentInstance.vue.set('assures');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.admin-tableau-carte').classList.contains('d-lg-block')).toBe(true);
+    expect(fixture.nativeElement.querySelector('.liste-mobile').classList.contains('d-lg-none')).toBe(true);
+  });
+
   it('affiche une erreur de modification d’assuré dans la modale', () => {
     admin.modifierAssure.mockReturnValue(throwError(() => ({ status: 400, error: { message: 'Donnée invalide' } })));
     const fixture = TestBed.createComponent(AdminDashboard);

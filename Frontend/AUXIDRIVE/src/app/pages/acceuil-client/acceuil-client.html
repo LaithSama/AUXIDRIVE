@@ -5,18 +5,18 @@
       Auxiassur
     </a>
     <div class="d-flex align-items-center gap-2 gap-md-4">
-      <a href="#formules" class="lien d-none d-md-inline">Nos formules</a>
-      <a href="#demarches" class="lien d-none d-md-inline">Comment ça marche</a>
-      <a href="#contact" class="lien d-none d-md-inline">Contact</a>
+      <a href="#formules" class="lien d-none d-lg-inline">Nos formules</a>
+      <a href="#demarches" class="lien d-none d-lg-inline">Comment ça marche</a>
+      <a href="#contact" class="lien d-none d-lg-inline">Contact</a>
       <a routerLink="/connexion" class="btn btn-outline-light btn-sm px-3">Se connecter</a>
-      <button type="button" class="accueil-menu-bouton d-md-none" aria-controls="accueil-menu"
+      <button type="button" class="accueil-menu-bouton d-lg-none" aria-controls="accueil-menu"
               [attr.aria-expanded]="menuOuvert()" [attr.aria-label]="menuOuvert() ? 'Fermer le menu' : 'Ouvrir le menu'"
               (click)="menuOuvert.set(!menuOuvert())">
         <i class="bi" [class.bi-list]="!menuOuvert()" [class.bi-x-lg]="menuOuvert()" aria-hidden="true"></i>
       </button>
     </div>
   </nav>
-  <nav id="accueil-menu" class="accueil-menu-mobile d-md-none" [class.accueil-menu-ouvert]="menuOuvert()"
+  <nav id="accueil-menu" class="accueil-menu-mobile d-lg-none" [class.accueil-menu-ouvert]="menuOuvert()"
        aria-label="Navigation mobile">
     <div class="container">
       <a href="#formules" (click)="menuOuvert.set(false)">Nos formules</a>
@@ -30,8 +30,9 @@
   <!-- Accueil : la plaque d'immatriculation est le point d'entrée -->
   <section class="accueil">
     <div class="container">
-      <div class="row">
-        <div class="col-lg-9 col-xl-8">
+      <div class="row align-items-center g-4 g-lg-5">
+        <div class="col-lg-7">
+          <p class="accueil-sur-titre">Assurance automobile en ligne</p>
           <h1>Assurez votre voiture sans passer par l'agence.</h1>
           <p class="chapeau">
             Faites votre demande en ligne, un agent Auximad la valide, puis gérez vos contrats,
@@ -59,6 +60,32 @@
             </div>
             <p class="plaque-note">Vous pouvez aussi <a routerLink="/inscription">vous inscrire sans immatriculation</a>.</p>
           </form>
+
+          <div class="accueil-suite" aria-label="Après votre demande">
+            <span class="accueil-suite-icone" aria-hidden="true"><i class="bi bi-clock-history"></i></span>
+            <p><strong>Et après ?</strong> Vous transmettez votre dossier en ligne. Un agent le vérifie, puis vous recevez vos identifiants par e-mail une fois votre compte validé. Vous pourrez alors choisir votre contrat.</p>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="accueil-visuel" aria-hidden="true">
+            <span class="accueil-visuel-etiquette"><i class="bi bi-shield-check"></i> Votre parcours, en ligne</span>
+            <svg class="accueil-visuel-illustration" viewBox="0 0 440 310" xmlns="http://www.w3.org/2000/svg" focusable="false">
+              <circle cx="222" cy="149" r="132" fill="#3a4245"/>
+              <circle cx="222" cy="149" r="103" fill="none" stroke="#5b7166" stroke-width="2" stroke-dasharray="5 10"/>
+              <path d="M46 240h350" stroke="#8fd06a" stroke-width="5" stroke-linecap="round"/>
+              <path d="M84 257h68m131 0h70" stroke="#c5d2dc" stroke-width="3" stroke-linecap="round" stroke-dasharray="14 11"/>
+              <path d="M95 181c6-15 19-25 35-28l30-6 24-42c7-12 17-18 31-18h80c16 0 24 6 33 19l26 41 21 5c15 3 25 17 25 32v36H78v-24c0-7 7-12 17-15Z" fill="#f6f7f5"/>
+              <path d="m170 147 24-38c4-7 10-10 20-10h80c9 0 14 3 20 11l24 37H170Z" fill="#1f6b4a"/>
+              <path d="M256 100v47" stroke="#f6f7f5" stroke-width="5"/>
+              <path d="M85 191h45m225 0h39" stroke="#55a13a" stroke-width="7" stroke-linecap="round"/>
+              <path d="M76 220h323" stroke="#1c2227" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="146" cy="219" r="26" fill="#1c2227"/><circle cx="146" cy="219" r="11" fill="#c5d2dc"/>
+              <circle cx="333" cy="219" r="26" fill="#1c2227"/><circle cx="333" cy="219" r="11" fill="#c5d2dc"/>
+              <rect x="207" y="191" width="70" height="22" rx="4" fill="#fff" stroke="#1c2227" stroke-width="3"/>
+              <path d="M30 92h59m-45 17h38m297-36h34m-21 17h26" stroke="#8fd06a" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <p class="accueil-visuel-legende">Votre demande, votre véhicule, votre espace.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -68,23 +95,21 @@
   <section id="formules" class="bloc">
     <div class="container">
       <h2>Deux formules selon votre parc</h2>
+      <p class="formules-intro">Comparez le nombre de véhicules, la durée et les avantages avant de faire votre demande.</p>
       <div class="row g-4 mt-1">
         @for (o of offres(); track o.libelleOffre) {
           <div class="col-md-6">
             <article class="formule" [class.formule-flotte]="o.typeOffre === 'FLOTTE'">
               <h3>{{ o.libelleOffre }}</h3>
-              <p class="formule-detail">{{ details(o) }}</p>
-              @if (remise(o); as r) {
-                <p class="formule-remise">{{ r }}</p>
-              }
-              <p class="formule-texte">
-                @if (o.typeOffre === 'MONOVEHICULE') {
-                  Pour un particulier ou un professionnel qui assure sa voiture, avec la durée qui lui convient.
-                } @else {
-                  Pour une entreprise ou une famille qui assure plusieurs véhicules sous un seul contrat.
-                }
-              </p>
-              <a routerLink="/inscription" class="formule-lien">Choisir cette formule</a>
+              <p class="formule-texte">{{ o.typeOffre === 'MONOVEHICULE'
+                ? 'Pour assurer une seule voiture, selon la durée qui vous convient.'
+                : 'Pour regrouper plusieurs véhicules sous un seul contrat.' }}</p>
+              <ul class="formule-criteres">
+                <li><i class="bi bi-car-front" aria-hidden="true"></i><span><strong>Véhicules</strong>{{ o.typeOffre === 'MONOVEHICULE' ? '1 véhicule' : 'À partir de ' + o.nbVehiculesMin + ' véhicules' }}</span></li>
+                <li><i class="bi bi-calendar3" aria-hidden="true"></i><span><strong>Durée</strong>{{ o.typeOffre === 'MONOVEHICULE' ? 'De 1 à 12 mois' : o.dureeMinMois + ' mois minimum' }}</span></li>
+                <li><i class="bi bi-stars" aria-hidden="true"></i><span><strong>Avantage</strong>{{ remise(o) || (o.typeOffre === 'MONOVEHICULE' ? 'Durée flexible' : 'Plusieurs véhicules, un seul contrat') }}</span></li>
+              </ul>
+              <a routerLink="/inscription" class="formule-lien">Faire une demande <span aria-hidden="true">→</span></a>
             </article>
           </div>
         }

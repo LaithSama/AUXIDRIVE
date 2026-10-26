@@ -101,13 +101,6 @@ export class AcceuilClient implements OnInit, OnDestroy {
     this.router.navigate(['/inscription'], { queryParams: q ? { immatriculation: q } : {} });
   }
 
-  details(o: Offre): string {
-    if (o.typeOffre === 'MONOVEHICULE') {
-      return 'Un seul véhicule, couvert de 1 à 12 mois.';
-    }
-    return `À partir de ${o.nbVehiculesMin ?? 3} véhicules, pour ${o.dureeMinMois ?? 12} mois au minimum.`;
-  }
-
   remise(o: Offre): string | null {
     return o.typeOffre === 'FLOTTE' && o.tauxRemise
       ? `${o.tauxRemise} % de remise dès 5 véhicules`
