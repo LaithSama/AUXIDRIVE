@@ -1,5 +1,5 @@
 import { Component, OnDestroy, inject, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { InscriptionService } from '../../services/inscription-service';
 import { Assure } from '../../core/interfaces/assure';
@@ -89,12 +89,17 @@ export class Inscription implements OnInit, OnDestroy {
     }
   }
 
-  onSubmit(): void {
+  onSubmit(formulaire?: NgForm): void {
     if (this.enCours || this.dossierEnvoye) {
       return;
     }
-    this.enCours = true;
     this.messageErreur = '';
+    if (formulaire?.invalid) {
+      formulaire.control.markAllAsTouched();
+      this.messageErreur = 'Complétez les champs obligatoires et vérifiez votre adresse e-mail.';
+      return;
+    }
+    this.enCours = true;
 
     const listeFichiers = {
       cin: this.fichierCin,
@@ -145,13 +150,20 @@ export class Inscription implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.enCours = false;
-        console.log("Détail complet de l'erreur reçue du backend :", err);
-        
-        // Extraction intelligente du message renvoyé par Spring Boot
-        if (err.error && typeof err.error === 'object') {
-          this.messageErreur = err.error.message || JSON.stringify(err.error);
+        const corps = err.error;
+        const detail = typeof corps === 'string' ? corps
+          : typeof corps?.detail === 'string' ? corps.detail
+          : typeof corps?.message === 'string' ? corps.message : '';
+        if (err.status === 0) {
+          this.messageErreur = 'Connexion au serveur impossible. Vérifiez votre connexion et réessayez.';
+        } else if (err.status === 409) {
+          this.messageErreur = detail.trim() || 'Cette adresse e-mail ou cet identifiant est déjà utilisé.';
+        } else if (err.status === 400) {
+          this.messageErreur = detail.trim() || 'Vérifiez les informations et les pièces justificatives de votre dossier.';
+        } else if (err.status === 413) {
+          this.messageErreur = 'Fichier trop volumineux. Chaque pièce doit faire 5 Mo maximum.';
         } else {
-          this.messageErreur = err.error || "Une validation d'unicité (409) a échoué côté serveur.";
+          this.messageErreur = 'Impossible de transmettre le dossier pour le moment. Veuillez réessayer.';
         }
       }
     });

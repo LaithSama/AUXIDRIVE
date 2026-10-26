@@ -15,7 +15,7 @@
     <h1 class="connexion-titre">Espace Client</h1>
     <p class="chapeau connexion-chapeau">Connectez-vous pour accéder à votre espace assurance.</p>
 
-    <form (ngSubmit)="onSubmit()">
+    <form #formulaire="ngForm" (ngSubmit)="onSubmit(formulaire)" novalidate>
       <!-- Champ Email -->
       <div class="champ">
         <label for="email">Adresse e-mail</label>
@@ -50,8 +50,8 @@
       }
 
       <!-- Bouton de soumission -->
-      <button type="submit" class="btn-signal connexion-envoi">
-        Se connecter
+      <button type="submit" class="btn-signal connexion-envoi" [disabled]="enCours">
+        {{ enCours ? 'Connexion en cours…' : 'Se connecter' }}
       </button>
     </form>
 

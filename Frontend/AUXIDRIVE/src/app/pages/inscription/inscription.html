@@ -22,10 +22,10 @@
     }
 
     @if (messageErreur) {
-      <div class="message-erreur text-center">{{ messageErreur }}</div>
+      <div class="message-erreur text-center" role="alert">{{ messageErreur }}</div>
     }
 
-    <form (ngSubmit)="onSubmit()">
+    <form #formulaire="ngForm" (ngSubmit)="onSubmit(formulaire)" novalidate>
 
       <!-- Section Civilité & Profil -->
       <div class="row g-3 mb-2">
