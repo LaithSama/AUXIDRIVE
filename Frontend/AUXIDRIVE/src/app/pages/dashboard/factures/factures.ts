@@ -1,4 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Subscription } from 'rxjs';
 import { FactureService } from '../../../services/facture-service';
 import { Facture } from '../../../core/interfaces/facture';
 import { MontantPipe } from '../../../core/pipes/montant.pipe';
@@ -10,13 +12,20 @@ import { DateFrPipe } from '../../../core/pipes/date-fr.pipe';
   templateUrl: './factures.html',
   styleUrl: './factures.scss',
 })
-export class DashboardFactures implements OnInit {
+export class DashboardFactures implements OnInit, OnDestroy {
   private factureService = inject(FactureService);
+  private sanitizer = inject(DomSanitizer);
 
   factures: Facture[] = [];
   chargement = true;
   erreur = '';
   telechargementId: number | null = null;
+  factureApercu: Facture | null = null;
+  chargementApercu = false;
+  erreurApercu = '';
+  apercuUrl: SafeResourceUrl | null = null;
+  private apercuObjectUrl: string | null = null;
+  private apercuSubscription: Subscription | null = null;
 
   private static readonly LIBELLES_TYPES: Record<string, string> = {
     SOUSCRIPTION: 'Souscription',
@@ -40,6 +49,46 @@ export class DashboardFactures implements OnInit {
         this.chargement = false;
       },
     });
+  }
+
+  voirPdf(facture: Facture): void {
+    this.fermerApercu();
+    this.factureApercu = facture;
+    this.chargementApercu = true;
+    this.apercuSubscription = this.factureService.telechargerPdf(facture.idFacture).subscribe({
+      next: (blob) => {
+        // Le PDF est récupéré avec le jeton d'authentification, puis affiché localement.
+        this.apercuObjectUrl = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+        this.apercuUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.apercuObjectUrl);
+        this.chargementApercu = false;
+      },
+      error: () => {
+        this.erreurApercu = `PDF indisponible pour la facture n°${facture.idFacture}.`;
+        this.chargementApercu = false;
+      },
+    });
+  }
+
+  fermerApercu(): void {
+    this.apercuSubscription?.unsubscribe();
+    this.apercuSubscription = null;
+    this.factureApercu = null;
+    this.apercuUrl = null;
+    this.chargementApercu = false;
+    this.erreurApercu = '';
+    if (this.apercuObjectUrl) {
+      URL.revokeObjectURL(this.apercuObjectUrl);
+      this.apercuObjectUrl = null;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  fermerApercuAvecEchap(): void {
+    if (this.factureApercu) this.fermerApercu();
+  }
+
+  ngOnDestroy(): void {
+    this.fermerApercu();
   }
 
   telechargerPdf(facture: Facture): void {

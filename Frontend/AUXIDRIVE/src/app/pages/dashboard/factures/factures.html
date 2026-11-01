@@ -46,7 +46,11 @@
                 }
               </td>
               <td class="text-end fw-medium">{{ f.montantTtc | montant }}</td>
-              <td class="text-end">
+              <td class="text-end fac-actions">
+                <button type="button" class="btn-contour-sombre fac-pdf"
+                        (click)="voirPdf(f)">
+                  Voir
+                </button>
                 <button type="button" class="btn-contour-sombre fac-pdf"
                         [disabled]="telechargementId === f.idFacture"
                         (click)="telechargerPdf(f)">
@@ -84,13 +88,47 @@
           <div><dt>Émission</dt><dd>{{ f.dateEmission | dateFr }}</dd></div>
           <div><dt>Montant TTC</dt><dd><strong>{{ f.montantTtc | montant }}</strong></dd></div>
         </dl>
-        <button type="button" class="btn-contour-sombre liste-mobile-action"
-                [disabled]="telechargementId === f.idFacture" (click)="telechargerPdf(f)">
-          {{ telechargementId === f.idFacture ? 'Téléchargement…' : 'Télécharger le PDF' }}
-        </button>
+        <div class="fac-actions-mobile">
+          <button type="button" class="btn-contour-sombre liste-mobile-action" (click)="voirPdf(f)">
+            Voir le PDF
+          </button>
+          <button type="button" class="btn-contour-sombre liste-mobile-action"
+                  [disabled]="telechargementId === f.idFacture" (click)="telechargerPdf(f)">
+            {{ telechargementId === f.idFacture ? 'Téléchargement…' : 'Télécharger le PDF' }}
+          </button>
+        </div>
       </article>
     } @empty {
       <div class="liste-mobile-carte liste-mobile-vide">Aucune facture pour le moment.</div>
     }
+  </div>
+}
+
+@if (factureApercu) {
+  <div class="modal d-block fac-apercu" role="dialog" aria-modal="true" aria-labelledby="fac-apercu-titre"
+       (click)="fermerApercu()">
+    <div class="modal-dialog modal-dialog-centered modal-xl" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="fac-apercu-titre">
+            Facture {{ factureApercu.numFacture || ('n°' + factureApercu.idFacture) }}
+          </h2>
+          <button type="button" class="btn-close" aria-label="Fermer l'aperçu" (click)="fermerApercu()"></button>
+        </div>
+        <div class="modal-body">
+          @if (chargementApercu) {
+            <p class="text-muted mb-0" role="status">Chargement du PDF…</p>
+          } @else if (erreurApercu) {
+            <div class="message-erreur mb-0" role="alert">{{ erreurApercu }}</div>
+          } @else if (apercuUrl) {
+            <iframe class="fac-apercu-pdf" [src]="apercuUrl"
+                    [title]="'Aperçu de la facture ' + (factureApercu.numFacture || factureApercu.idFacture)"></iframe>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-contour-sombre" (click)="fermerApercu()">Fermer</button>
+        </div>
+      </div>
+    </div>
   </div>
 }

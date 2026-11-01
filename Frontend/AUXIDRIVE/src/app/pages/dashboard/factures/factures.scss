@@ -40,3 +40,29 @@
   color: var(--gris);
   padding: 2rem 1rem;
 }
+
+.fac-actions {
+  white-space: nowrap;
+  .fac-pdf + .fac-pdf { margin-left: 0.5rem; }
+}
+
+.fac-actions-mobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fac-apercu {
+  background: rgba(0, 0, 0, 0.55);
+  .modal-dialog { max-height: calc(100vh - 2rem); }
+  .modal-content { max-height: calc(100vh - 2rem); }
+  .modal-body { overflow: auto; }
+}
+
+.fac-apercu-pdf {
+  display: block;
+  width: 100%;
+  height: min(70vh, 800px);
+  min-height: 320px;
+  border: 0;
+}
