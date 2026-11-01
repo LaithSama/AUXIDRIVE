@@ -6,6 +6,9 @@ import { provideRouter } from '@angular/router';
 import { By } from '@angular/platform-browser';
 
 import { Connexion } from './connexion';
+import { environment } from '../../../environments/environment';
+
+const API = `${environment.apiUrl}/api/auth/login`;
 
 describe('Connexion', () => {
   let component: Connexion;
@@ -35,7 +38,7 @@ describe('Connexion', () => {
     await fixture.whenStable();
     component.onSubmit(fixture.debugElement.query(By.directive(NgForm)).injector.get(NgForm));
     fixture.detectChanges();
-    expect(httpMock.match('http://localhost:8080/api/auth/login')).toHaveLength(0);
+    expect(httpMock.match(API)).toHaveLength(0);
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent).toContain('adresse e-mail valide');
   });
 
@@ -46,14 +49,14 @@ describe('Connexion', () => {
     component.onSubmit();
     fixture.detectChanges();
     expect((fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement).disabled).toBe(true);
-    const requetes = httpMock.match('http://localhost:8080/api/auth/login');
+    const requetes = httpMock.match(API);
     expect(requetes).toHaveLength(1);
     requetes[0].flush('Identifiants invalides', { status: 401, statusText: 'Unauthorized' });
     fixture.detectChanges();
     expect(component.errorMessage).toBe('Identifiants invalides.');
     expect((fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement).disabled).toBe(false);
     component.onSubmit();
-    httpMock.expectOne('http://localhost:8080/api/auth/login').flush('Compte désactivé', { status: 403, statusText: 'Forbidden' });
+    httpMock.expectOne(API).flush('Compte désactivé', { status: 403, statusText: 'Forbidden' });
     expect(component.errorMessage).toBe('Compte non validé ou désactivé.');
   });
 
@@ -61,10 +64,10 @@ describe('Connexion', () => {
     component.email = 'agent@mail.mg';
     component.motDePasse = 'secret';
     component.onSubmit();
-    httpMock.expectOne('http://localhost:8080/api/auth/login').error(new ProgressEvent('error'));
+    httpMock.expectOne(API).error(new ProgressEvent('error'));
     expect(component.errorMessage).toContain('Connexion au serveur impossible');
     component.onSubmit();
-    httpMock.expectOne('http://localhost:8080/api/auth/login').flush({}, { status: 500, statusText: 'Server Error' });
+    httpMock.expectOne(API).flush({}, { status: 500, statusText: 'Server Error' });
     expect(component.errorMessage).toContain('erreur serveur');
   });
 });

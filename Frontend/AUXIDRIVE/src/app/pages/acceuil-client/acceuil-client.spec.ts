@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { AcceuilClient } from './acceuil-client';
+import { environment } from '../../../environments/environment';
 
 describe('AcceuilClient', () => {
   let component: AcceuilClient;
@@ -61,7 +62,7 @@ describe('AcceuilClient', () => {
 
   it('compare les offres avec les caractéristiques renvoyées par le catalogue', () => {
     fixture.detectChanges();
-    TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/offres').flush([
+    TestBed.inject(HttpTestingController).expectOne(`${environment.apiUrl}/api/offres`).flush([
       { libelleOffre: 'Monovéhicule', typeOffre: 'MONOVEHICULE', dureeMinMois: 1, nbVehiculesMin: 1, tauxRemise: 0, description: '' },
       { libelleOffre: 'Flotte', typeOffre: 'FLOTTE', dureeMinMois: 18, nbVehiculesMin: 4, tauxRemise: 7, description: '' },
     ]);

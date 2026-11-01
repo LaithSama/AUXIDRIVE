@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { MotDePasseDemande } from '../core/interfaces/profil';
@@ -9,7 +10,7 @@ import { ProfilStaff, ProfilStaffAMaj } from '../core/interfaces/profil-staff';
 })
 export class ProfilStaffService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/profil-staff';
+  private apiUrl = `${environment.apiUrl}/api/profil-staff`;
 
   monProfil(): Observable<ProfilStaff> {
     return this.http.get<ProfilStaff>(this.apiUrl);

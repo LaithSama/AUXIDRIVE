@@ -3,8 +3,9 @@ import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router'; // 👈 Ajout de RouterLink ici
 import { Offre } from '../../core/interfaces/offre';
+import { environment } from '../../../environments/environment';
 
-const API = 'http://localhost:8080/api';
+const API = `${environment.apiUrl}/api`;
 
 /** Offres affichées si l'API ne répond pas (même contenu que les données de départ du backend). */
 const OFFRES_PAR_DEFAUT: Offre[] = [

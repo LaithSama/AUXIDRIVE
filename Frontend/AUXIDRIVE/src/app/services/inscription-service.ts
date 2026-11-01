@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { Assure } from '../core/interfaces/assure';
 import { AssureProfession } from '../core/interfaces/assure-profession';
@@ -10,7 +11,7 @@ import { Observable } from 'rxjs';
 })
 export class InscriptionService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/inscriptions';
+  private apiUrl = `${environment.apiUrl}/api/inscriptions`;
 
   soumettre(
     assure: Assure,

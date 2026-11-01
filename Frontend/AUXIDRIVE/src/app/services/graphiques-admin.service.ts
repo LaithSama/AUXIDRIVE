@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Contrat } from '../core/interfaces/contrat';
 import { Inscription } from '../core/interfaces/inscription';
+import { environment } from '../../environments/environment';
 
 /**
  * Sourcing des données brutes des graphiques du tableau de bord administrateur.
@@ -18,7 +19,7 @@ import { Inscription } from '../core/interfaces/inscription';
 })
 export class GraphiquesAdminService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   /** Tous les contrats souscrits, tous canaux confondus. */
   getContrats(): Observable<Contrat[]> {

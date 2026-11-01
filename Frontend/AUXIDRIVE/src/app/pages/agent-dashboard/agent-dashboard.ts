@@ -9,6 +9,7 @@ import { MontantPipe } from '../../core/pipes/montant.pipe';
 import { DateFrPipe } from '../../core/pipes/date-fr.pipe';
 import { AuthService } from '../../services/auth-service';
 import { ProfilStaffPanel } from '../../components/profil-staff/profil-staff';
+import { environment } from '../../../environments/environment';
 
 type VueAgent = 'tableau' | 'inscriptions' | 'contrats' | 'sinistres' | 'profil';
 type OngletSinistre = 'DECLARE' | 'RAPPORT_EN_COURS' | 'CLOTURES';
@@ -25,7 +26,7 @@ export class AgentDashboard implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
 
-  private apiUrl = 'http://localhost:8080/api';
+  private apiUrl = `${environment.apiUrl}/api`;
 
   /** Vue d'ensemble affichée dès l'ouverture de l'espace agent. */
   vue = signal<VueAgent>('tableau');

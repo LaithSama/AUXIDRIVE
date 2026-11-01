@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Facture } from '../core/interfaces/facture';
@@ -8,7 +9,7 @@ import { Facture } from '../core/interfaces/facture';
 })
 export class FactureService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/factures';
+  private apiUrl = `${environment.apiUrl}/api/factures`;
 
   mesFactures(): Observable<Facture[]> {
     return this.http.get<Facture[]>(`${this.apiUrl}/compte`);

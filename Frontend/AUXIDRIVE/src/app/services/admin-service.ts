@@ -5,6 +5,7 @@ import { Assure } from '../core/interfaces/assure';
 import { CompteClientCree, CompteClientVue } from '../core/interfaces/compte-client';
 import { Role } from '../core/interfaces/utilisateur';
 import { Statistiques } from '../core/interfaces/statistiques';
+import { environment } from '../../environments/environment';
 
 /** Espace d'administration (routes réservées au rôle ADMIN). */
 @Injectable({
@@ -12,7 +13,7 @@ import { Statistiques } from '../core/interfaces/statistiques';
 })
 export class AdminService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/admin';
+  private apiUrl = `${environment.apiUrl}/api/admin`;
 
   // ---------- tableau de bord ----------
 

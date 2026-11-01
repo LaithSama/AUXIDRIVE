@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { DemandeSinistre, Sinistre } from '../core/interfaces/sinistre';
@@ -8,7 +9,7 @@ import { DemandeSinistre, Sinistre } from '../core/interfaces/sinistre';
 })
 export class SinistreService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/sinistres';
+  private apiUrl = `${environment.apiUrl}/api/sinistres`;
 
   mesSinistres(): Observable<Sinistre[]> {
     return this.http.get<Sinistre[]>(`${this.apiUrl}/compte`);

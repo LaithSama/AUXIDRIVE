@@ -5,8 +5,9 @@ import { provideRouter } from '@angular/router';
 
 import { Profil } from '../../../core/interfaces/profil';
 import { DashboardProfil } from './profil';
+import { environment } from '../../../../environments/environment';
 
-const API = 'http://localhost:8080/api/profil';
+const API = `${environment.apiUrl}/api/profil`;
 
 const PROFIL: Profil = {
   compte: { email: 'client@auxi.mg', dateCreation: '2026-01-05T09:00:00', dateSuppressionPlanifiee: null },

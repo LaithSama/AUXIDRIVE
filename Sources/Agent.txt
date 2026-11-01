@@ -1,3 +1,6 @@
+npm run start -- --configuration development   # http://localhost:8080
+npm run start -- --configuration production    # URL de environment.prod.ts
+
 Administrateur :
 admin@auximad.mg
 adminAuxidrive

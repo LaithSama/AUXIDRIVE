@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { AuthResponse } from '../core/interfaces/auth-response';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/auth/login';
+  private apiUrl = `${environment.apiUrl}/api/auth/login`;
 
   login(email: string, motDePasse: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(this.apiUrl, { email, motDePasse }).pipe(

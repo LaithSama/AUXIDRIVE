@@ -6,8 +6,9 @@ import { provideRouter } from '@angular/router';
 import { By } from '@angular/platform-browser';
 
 import { Inscription } from './inscription';
+import { environment } from '../../../environments/environment';
 
-const API = 'http://localhost:8080/api/inscriptions';
+const API = `${environment.apiUrl}/api/inscriptions`;
 
 describe('Inscription', () => {
   let component: Inscription;

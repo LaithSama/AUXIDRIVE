@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Utilisateur } from '../core/interfaces/utilisateur';
@@ -9,7 +10,7 @@ import { Utilisateur } from '../core/interfaces/utilisateur';
 })
 export class UtilisateurService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/utilisateurs';
+  private apiUrl = `${environment.apiUrl}/api/utilisateurs`;
 
   getUtilisateurs(): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(this.apiUrl);

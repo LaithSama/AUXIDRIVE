@@ -3,12 +3,13 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { GarantieType } from '../core/interfaces/garantie';
 import { Offre } from '../core/interfaces/offre';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class OffreService {
-  private apiUrl = 'http://localhost:8080/api/offres';
+  private apiUrl = `${environment.apiUrl}/api/offres`;
 
   private http = inject(HttpClient);
 
