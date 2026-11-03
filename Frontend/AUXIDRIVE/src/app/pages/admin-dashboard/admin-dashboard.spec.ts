@@ -80,6 +80,53 @@ describe('AdminDashboard : modification', () => {
     expect(fixture.nativeElement.querySelector('.liste-mobile').classList.contains('d-lg-none')).toBe(true);
   });
 
+  it('présente les champs assurés par groupes sans imposer le prénom aux anciennes fiches', () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.ouvrirEditionAssure({ ...assure, prenomAssure: null } as unknown as Assure);
+    fixture.detectChanges();
+
+    const modale = fixture.nativeElement.querySelector('.admin-modale') as HTMLElement;
+    expect(modale.getAttribute('aria-labelledby')).toBe('admin-modale-titre');
+    expect(Array.from(modale.querySelectorAll('.admin-form-groupe-titre'), titre => titre.textContent?.trim()))
+      .toEqual(['Identité', 'Résidence', 'Contact']);
+    expect(modale.querySelector('#a-nom')?.getAttribute('aria-required')).toBe('true');
+    expect(modale.querySelector('#a-prenom')?.getAttribute('aria-required')).toBe('false');
+    expect(modale.querySelector('.admin-modale-pied .btn-signal')).not.toBeNull();
+  });
+
+  it('présente le compte rattaché comme référence et isole les identifiants après création', () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.ouvrirEditionCompte(compte);
+    fixture.detectChanges();
+
+    const modale = fixture.nativeElement.querySelector('.admin-modale') as HTMLElement;
+    expect(modale.querySelector('.admin-lecture-seule')?.textContent).toContain('Rakoto Jean');
+    expect(modale.querySelector('.admin-champ-reference input')).toBeNull();
+
+    page.motDePasseTemporaire.set('secret-temporaire');
+    page.emailEnvoye.set(false);
+    fixture.detectChanges();
+    expect(modale.querySelector('.admin-identifiants')?.textContent).toContain('secret-temporaire');
+    expect(modale.querySelector('.admin-identifiants')?.textContent).toContain('uniquement au client');
+    expect(modale.querySelector('.message-erreur')?.textContent).toContain("l'e-mail n'a pas pu être envoyé");
+  });
+
+  it('affiche distinctement le nom de la cible dans la confirmation de suppression', () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.demanderSuppression('assure', assure.idAssure, 'Rakoto Jean');
+    fixture.detectChanges();
+
+    const confirmation = fixture.nativeElement.querySelector('[role="alertdialog"]') as HTMLElement;
+    expect(confirmation.getAttribute('aria-labelledby')).toBe('admin-suppression-titre');
+    expect(confirmation.querySelector('.admin-suppression-cible')?.textContent).toContain('Rakoto Jean');
+  });
+
   for (const section of ['utilisateurs', 'comptes', 'assures'] as const) {
     it(`pagine la liste ${section} sous les affichages bureau et mobile`, () => {
       const fixture = TestBed.createComponent(AdminDashboard);

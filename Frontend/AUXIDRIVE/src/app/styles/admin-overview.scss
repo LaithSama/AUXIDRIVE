@@ -140,6 +140,64 @@
   }
 }
 
+/* Formulaires d'administration : lecture guidée sans changer la validation. */
+.admin-modale {
+  .admin-modale-entete-texte { min-width: 0; }
+  .admin-modale-surtitre {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: #e3f0e7;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .admin-modale-entete-danger .admin-modale-titre { line-height: 1.35; }
+  .admin-modale-description { margin: 0.35rem 0 0; color: #e3f0e7; font-size: 0.88rem; line-height: 1.45; }
+  .admin-modale-fermer { flex-shrink: 0; border-radius: 6px; padding: 0.4rem; }
+  .admin-modale-fermer:focus-visible,
+  .admin-modale-pied button:focus-visible { outline: 3px solid var(--signal-clair); outline-offset: 3px; }
+
+  .admin-form-groupe-titre {
+    margin: 0.15rem 0 1rem;
+    padding: 0.55rem 0.75rem;
+    border-left: 4px solid var(--lagon);
+    background: #f1f6f3;
+    color: var(--nuit);
+    font: 700 1rem 'Bricolage Grotesque', sans-serif;
+  }
+  .admin-form-groupe-titre:not(:first-child) { margin-top: 0.75rem; }
+  .champ input:disabled { background: #eef1f3; color: var(--gris); border-color: #d5dcd9; }
+  .admin-reference-libelle { display: block; margin-bottom: 0.35rem; font-weight: 600; }
+  .admin-lecture-seule {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    border-left: 4px solid var(--lagon);
+    border-radius: 4px 8px 8px 4px;
+    background: #f1f6f3;
+    color: var(--nuit);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .admin-champ-reference .aide { margin-top: 0.4rem; }
+  .admin-modale-pied { align-items: center; }
+  .admin-modale-pied .aide { margin-right: auto; color: var(--gris); font-size: 0.85rem; }
+  .admin-modale-pied .btn-signal { font-weight: 700; }
+
+  .admin-identifiants { padding: 1rem; border: 1px solid #d5dcd9; border-radius: 12px; background: #f6f8f6; }
+  .admin-identifiants-libelle { display: block; color: var(--gris); font-size: 0.88rem; font-weight: 700; }
+  .admin-identifiants .admin-motdepasse { margin: 0.75rem 0; overflow-wrap: anywhere; }
+  .admin-identifiants-aide { margin: 0; color: var(--gris); font-size: 0.85rem; }
+  .admin-suppression-cible {
+    padding: 0.8rem 1rem;
+    border-left: 4px solid var(--erreur);
+    border-radius: 4px 8px 8px 4px;
+    background: #fdecea;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+}
+
 @media (max-width: 991.98px) {
   .admin-contenu .admin-suivi-grille,
   .admin-contenu .admin-kpis { grid-template-columns: minmax(0, 1fr); }

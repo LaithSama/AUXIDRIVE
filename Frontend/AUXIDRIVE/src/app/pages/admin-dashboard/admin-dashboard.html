@@ -664,19 +664,29 @@
 <!-- ==================== MODALE D'ÉDITION ==================== -->
 @if (sectionModale(); as section) {
   <div class="admin-modale-voile" (click)="fermerModale()"></div>
-  <div class="admin-modale" role="dialog" aria-modal="true">
+  <div class="admin-modale" role="dialog" aria-modal="true" aria-labelledby="admin-modale-titre">
     <div class="admin-modale-entete">
-      <h2 class="admin-modale-titre">
-        @if (motDePasseTemporaire()) {
-          <i class="bi bi-key-fill" aria-hidden="true"></i> Compte créé
-        } @else if (modeModale() === 'CREATION') {
-          <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
-          {{ section === 'utilisateur' ? 'Nouvel utilisateur' : section === 'compte' ? 'Nouveau compte client' : 'Nouvel assuré' }}
-        } @else {
-          <i class="bi bi-pencil-square" aria-hidden="true"></i>
-          {{ section === 'utilisateur' ? 'Modifier l\'utilisateur' : section === 'compte' ? 'Modifier le compte' : 'Modifier l\'assuré' }}
+      <div class="admin-modale-entete-texte">
+        <span class="admin-modale-surtitre">{{ motDePasseTemporaire() ? 'Identifiants client' : modeModale() === 'CREATION' ? 'Création' : 'Modification' }}</span>
+        <h2 id="admin-modale-titre" class="admin-modale-titre">
+          @if (motDePasseTemporaire()) {
+            <i class="bi bi-key-fill" aria-hidden="true"></i> Compte créé
+          } @else if (modeModale() === 'CREATION') {
+            <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
+            {{ section === 'utilisateur' ? 'Nouvel utilisateur' : section === 'compte' ? 'Nouveau compte client' : 'Nouvel assuré' }}
+          } @else {
+            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+            {{ section === 'utilisateur' ? 'Modifier l\'utilisateur' : section === 'compte' ? 'Modifier le compte' : 'Modifier l\'assuré' }}
+          }
+        </h2>
+        @if (!motDePasseTemporaire()) {
+          <p class="admin-modale-description">{{ section === 'utilisateur'
+            ? 'Renseignez les accès et les droits de cet utilisateur.'
+            : section === 'compte'
+              ? 'Gérez les accès au portail du client assuré.'
+              : 'Complétez les informations de la fiche assuré.' }}</p>
         }
-      </h2>
+      </div>
       <button type="button" class="admin-modale-fermer" (click)="fermerModale()" aria-label="Fermer">
         <i class="bi bi-x-lg" aria-hidden="true"></i>
       </button>
@@ -697,26 +707,31 @@
             Transmettez-lui ce mot de passe manuellement :
           </p>
         }
-        <p class="admin-motdepasse">{{ mdp }}</p>
+        <div class="admin-identifiants">
+          <span class="admin-identifiants-libelle">Mot de passe temporaire</span>
+          <p class="admin-motdepasse">{{ mdp }}</p>
+          <p class="admin-identifiants-aide">À communiquer uniquement au client concerné.</p>
+        </div>
       } @else if (section === 'utilisateur') {
         <div class="champ">
           <label for="u-nom">Nom</label>
-          <input id="u-nom" type="text" name="nomUtil" [(ngModel)]="formUtilisateur.nomUtil" maxlength="40" />
+          <input id="u-nom" type="text" name="nomUtil" [(ngModel)]="formUtilisateur.nomUtil" maxlength="40" aria-required="true" />
         </div>
         <div class="champ">
           <label for="u-email">E-mail</label>
-          <input id="u-email" type="email" name="emailUtil" [(ngModel)]="formUtilisateur.email" />
+          <input id="u-email" type="email" name="emailUtil" [(ngModel)]="formUtilisateur.email" aria-required="true" />
         </div>
         <div class="champ">
           <label for="u-mdp">Mot de passe</label>
-          <input id="u-mdp" type="password" name="motDePasse" [(ngModel)]="formUtilisateur.motDePasse" autocomplete="new-password" />
-          <span class="aide">
+          <input id="u-mdp" type="password" name="motDePasse" [(ngModel)]="formUtilisateur.motDePasse" autocomplete="new-password"
+                 [attr.aria-required]="modeModale() === 'CREATION'" aria-describedby="u-mdp-aide" />
+          <span id="u-mdp-aide" class="aide">
             {{ modeModale() === 'EDITION' ? 'Laisser vide pour conserver le mot de passe actuel.' : '8 caractères minimum.' }}
           </span>
         </div>
         <div class="champ">
           <label for="u-role">Rôle</label>
-          <select id="u-role" name="libRole" [(ngModel)]="formUtilisateur.libRole">
+          <select id="u-role" name="libRole" [(ngModel)]="formUtilisateur.libRole" aria-required="true">
             @for (r of rolesStaff(); track r.libRole) {
               <option [value]="r.libRole">{{ r.libRole }}</option>
             }
@@ -738,7 +753,7 @@
         @if (modeModale() === 'CREATION') {
           <div class="champ">
             <label for="c-assure">Assuré</label>
-            <select id="c-assure" name="idAssure" [(ngModel)]="formCompte.idAssure" (ngModelChange)="choisirAssurePourCompte()">
+            <select id="c-assure" name="idAssure" [(ngModel)]="formCompte.idAssure" (ngModelChange)="choisirAssurePourCompte()" aria-required="true">
               @for (a of assuresSansCompte(); track a.idAssure) {
                 <option [ngValue]="a.idAssure">{{ a.numerosAssure }} — {{ libelleAssure(a) }}</option>
               }
@@ -749,14 +764,14 @@
           </div>
           <div class="champ">
             <label for="c-email">E-mail de connexion</label>
-            <input id="c-email" type="email" name="emailCompte" [(ngModel)]="formCompte.email" />
+            <input id="c-email" type="email" name="emailCompte" [(ngModel)]="formCompte.email" aria-required="true" />
           </div>
           <p class="message-info">Un mot de passe temporaire sera généré et envoyé automatiquement à cette adresse.</p>
         } @else {
-          <div class="champ">
-            <label>Assuré</label>
-            <input type="text" [value]="libelleCompteEdite" disabled />
-            <span class="aide">L'assuré rattaché à un compte n'est pas modifiable.</span>
+          <div class="champ admin-champ-reference">
+            <span class="admin-reference-libelle">Assuré rattaché</span>
+            <p class="admin-lecture-seule">{{ libelleCompteEdite }}</p>
+            <span class="aide">L'assuré rattaché à ce compte n'est pas modifiable.</span>
           </div>
           <div class="champ">
             <label for="c-email-edit">E-mail de connexion</label>
@@ -773,22 +788,30 @@
         }
       } @else {
         <div class="admin-form-grille">
+          <h3 class="admin-form-groupe-titre admin-pleine-largeur">Identité</h3>
           <div class="champ">
             <label for="a-num">Numéro d'assuré</label>
             @if (modeModale() === 'EDITION') {
               <input id="a-num" type="text" [value]="formAssure.numerosAssure || 'Non renseigné'" disabled />
               <span class="aide">Le numéro d'assuré n'est pas modifiable.</span>
             } @else {
-              <input id="a-num" type="text" name="numerosAssure" [(ngModel)]="formAssure.numerosAssure" maxlength="8" placeholder="Saisi par l'administrateur" />
+              <input id="a-num" type="text" name="numerosAssure" [(ngModel)]="formAssure.numerosAssure" maxlength="8" placeholder="Saisi par l'administrateur" aria-required="true" />
             }
           </div>
           <div class="champ">
             <label for="a-nom">Nom</label>
-            <input id="a-nom" type="text" name="nomAssure" [(ngModel)]="formAssure.nomAssure" maxlength="50" />
+            <input id="a-nom" type="text" name="nomAssure" [(ngModel)]="formAssure.nomAssure" maxlength="50" aria-required="true" />
           </div>
           <div class="champ">
             <label for="a-prenom">Prénom</label>
-            <input id="a-prenom" type="text" name="prenomAssure" [(ngModel)]="formAssure.prenomAssure" maxlength="50" />
+            <input id="a-prenom" type="text" name="prenomAssure" [(ngModel)]="formAssure.prenomAssure" maxlength="50"
+                   [attr.aria-required]="modeModale() === 'CREATION' && !formAssure.personneMorale" />
+          </div>
+          <div class="champ admin-case admin-pleine-largeur">
+            <label>
+              <input type="checkbox" name="personneMorale" [(ngModel)]="formAssure.personneMorale" />
+              Personne morale (entreprise)
+            </label>
           </div>
           <div class="champ">
             <label for="a-naiss">Date de naissance</label>
@@ -811,6 +834,7 @@
               <option value="Mlle">Mlle</option>
             </select>
           </div>
+          <h3 class="admin-form-groupe-titre admin-pleine-largeur">Résidence</h3>
           <div class="champ">
             <label for="a-nat">Nationalité</label>
             <input id="a-nat" type="text" name="nationalite" [(ngModel)]="formAssure.nationalite" maxlength="50" />
@@ -823,6 +847,7 @@
             <label for="a-adresse">Adresse</label>
             <input id="a-adresse" type="text" name="adresse" [(ngModel)]="formAssure.adresse" maxlength="50" />
           </div>
+          <h3 class="admin-form-groupe-titre admin-pleine-largeur">Contact</h3>
           <div class="champ">
             <label for="a-contact">Contact</label>
             <input id="a-contact" type="tel" name="contact" [(ngModel)]="formAssure.contact" maxlength="13" />
@@ -835,12 +860,6 @@
             } @else {
               <input id="a-mail" type="email" name="mail" [(ngModel)]="formAssure.mail" maxlength="50" />
             }
-          </div>
-          <div class="champ admin-case">
-            <label>
-              <input type="checkbox" name="personneMorale" [(ngModel)]="formAssure.personneMorale" />
-              Personne morale (entreprise)
-            </label>
           </div>
         </div>
       }
@@ -870,15 +889,16 @@
 <!-- ==================== CONFIRMATION DE SUPPRESSION ==================== -->
 @if (suppression(); as cible) {
   <div class="admin-modale-voile" (click)="annulerSuppression()"></div>
-  <div class="admin-modale admin-modale-etroite" role="alertdialog" aria-modal="true">
+  <div class="admin-modale admin-modale-etroite" role="alertdialog" aria-modal="true" aria-labelledby="admin-suppression-titre">
     <div class="admin-modale-entete admin-modale-entete-danger">
-      <h2 class="admin-modale-titre"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Confirmer la suppression</h2>
+      <h2 id="admin-suppression-titre" class="admin-modale-titre"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Confirmer la suppression</h2>
       <button type="button" class="admin-modale-fermer" (click)="annulerSuppression()" aria-label="Fermer">
         <i class="bi bi-x-lg" aria-hidden="true"></i>
       </button>
     </div>
     <div class="admin-modale-corps">
-      <p>Voulez-vous vraiment supprimer <strong>{{ cible.libelle }}</strong> ?</p>
+      <p>Voulez-vous vraiment supprimer cet élément ?</p>
+      <p class="admin-suppression-cible">{{ cible.libelle }}</p>
       <p class="admin-aide-danger">
         La suppression est refusée si la donnée est référencée (contrats, véhicules, documents…).
       </p>
