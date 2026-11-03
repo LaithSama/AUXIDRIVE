@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize, forkJoin } from 'rxjs';
@@ -42,6 +42,7 @@ type ModeModale = 'CREATION' | 'EDITION';
   styleUrl: './admin-dashboard.scss',
 })
 export class AdminDashboard implements OnInit {
+  readonly taillePage = 10;
   private adminService = inject(AdminService);
   private utilisateurService = inject(UtilisateurService);
   private graphiquesService = inject(GraphiquesAdminService);
@@ -106,6 +107,10 @@ export class AdminDashboard implements OnInit {
     });
     return this.trierUtilisateurs(liste);
   });
+  pageUtilisateurs = signal(1);
+  totalPagesUtilisateurs = computed(() => Math.max(1, Math.ceil(this.utilisateursAffiches().length / this.taillePage)));
+  pageCouranteUtilisateurs = computed(() => Math.min(this.pageUtilisateurs(), this.totalPagesUtilisateurs()));
+  utilisateursPage = computed(() => this.paginer(this.utilisateursAffiches(), this.pageCouranteUtilisateurs()));
 
   // ---------- Comptes clients ----------
   comptes = signal<CompteClientVue[]>([]);
@@ -131,6 +136,10 @@ export class AdminDashboard implements OnInit {
     });
     return this.trierComptes(liste);
   });
+  pageComptes = signal(1);
+  totalPagesComptes = computed(() => Math.max(1, Math.ceil(this.comptesAffiches().length / this.taillePage)));
+  pageCouranteComptes = computed(() => Math.min(this.pageComptes(), this.totalPagesComptes()));
+  comptesPage = computed(() => this.paginer(this.comptesAffiches(), this.pageCouranteComptes()));
 
   // ---------- Assurés ----------
   assures = signal<Assure[]>([]);
@@ -154,6 +163,10 @@ export class AdminDashboard implements OnInit {
     });
     return this.trierAssures(liste);
   });
+  pageAssures = signal(1);
+  totalPagesAssures = computed(() => Math.max(1, Math.ceil(this.assuresAffiches().length / this.taillePage)));
+  pageCouranteAssures = computed(() => Math.min(this.pageAssures(), this.totalPagesAssures()));
+  assuresPage = computed(() => this.paginer(this.assuresAffiches(), this.pageCouranteAssures()));
 
   // ---------- Modale ----------
   sectionModale = signal<SectionModale | null>(null);
@@ -223,21 +236,30 @@ export class AdminDashboard implements OnInit {
 
   chargerUtilisateurs(): void {
     this.utilisateurService.getUtilisateurs().subscribe({
-      next: liste => this.utilisateurs.set(liste),
+      next: liste => {
+        this.utilisateurs.set(liste);
+        this.pageUtilisateurs.set(this.pageCouranteUtilisateurs());
+      },
       error: err => this.signalerErreur(err, 'Impossible de charger les utilisateurs.'),
     });
   }
 
   chargerComptes(): void {
     this.adminService.getComptesClients().subscribe({
-      next: liste => this.comptes.set(liste),
+      next: liste => {
+        this.comptes.set(liste);
+        this.pageComptes.set(this.pageCouranteComptes());
+      },
       error: err => this.signalerErreur(err, 'Impossible de charger les comptes clients.'),
     });
   }
 
   chargerAssures(): void {
     this.adminService.getAssures().subscribe({
-      next: liste => this.assures.set(liste),
+      next: liste => {
+        this.assures.set(liste);
+        this.pageAssures.set(this.pageCouranteAssures());
+      },
       error: err => this.signalerErreur(err, 'Impossible de charger les assurés.'),
     });
   }
@@ -656,6 +678,21 @@ export class AdminDashboard implements OnInit {
 
   // ------------------------------------------------------------------ filtres
 
+  /** Un changement de recherche, filtre ou tri revient à la première page. */
+  changerFiltre<T>(filtre: WritableSignal<T>, valeur: T, page: WritableSignal<number>): void {
+    filtre.set(valeur);
+    page.set(1);
+  }
+
+  changerPage(page: WritableSignal<number>, destination: number, total: number): void {
+    page.set(Math.max(1, Math.min(destination, total)));
+  }
+
+  private paginer<T>(liste: T[], page: number): T[] {
+    const debut = (page - 1) * this.taillePage;
+    return liste.slice(debut, debut + this.taillePage);
+  }
+
   /** Réinitialise recherche, filtres et tri de la section affichée. */
   reinitialiserFiltres(): void {
     switch (this.vue()) {
@@ -664,18 +701,21 @@ export class AdminDashboard implements OnInit {
         this.filtreRoleUtilisateur.set('tous');
         this.filtreStatutUtilisateur.set('tous');
         this.triUtilisateur.set('nomAsc');
+        this.pageUtilisateurs.set(1);
         break;
       case 'comptes':
         this.rechercheCompte.set('');
         this.filtreStatutCompte.set('tous');
         this.filtreConnexion.set('tous');
         this.triCompte.set('nomAsc');
+        this.pageComptes.set(1);
         break;
       default:
         this.rechercheAssure.set('');
         this.filtreTypeAssure.set('tous');
         this.filtreMailAssure.set('tous');
         this.triAssure.set('nomAsc');
+        this.pageAssures.set(1);
     }
   }
 

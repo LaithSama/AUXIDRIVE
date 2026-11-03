@@ -343,6 +343,19 @@
 }
 
 /* ---------- tableaux ---------- */
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+
+  span { font-weight: 600; color: var(--encre); }
+  button { padding: 0.45rem 0.85rem; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
 .admin-tableau-carte {
   background: #fff;
   border: 2px solid rgba(28, 34, 39, 0.12);

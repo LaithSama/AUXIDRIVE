@@ -315,24 +315,24 @@
           <i class="bi bi-search" aria-hidden="true"></i>
           <input type="search" class="saisie" placeholder="Rechercher un utilisateur (nom, e-mail, rôle)…"
                  aria-label="Rechercher un utilisateur"
-                 [ngModel]="rechercheUtilisateur()" (ngModelChange)="rechercheUtilisateur.set($event)"
+                  [ngModel]="rechercheUtilisateur()" (ngModelChange)="changerFiltre(rechercheUtilisateur, $event, pageUtilisateurs)"
                  autocomplete="off" />
         </div>
         <select class="saisie" aria-label="Filtrer par rôle"
-                [ngModel]="filtreRoleUtilisateur()" (ngModelChange)="filtreRoleUtilisateur.set($event)">
+                 [ngModel]="filtreRoleUtilisateur()" (ngModelChange)="changerFiltre(filtreRoleUtilisateur, $event, pageUtilisateurs)">
           <option value="tous">Rôle : tous</option>
           <option value="AGENT">Agents</option>
           <option value="ADMIN">Administrateurs</option>
         </select>
         <select class="saisie" aria-label="Filtrer par statut"
-                [ngModel]="filtreStatutUtilisateur()" (ngModelChange)="filtreStatutUtilisateur.set($event)">
+                 [ngModel]="filtreStatutUtilisateur()" (ngModelChange)="changerFiltre(filtreStatutUtilisateur, $event, pageUtilisateurs)">
           <option value="tous">Statut : tous</option>
           <option value="ACTIF">Actif</option>
           <option value="SUSPENDU">Suspendu</option>
           <option value="INACTIF">Inactif</option>
         </select>
         <select class="saisie" aria-label="Trier les utilisateurs"
-                [ngModel]="triUtilisateur()" (ngModelChange)="triUtilisateur.set($event)">
+                 [ngModel]="triUtilisateur()" (ngModelChange)="changerFiltre(triUtilisateur, $event, pageUtilisateurs)">
           <option value="nomAsc">Nom (A → Z)</option>
           <option value="nomDesc">Nom (Z → A)</option>
           <option value="recent">Plus récents</option>
@@ -355,7 +355,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (u of utilisateursAffiches(); track u.idUtil) {
+            @for (u of utilisateursPage(); track u.idUtil) {
               <tr>
                 <td class="fw-medium">{{ u.nomUtil }}</td>
                 <td>{{ u.email }}</td>
@@ -388,7 +388,7 @@
         </table>
       </div>
       <div class="liste-mobile d-lg-none">
-        @for (u of utilisateursAffiches(); track u.idUtil) {
+        @for (u of utilisateursPage(); track u.idUtil) {
           <article class="liste-mobile-carte">
             <div class="liste-mobile-entete">
               <h2 class="liste-mobile-titre">{{ u.nomUtil }}</h2>
@@ -409,6 +409,15 @@
           </article>
         } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun utilisateur trouvé.</div> }
       </div>
+      @if (totalPagesUtilisateurs() > 1) {
+        <nav class="admin-pagination" aria-label="Pagination des utilisateurs">
+          <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteUtilisateurs() === 1"
+                  (click)="changerPage(pageUtilisateurs, pageCouranteUtilisateurs() - 1, totalPagesUtilisateurs())">Précédent</button>
+          <span aria-live="polite">Page {{ pageCouranteUtilisateurs() }} sur {{ totalPagesUtilisateurs() }}</span>
+          <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteUtilisateurs() === totalPagesUtilisateurs()"
+                  (click)="changerPage(pageUtilisateurs, pageCouranteUtilisateurs() + 1, totalPagesUtilisateurs())">Suivant</button>
+        </nav>
+      }
     }
 
     <!-- ==================== COMPTES CLIENTS ==================== -->
@@ -418,24 +427,24 @@
           <i class="bi bi-search" aria-hidden="true"></i>
           <input type="search" class="saisie" placeholder="Rechercher un compte (e-mail, assuré, numéro)…"
                  aria-label="Rechercher un compte client"
-                 [ngModel]="rechercheCompte()" (ngModelChange)="rechercheCompte.set($event)"
+                  [ngModel]="rechercheCompte()" (ngModelChange)="changerFiltre(rechercheCompte, $event, pageComptes)"
                  autocomplete="off" />
         </div>
         <select class="saisie" aria-label="Filtrer par statut"
-                [ngModel]="filtreStatutCompte()" (ngModelChange)="filtreStatutCompte.set($event)">
+                 [ngModel]="filtreStatutCompte()" (ngModelChange)="changerFiltre(filtreStatutCompte, $event, pageComptes)">
           <option value="tous">Statut : tous</option>
           <option value="ACTIF">Actif</option>
           <option value="SUSPENDU">Suspendu</option>
           <option value="INACTIF">Inactif</option>
         </select>
         <select class="saisie" aria-label="Filtrer par connexion"
-                [ngModel]="filtreConnexion()" (ngModelChange)="filtreConnexion.set($event)">
+                 [ngModel]="filtreConnexion()" (ngModelChange)="changerFiltre(filtreConnexion, $event, pageComptes)">
           <option value="tous">Connexion : toutes</option>
           <option value="deja">Déjà connecté</option>
           <option value="jamais">Jamais connecté</option>
         </select>
         <select class="saisie" aria-label="Trier les comptes"
-                [ngModel]="triCompte()" (ngModelChange)="triCompte.set($event)">
+                 [ngModel]="triCompte()" (ngModelChange)="changerFiltre(triCompte, $event, pageComptes)">
           <option value="nomAsc">Assuré (A → Z)</option>
           <option value="emailAsc">E-mail (A → Z)</option>
           <option value="recent">Plus récents</option>
@@ -459,7 +468,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (c of comptesAffiches(); track c.idCompteClient) {
+            @for (c of comptesPage(); track c.idCompteClient) {
               <tr>
                 <td class="fw-medium">{{ libelleAssure(c) }}</td>
                 <td>{{ c.numerosAssure || '—' }}</td>
@@ -493,7 +502,7 @@
         </table>
       </div>
       <div class="liste-mobile d-lg-none">
-        @for (c of comptesAffiches(); track c.idCompteClient) {
+        @for (c of comptesPage(); track c.idCompteClient) {
           <article class="liste-mobile-carte">
             <div class="liste-mobile-entete">
               <h2 class="liste-mobile-titre">{{ libelleAssure(c) }}</h2>
@@ -515,6 +524,15 @@
           </article>
         } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun compte client trouvé.</div> }
       </div>
+      @if (totalPagesComptes() > 1) {
+        <nav class="admin-pagination" aria-label="Pagination des comptes clients">
+          <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteComptes() === 1"
+                  (click)="changerPage(pageComptes, pageCouranteComptes() - 1, totalPagesComptes())">Précédent</button>
+          <span aria-live="polite">Page {{ pageCouranteComptes() }} sur {{ totalPagesComptes() }}</span>
+          <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteComptes() === totalPagesComptes()"
+                  (click)="changerPage(pageComptes, pageCouranteComptes() + 1, totalPagesComptes())">Suivant</button>
+        </nav>
+      }
     }
 
     <!-- ==================== ASSURÉS ==================== -->
@@ -524,23 +542,23 @@
           <i class="bi bi-search" aria-hidden="true"></i>
           <input type="search" class="saisie" placeholder="Rechercher un assuré (nom, numéro, contact, e-mail)…"
                  aria-label="Rechercher un assuré"
-                 [ngModel]="rechercheAssure()" (ngModelChange)="rechercheAssure.set($event)"
+                  [ngModel]="rechercheAssure()" (ngModelChange)="changerFiltre(rechercheAssure, $event, pageAssures)"
                  autocomplete="off" />
         </div>
         <select class="saisie" aria-label="Filtrer par type"
-                [ngModel]="filtreTypeAssure()" (ngModelChange)="filtreTypeAssure.set($event)">
+                 [ngModel]="filtreTypeAssure()" (ngModelChange)="changerFiltre(filtreTypeAssure, $event, pageAssures)">
           <option value="tous">Type : tous</option>
           <option value="physique">Personne physique</option>
           <option value="morale">Personne morale</option>
         </select>
         <select class="saisie" aria-label="Filtrer par e-mail"
-                [ngModel]="filtreMailAssure()" (ngModelChange)="filtreMailAssure.set($event)">
+                 [ngModel]="filtreMailAssure()" (ngModelChange)="changerFiltre(filtreMailAssure, $event, pageAssures)">
           <option value="tous">E-mail : tous</option>
           <option value="avec">Avec e-mail</option>
           <option value="sans">Sans e-mail</option>
         </select>
         <select class="saisie" aria-label="Trier les assurés"
-                [ngModel]="triAssure()" (ngModelChange)="triAssure.set($event)">
+                 [ngModel]="triAssure()" (ngModelChange)="changerFiltre(triAssure, $event, pageAssures)">
           <option value="nomAsc">Nom (A → Z)</option>
           <option value="nomDesc">Nom (Z → A)</option>
           <option value="numeroAsc">N° assuré (A → Z)</option>
@@ -565,7 +583,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (a of assuresAffiches(); track a.idAssure) {
+            @for (a of assuresPage(); track a.idAssure) {
               <tr>
                 <td class="fw-medium">{{ a.numerosAssure }}</td>
                 <td>
@@ -596,7 +614,7 @@
         </table>
       </div>
       <div class="liste-mobile d-lg-none">
-        @for (a of assuresAffiches(); track a.idAssure) {
+        @for (a of assuresPage(); track a.idAssure) {
           <article class="liste-mobile-carte">
             <div class="liste-mobile-entete">
               <h2 class="liste-mobile-titre">{{ a.nomAssure }} {{ a.prenomAssure || '' }}</h2>
@@ -614,6 +632,15 @@
           </article>
         } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun assuré enregistré.</div> }
       </div>
+      @if (totalPagesAssures() > 1) {
+        <nav class="admin-pagination" aria-label="Pagination des assurés">
+          <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteAssures() === 1"
+                  (click)="changerPage(pageAssures, pageCouranteAssures() - 1, totalPagesAssures())">Précédent</button>
+          <span aria-live="polite">Page {{ pageCouranteAssures() }} sur {{ totalPagesAssures() }}</span>
+          <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteAssures() === totalPagesAssures()"
+                  (click)="changerPage(pageAssures, pageCouranteAssures() + 1, totalPagesAssures())">Suivant</button>
+        </nav>
+      }
     }
     <!-- ==================== PROFIL ==================== -->
     @if (vue() === 'profil') {

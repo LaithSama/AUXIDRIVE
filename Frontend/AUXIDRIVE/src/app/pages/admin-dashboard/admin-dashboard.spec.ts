@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 import { Assure } from '../../core/interfaces/assure';
 import { CompteClientVue } from '../../core/interfaces/compte-client';
 import { Statistiques } from '../../core/interfaces/statistiques';
+import { Utilisateur } from '../../core/interfaces/utilisateur';
 import { AdminService } from '../../services/admin-service';
 import { AuthService } from '../../services/auth-service';
 import { GraphiquesAdminService } from '../../services/graphiques-admin.service';
@@ -77,6 +78,73 @@ describe('AdminDashboard : modification', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.admin-tableau-carte').classList.contains('d-lg-block')).toBe(true);
     expect(fixture.nativeElement.querySelector('.liste-mobile').classList.contains('d-lg-none')).toBe(true);
+  });
+
+  for (const section of ['utilisateurs', 'comptes', 'assures'] as const) {
+    it(`pagine la liste ${section} sous les affichages bureau et mobile`, () => {
+      const fixture = TestBed.createComponent(AdminDashboard);
+      const page = fixture.componentInstance;
+      page.vue.set(section);
+      fixture.detectChanges();
+
+      const ids = Array.from({ length: 11 }, (_, i) => i + 1);
+      if (section === 'utilisateurs') {
+        page.utilisateurs.set(ids.map(id => ({
+          idUtil: id, nomUtil: `Nom ${String(id).padStart(2, '0')}`, email: `u${id}@mail.mg`,
+          role: { idRole: 1, libRole: 'AGENT' }, statutUtilisateur: 'ACTIF',
+        } as Utilisateur)));
+      } else if (section === 'comptes') {
+        page.comptes.set(ids.map(id => ({ ...compte, idCompteClient: id, email: `u${id}@mail.mg`, nomAssure: `Nom ${String(id).padStart(2, '0')}` })));
+      } else {
+        page.assures.set(ids.map(id => ({ ...assure, idAssure: id, numerosAssure: String(id).padStart(8, '0'), nomAssure: `Nom ${String(id).padStart(2, '0')}` })));
+      }
+      fixture.detectChanges();
+
+      const racine = fixture.nativeElement as HTMLElement;
+      const pagination = racine.querySelector('.admin-pagination') as HTMLElement;
+      expect(pagination).toBeTruthy();
+      expect(pagination.compareDocumentPosition(racine.querySelector('.liste-mobile')!) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+      expect(pagination.textContent).toContain('Page 1 sur 2');
+      expect(racine.querySelectorAll('.admin-tableau-carte tbody tr').length).toBe(10);
+      expect(racine.querySelectorAll('.liste-mobile-carte').length).toBe(10);
+      const boutons = pagination.querySelectorAll('button');
+      expect(boutons[0].disabled).toBe(true);
+      boutons[1].click();
+      fixture.detectChanges();
+      expect(pagination.textContent).toContain('Page 2 sur 2');
+      expect(boutons[1].disabled).toBe(true);
+      expect(racine.querySelectorAll('.admin-tableau-carte tbody tr').length).toBe(1);
+      expect(racine.querySelectorAll('.liste-mobile-carte').length).toBe(1);
+
+      const recherche = racine.querySelector('.admin-filtres-recherche input') as HTMLInputElement;
+      recherche.value = 'Nom 01';
+      recherche.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(racine.querySelector('.admin-pagination')).toBeNull();
+      expect(racine.querySelector('.admin-filtres-compteur')?.textContent).toContain('1 résultat(s)');
+      expect(racine.querySelectorAll('.admin-tableau-carte tbody tr').length).toBe(1);
+    });
+  }
+
+  it('masque la navigation à 10 résultats et ajuste la page après une réduction de la liste', () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    page.vue.set('assures');
+    fixture.detectChanges();
+    const liste = Array.from({ length: 11 }, (_, i) => ({ ...assure, idAssure: i + 1, nomAssure: `Nom ${i + 1}` }));
+    page.assures.set(liste.slice(0, 10));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.admin-pagination')).toBeNull();
+
+    page.assures.set(liste);
+    page.changerPage(page.pageAssures, 2, page.totalPagesAssures());
+    fixture.detectChanges();
+    expect(page.assuresPage().length).toBe(1);
+    page.assures.set(liste.slice(0, 10));
+    fixture.detectChanges();
+    expect(page.pageCouranteAssures()).toBe(1);
+    expect(page.assuresPage().length).toBe(10);
+    expect(fixture.nativeElement.querySelector('.admin-pagination')).toBeNull();
   });
 
   it('affiche une erreur de modification d’assuré dans la modale', () => {
