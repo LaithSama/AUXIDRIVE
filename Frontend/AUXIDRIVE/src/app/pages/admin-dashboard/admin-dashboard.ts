@@ -20,6 +20,8 @@ import { AuthService } from '../../services/auth-service';
 import { GraphiquesAdminService } from '../../services/graphiques-admin.service';
 import { UtilisateurService } from '../../services/utilisateur-service';
 import { ProfilStaffPanel } from '../../components/profil-staff/profil-staff';
+import { EtatVide } from '../../components/etat-vide/etat-vide';
+import { Squelette } from '../../components/squelette/squelette';
 
 type VueAdmin = 'tableau' | 'utilisateurs' | 'comptes' | 'assures' | 'profil';
 type SectionModale = 'utilisateur' | 'compte' | 'assure';
@@ -33,6 +35,8 @@ type ModeModale = 'CREATION' | 'EDITION';
     RouterLink,
     DateFrPipe,
     ProfilStaffPanel,
+    EtatVide,
+    Squelette,
     GraphiqueDonut,
     GraphiqueBarres,
     GraphiqueColonnes,
@@ -80,6 +84,8 @@ export class AdminDashboard implements OnInit {
 
   // ---------- Utilisateurs ----------
   utilisateurs = signal<Utilisateur[]>([]);
+  chargementUtilisateurs = signal(true);
+  erreurUtilisateurs = signal(false);
   roles = signal<Role[]>([]);
 
   /** Rôles proposables pour un agent/administrateur (le rôle CLIENT est réservé aux comptes clients). */
@@ -114,6 +120,8 @@ export class AdminDashboard implements OnInit {
 
   // ---------- Comptes clients ----------
   comptes = signal<CompteClientVue[]>([]);
+  chargementComptes = signal(true);
+  erreurComptes = signal(false);
 
   // Filtres comptes clients
   rechercheCompte = signal('');
@@ -143,6 +151,8 @@ export class AdminDashboard implements OnInit {
 
   // ---------- Assurés ----------
   assures = signal<Assure[]>([]);
+  chargementAssures = signal(true);
+  erreurAssures = signal(false);
 
   // Filtres assurés
   rechercheAssure = signal('');
@@ -235,32 +245,53 @@ export class AdminDashboard implements OnInit {
   }
 
   chargerUtilisateurs(): void {
+    this.chargementUtilisateurs.set(true);
+    this.erreurUtilisateurs.set(false);
     this.utilisateurService.getUtilisateurs().subscribe({
       next: liste => {
         this.utilisateurs.set(liste);
         this.pageUtilisateurs.set(this.pageCouranteUtilisateurs());
+        this.chargementUtilisateurs.set(false);
       },
-      error: err => this.signalerErreur(err, 'Impossible de charger les utilisateurs.'),
+      error: err => {
+        this.chargementUtilisateurs.set(false);
+        this.erreurUtilisateurs.set(true);
+        this.signalerErreur(err, 'Impossible de charger les utilisateurs.');
+      },
     });
   }
 
   chargerComptes(): void {
+    this.chargementComptes.set(true);
+    this.erreurComptes.set(false);
     this.adminService.getComptesClients().subscribe({
       next: liste => {
         this.comptes.set(liste);
         this.pageComptes.set(this.pageCouranteComptes());
+        this.chargementComptes.set(false);
       },
-      error: err => this.signalerErreur(err, 'Impossible de charger les comptes clients.'),
+      error: err => {
+        this.chargementComptes.set(false);
+        this.erreurComptes.set(true);
+        this.signalerErreur(err, 'Impossible de charger les comptes clients.');
+      },
     });
   }
 
   chargerAssures(): void {
+    this.chargementAssures.set(true);
+    this.erreurAssures.set(false);
     this.adminService.getAssures().subscribe({
       next: liste => {
         this.assures.set(liste);
         this.pageAssures.set(this.pageCouranteAssures());
+        this.chargementAssures.set(false);
       },
-      error: err => this.signalerErreur(err, 'Impossible de charger les assurés.'),
+      error: err => {
+        this.chargementAssures.set(false);
+        this.erreurAssures.set(true);
+        this.signalerErreur(err, 'Impossible de charger les assurés.');
+      },
     });
   }
 

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth-service';
 import { ProfilService } from '../../../services/profil-service';
 import { Profil } from '../../../core/interfaces/profil';
+import { Squelette } from '../../../components/squelette/squelette';
 
 const MOIS_FR = [
   'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -13,7 +14,7 @@ const MOIS_FR = [
 
 @Component({
   selector: 'app-dashboard-profil',
-  imports: [FormsModule],
+  imports: [FormsModule, Squelette],
   templateUrl: './profil.html',
   styleUrl: './profil.scss',
 })

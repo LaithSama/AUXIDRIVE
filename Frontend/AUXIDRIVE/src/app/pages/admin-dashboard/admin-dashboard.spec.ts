@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { Assure } from '../../core/interfaces/assure';
 import { CompteClientVue } from '../../core/interfaces/compte-client';
@@ -324,5 +324,45 @@ describe('AdminDashboard : modification', () => {
     expect(suivi.textContent).toContain('Aucune inscription à traiter');
     expect(suivi.textContent).toContain('Aucun contrat à traiter');
     expect(suivi.querySelectorAll('.admin-suivi-carte-active').length).toBe(0);
+  });
+
+  it('sépare le chargement, l’erreur et le vide des comptes clients', () => {
+    const attente = new Subject<CompteClientVue[]>();
+    admin.getComptesClients.mockReturnValueOnce(attente.asObservable());
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    page.vue.set('comptes');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-squelette[role="status"]')?.textContent)
+      .toContain('Chargement des comptes clients');
+    expect(fixture.nativeElement.querySelector('app-etat-vide')).toBeNull();
+
+    attente.error({ status: 500 });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.message-erreur')?.textContent)
+      .toContain('Impossible de charger les comptes clients');
+    expect(fixture.nativeElement.querySelector('app-etat-vide')).toBeNull();
+
+    admin.getComptesClients.mockReturnValueOnce(of([]));
+    page.chargerComptes();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-etat-vide')?.textContent)
+      .toContain('Aucun compte client trouvé');
+  });
+
+  it('propose de créer un assuré plutôt qu’un compte sans assuré disponible', () => {
+    admin.getAssures.mockReturnValueOnce(of([]));
+    admin.getComptesClients.mockReturnValueOnce(of([]));
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    page.vue.set('comptes');
+    fixture.detectChanges();
+    const bouton = fixture.nativeElement.querySelector('app-etat-vide button') as HTMLButtonElement;
+    expect(bouton.textContent).toContain('Ajouter un assuré');
+    bouton.click();
+    fixture.detectChanges();
+    expect(page.vue()).toBe('assures');
+    expect(fixture.nativeElement.querySelector('app-etat-vide button')?.textContent)
+      .toContain('Créer un assuré');
   });
 });

@@ -2,6 +2,7 @@
 @use 'app/styles/auxiassur';
 @use 'app/styles/admin-overview';
 @use 'app/styles/agent-overview';
+@use 'app/styles/feedback-states';
 
 /* Défilement fluide vers les ancres (navbar accueil) */
 html { scroll-behavior: smooth; }

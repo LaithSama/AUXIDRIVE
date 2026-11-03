@@ -6,14 +6,14 @@
 </div>
 
 @if (chargement) {
-  <p class="text-muted">Chargement…</p>
+  <app-squelette libelle="Chargement des sinistres" [nombre]="2" />
 }
 
 @if (!chargement) {
   <div class="row g-4">
     <!-- Formulaire de déclaration -->
     <div class="col-lg-5">
-      <div class="carte carte-bande sin-formulaire">
+      <div id="sin-formulaire" class="carte carte-bande sin-formulaire">
         <h2 class="sin-formulaire-titre">Déclarer un sinistre</h2>
 
         @if (erreur) {
@@ -116,7 +116,10 @@
               } @empty {
                 <tr>
                   <td colspan="5" class="sin-vide">
-                    Aucun sinistre déclaré.
+                    @if (!erreur) {
+                      <app-etat-vide titre="Aucun sinistre déclaré." description="Vos déclarations apparaîtront ici dès leur enregistrement."
+                        icone="bi-shield-check" [action]="contratsValides.length ? 'Déclarer un sinistre' : ''" lien="#sin-formulaire" />
+                    }
                   </td>
                 </tr>
               }
@@ -143,7 +146,10 @@
             </dl>
           </article>
         } @empty {
-          <div class="liste-mobile-carte liste-mobile-vide">Aucun sinistre déclaré.</div>
+          @if (!erreur) {
+            <app-etat-vide class="liste-mobile-carte" titre="Aucun sinistre déclaré." description="Vos déclarations apparaîtront ici dès leur enregistrement."
+              icone="bi-shield-check" [action]="contratsValides.length ? 'Déclarer un sinistre' : ''" lien="#sin-formulaire" />
+          }
         }
       </div>
     </div>

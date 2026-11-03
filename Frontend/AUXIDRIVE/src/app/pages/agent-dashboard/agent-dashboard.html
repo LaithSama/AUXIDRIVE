@@ -108,7 +108,7 @@
   <!-- ==================== TABLEAU DE BORD ==================== -->
   @if (vue() === 'tableau') {
     @if (chargementTableau()) {
-      <p class="message-info" role="status">Chargement des dossiers…</p>
+      <app-squelette libelle="Chargement des dossiers" />
     } @else if (erreurTableau()) {
       <div class="message-erreur" role="alert">Impossible de charger tous les dossiers. Les indicateurs ne sont pas disponibles pour le moment.</div>
       <button type="button" class="agent-btn agent-btn-annuler" (click)="actualiserTableau()">Réessayer</button>
@@ -249,6 +249,11 @@
       </div>
     </div>
 
+    @if (chargementInscriptions()) {
+      <app-squelette libelle="Chargement des inscriptions" mode="liste" [nombre]="4" />
+    } @else if (erreurInscriptions()) {
+      <p class="message-erreur" role="alert">Impossible de charger les inscriptions.</p>
+    } @else {
     <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-lg-block">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
@@ -289,7 +294,7 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="5"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucun dossier en attente d'approbation.</span></div></td></tr>
+                <tr><td colspan="5"><app-etat-vide titre="Aucun dossier en attente d'approbation." description="Les demandes à vérifier apparaîtront ici." icone="bi-check2-circle" [action]="demandesEnAttente().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -313,7 +318,7 @@
                   <td class="text-end pe-4 text-muted small fst-italic">Approuvé</td>
                 </tr>
               } @empty {
-                <tr><td colspan="8"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun dossier validé pour l'instant.</span></div></td></tr>
+                <tr><td colspan="8"><app-etat-vide titre="Aucun dossier validé pour l'instant." description="L'historique des demandes validées apparaîtra ici." [action]="demandesValidees().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -337,7 +342,7 @@
                   <td class="text-end pe-4 text-muted small fst-italic">Rejeté</td>
                 </tr>
               } @empty {
-                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun historique de refus enregistré.</span></div></td></tr>
+                <tr><td colspan="7"><app-etat-vide titre="Aucun historique de refus enregistré." description="Les demandes refusées apparaîtront ici." [action]="demandesRefusees().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -377,7 +382,11 @@
             </div>
           }
         </article>
-      } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun dossier pour ce statut.</div> }
+      } @empty {
+        <app-etat-vide class="liste-mobile-carte" titre="Aucun dossier pour ce statut." description="Les dossiers correspondants apparaîtront ici."
+          [action]="(ongletActif() === 'EN_ATTENTE' ? demandesEnAttente() : ongletActif() === 'VALIDEE' ? demandesValidees() : demandesRefusees()).length ? 'Réinitialiser les filtres' : ''"
+          (actionCliquee)="reinitialiserFiltres()" />
+      }
     </div>
     @if (totalPagesInscriptions() > 1) {
       <nav class="agent-pagination" aria-label="Pagination des inscriptions">
@@ -387,6 +396,7 @@
         <button type="button" class="agent-btn" [disabled]="pageCouranteInscriptions() === totalPagesInscriptions()"
                 (click)="changerPage(pageInscriptions, pageCouranteInscriptions() + 1, totalPagesInscriptions())">Suivant</button>
       </nav>
+    }
     }
   }
 
@@ -486,6 +496,11 @@
       </div>
     </div>
 
+    @if (chargementContrats()) {
+      <app-squelette libelle="Chargement des contrats" mode="liste" [nombre]="4" />
+    } @else if (erreurContrats()) {
+      <p class="message-erreur" role="alert">Impossible de charger les contrats.</p>
+    } @else {
     <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-lg-block">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
@@ -519,7 +534,7 @@
                    <td><span class="pastille agent-pastille-action">À valider</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucune demande de contrat en attente.</span></div></td></tr>
+                <tr><td colspan="7"><app-etat-vide titre="Aucune demande de contrat en attente." description="Les contrats à valider apparaîtront ici." icone="bi-check2-circle" [action]="contratsAttente().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -537,7 +552,7 @@
                   <td><span class="pastille pastille-lagon">Validé</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="8"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat validé pour l'instant.</span></div></td></tr>
+                <tr><td colspan="8"><app-etat-vide titre="Aucun contrat validé pour l'instant." description="L'historique des contrats validés apparaîtra ici." [action]="contratsValides().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -554,7 +569,7 @@
                   <td><span class="pastille pastille-rouge">Refusé</span></td>
                 </tr>
               } @empty {
-                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun contrat refusé.</span></div></td></tr>
+                <tr><td colspan="7"><app-etat-vide titre="Aucun contrat refusé." description="Les contrats refusés apparaîtront ici." [action]="contratsRefuses().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -584,7 +599,11 @@
             <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirModaleContrat(c)">Traiter le contrat</button>
           }
         </article>
-      } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun contrat pour ce statut.</div> }
+      } @empty {
+        <app-etat-vide class="liste-mobile-carte" titre="Aucun contrat pour ce statut." description="Les contrats correspondants apparaîtront ici." icone="bi-file-earmark-text"
+          [action]="(ongletContrat() === 'EN_ATTENTE' ? contratsAttente() : ongletContrat() === 'VALIDE' ? contratsValides() : contratsRefuses()).length ? 'Réinitialiser les filtres' : ''"
+          (actionCliquee)="reinitialiserFiltres()" />
+      }
     </div>
     @if (totalPagesContrats() > 1) {
       <nav class="agent-pagination" aria-label="Pagination des contrats">
@@ -594,6 +613,7 @@
         <button type="button" class="agent-btn" [disabled]="pageCouranteContrats() === totalPagesContrats()"
                 (click)="changerPage(pageContrats, pageCouranteContrats() + 1, totalPagesContrats())">Suivant</button>
       </nav>
+    }
     }
   }
 
@@ -699,6 +719,11 @@
       </div>
     </div>
 
+    @if (chargementSinistres()) {
+      <app-squelette libelle="Chargement des sinistres" mode="liste" [nombre]="4" />
+    } @else if (erreurSinistres()) {
+      <p class="message-erreur" role="alert">Impossible de charger les sinistres.</p>
+    } @else {
     <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-lg-block">
       <div class="table-responsive">
         <table class="table agent-tableau align-middle mb-0">
@@ -730,7 +755,7 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucun sinistre en attente d'instruction.</span></div></td></tr>
+                <tr><td colspan="7"><app-etat-vide titre="Aucun sinistre en attente d'instruction." description="Les sinistres à instruire apparaîtront ici." icone="bi-check2-circle" [action]="sinistresDeclares().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -749,7 +774,7 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun dossier avec rapport en cours.</span></div></td></tr>
+                <tr><td colspan="7"><app-etat-vide titre="Aucun dossier avec rapport en cours." description="Les sinistres à clôturer apparaîtront ici." [action]="sinistresEnCours().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -778,7 +803,7 @@
                   </td>
                 </tr>
               } @empty {
-                <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-inbox" aria-hidden="true"></i><span>Aucun dossier clôturé.</span></div></td></tr>
+                <tr><td colspan="7"><app-etat-vide titre="Aucun dossier clôturé." description="L'historique des sinistres clôturés apparaîtra ici." [action]="sinistresClotures().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
               }
             }
 
@@ -809,7 +834,11 @@
             @case ('CLOTURES') { <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirDetail(s)">Voir le détail</button> }
           }
         </article>
-      } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun sinistre pour ce statut.</div> }
+      } @empty {
+        <app-etat-vide class="liste-mobile-carte" titre="Aucun sinistre pour ce statut." description="Les dossiers correspondants apparaîtront ici." icone="bi-shield-check"
+          [action]="(ongletSinistre() === 'DECLARE' ? sinistresDeclares() : ongletSinistre() === 'RAPPORT_EN_COURS' ? sinistresEnCours() : sinistresClotures()).length ? 'Réinitialiser les filtres' : ''"
+          (actionCliquee)="reinitialiserFiltres()" />
+      }
     </div>
     @if (totalPagesSinistres() > 1) {
       <nav class="agent-pagination" aria-label="Pagination des sinistres">
@@ -819,6 +848,7 @@
         <button type="button" class="agent-btn" [disabled]="pageCouranteSinistres() === totalPagesSinistres()"
                 (click)="changerPage(pageSinistres, pageCouranteSinistres() + 1, totalPagesSinistres())">Suivant</button>
       </nav>
+    }
     }
   }
 

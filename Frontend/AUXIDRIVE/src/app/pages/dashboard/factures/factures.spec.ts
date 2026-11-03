@@ -93,4 +93,25 @@ describe('DashboardFactures', () => {
     expect(fixture.componentInstance.factureApercu).toBeNull();
     expect(createObjectURL).not.toHaveBeenCalled();
   });
+
+  it('ne confond pas le chargement ou une erreur avec une liste vide', () => {
+    fixture.componentInstance.factures = [];
+    fixture.componentInstance.chargement = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-squelette[role="status"]')?.textContent)
+      .toContain('Chargement des factures');
+    expect(fixture.nativeElement.querySelector('app-etat-vide')).toBeNull();
+
+    fixture.componentInstance.chargement = false;
+    fixture.componentInstance.erreur = 'Impossible de charger vos factures.';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.message-erreur')?.textContent)
+      .toContain('Impossible de charger vos factures');
+    expect(fixture.nativeElement.querySelector('app-etat-vide')).toBeNull();
+
+    fixture.componentInstance.erreur = '';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-etat-vide')?.textContent)
+      .toContain('Aucune facture pour le moment');
+  });
 });

@@ -10,10 +10,12 @@ import { Contrat } from '../../../core/interfaces/contrat';
 import { Vehicule } from '../../../core/interfaces/vehicule';
 import { MontantPipe } from '../../../core/pipes/montant.pipe';
 import { DateFrPipe } from '../../../core/pipes/date-fr.pipe';
+import { EtatVide } from '../../../components/etat-vide/etat-vide';
+import { Squelette } from '../../../components/squelette/squelette';
 
 @Component({
   selector: 'app-dashboard-sinistres',
-  imports: [FormsModule, MontantPipe, DateFrPipe],
+  imports: [FormsModule, MontantPipe, DateFrPipe, EtatVide, Squelette],
   templateUrl: './sinistres.html',
   styleUrl: './sinistres.scss',
 })

@@ -8,14 +8,14 @@
 </div>
 
 @if (chargement) {
-  <p class="text-muted">Chargement…</p>
+  <app-squelette libelle="Chargement des véhicules" [nombre]="2" />
 }
 
 @if (!chargement) {
   <div class="row g-4">
     <!-- Formulaire d'ajout -->
     <div class="col-lg-5">
-      <div class="carte carte-bande veh-formulaire">
+      <div id="veh-formulaire" class="carte carte-bande veh-formulaire">
         <h2 class="veh-formulaire-titre">Ajouter un véhicule</h2>
 
         @if (erreur) {
@@ -155,7 +155,10 @@
               } @empty {
                 <tr>
                   <td colspan="4" class="veh-vide">
-                    Aucun véhicule enregistré. Ajoutez-en un à gauche pour pouvoir souscrire.
+                    @if (!erreur) {
+                      <app-etat-vide titre="Aucun véhicule enregistré." description="Ajoutez votre premier véhicule pour pouvoir souscrire."
+                        icone="bi-car-front" action="Ajouter un véhicule" lien="#veh-formulaire" />
+                    }
                   </td>
                 </tr>
               }
@@ -183,7 +186,10 @@
             </dl>
           </article>
         } @empty {
-          <div class="liste-mobile-carte liste-mobile-vide">Aucun véhicule enregistré. Ajoutez-en un ci-dessus pour pouvoir souscrire.</div>
+          @if (!erreur) {
+            <app-etat-vide class="liste-mobile-carte" titre="Aucun véhicule enregistré." description="Ajoutez votre premier véhicule pour pouvoir souscrire."
+              icone="bi-car-front" action="Ajouter un véhicule" lien="#veh-formulaire" />
+          }
         }
       </div>
     </div>

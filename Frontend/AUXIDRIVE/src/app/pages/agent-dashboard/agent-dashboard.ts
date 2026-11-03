@@ -9,6 +9,8 @@ import { MontantPipe } from '../../core/pipes/montant.pipe';
 import { DateFrPipe } from '../../core/pipes/date-fr.pipe';
 import { AuthService } from '../../services/auth-service';
 import { ProfilStaffPanel } from '../../components/profil-staff/profil-staff';
+import { EtatVide } from '../../components/etat-vide/etat-vide';
+import { Squelette } from '../../components/squelette/squelette';
 import { environment } from '../../../environments/environment';
 
 type VueAgent = 'tableau' | 'inscriptions' | 'contrats' | 'sinistres' | 'profil';
@@ -17,7 +19,7 @@ type OngletSinistre = 'DECLARE' | 'RAPPORT_EN_COURS' | 'CLOTURES';
 @Component({
   selector: 'app-agent-dashboard',
   standalone: true,
-  imports: [FormsModule, MontantPipe, DateFrPipe, ProfilStaffPanel],
+  imports: [FormsModule, MontantPipe, DateFrPipe, ProfilStaffPanel, EtatVide, Squelette],
   templateUrl: './agent-dashboard.html',
   styleUrl: './agent-dashboard.scss',
 })
@@ -248,6 +250,9 @@ export class AgentDashboard implements OnInit {
   chargementInscriptions = signal(true);
   chargementContrats = signal(true);
   chargementSinistres = signal(true);
+  erreurInscriptions = signal(false);
+  erreurContrats = signal(false);
+  erreurSinistres = signal(false);
   chargementTableau = computed(() => this.chargementInscriptions()
     || this.chargementContrats() || this.chargementSinistres());
   erreurTableau = signal(false);
@@ -266,37 +271,40 @@ export class AgentDashboard implements OnInit {
   /** Récupère l'intégralité des dossiers auprès du backend */
   chargerInitialisation(): void {
     this.chargementInscriptions.set(true);
+    this.erreurInscriptions.set(false);
     this.http.get<any[]>(this.apiUrlInscriptions).subscribe({
       next: (liste) => {
         this.toutesLesInscriptions.set(liste);
         this.pageInscriptions.set(this.pageCouranteInscriptions());
         this.chargementInscriptions.set(false);
       },
-      error: (err) => { this.chargementInscriptions.set(false); this.erreurChargement(err); },
+      error: (err) => { this.chargementInscriptions.set(false); this.erreurInscriptions.set(true); this.erreurChargement(err); },
     });
   }
 
   chargerContrats(): void {
     this.chargementContrats.set(true);
+    this.erreurContrats.set(false);
     this.http.get<Contrat[]>(`${this.apiUrl}/contrats`).subscribe({
       next: (liste) => {
         this.contrats.set(liste);
         this.pageContrats.set(this.pageCouranteContrats());
         this.chargementContrats.set(false);
       },
-      error: (err) => { this.chargementContrats.set(false); this.erreurChargement(err); },
+      error: (err) => { this.chargementContrats.set(false); this.erreurContrats.set(true); this.erreurChargement(err); },
     });
   }
 
   chargerSinistres(): void {
     this.chargementSinistres.set(true);
+    this.erreurSinistres.set(false);
     this.http.get<Sinistre[]>(`${this.apiUrl}/sinistres`).subscribe({
       next: (liste) => {
         this.sinistres.set(liste);
         this.pageSinistres.set(this.pageCouranteSinistres());
         this.chargementSinistres.set(false);
       },
-      error: (err) => { this.chargementSinistres.set(false); this.erreurChargement(err); },
+      error: (err) => { this.chargementSinistres.set(false); this.erreurSinistres.set(true); this.erreurChargement(err); },
     });
   }
 

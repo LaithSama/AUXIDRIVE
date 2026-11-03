@@ -9,8 +9,6 @@ import { DashboardSinistres } from './pages/dashboard/sinistres/sinistres';
 import { DashboardFactures } from './pages/dashboard/factures/factures';
 import { DashboardVehicules } from './pages/dashboard/vehicules/vehicules';
 import { DashboardProfil } from './pages/dashboard/profil/profil';
-import { AgentDashboard } from './pages/agent-dashboard/agent-dashboard';
-import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 import { roleGuard } from './core/guards/role-guard';
 import { clientGuard } from './core/guards/client-guard';
 import { adminGuard } from './core/guards/admin-guard';
@@ -38,7 +36,7 @@ export const routes: Routes = [
         ],
     },
 
-    {path: 'agent-dashboard', component: AgentDashboard, canActivate: [roleGuard]},
+    {path: 'agent-dashboard', loadComponent: () => import('./pages/agent-dashboard/agent-dashboard').then(m => m.AgentDashboard), canActivate: [roleGuard]},
 
-    {path: 'admin-dashboard', component: AdminDashboard, canActivate: [adminGuard]},
+    {path: 'admin-dashboard', loadComponent: () => import('./pages/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard), canActivate: [adminGuard]},
 ];

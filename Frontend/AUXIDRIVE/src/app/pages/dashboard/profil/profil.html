@@ -8,7 +8,7 @@
 </div>
 
 @if (chargement) {
-  <p class="text-muted">Chargement…</p>
+  <app-squelette libelle="Chargement de votre profil" [nombre]="2" />
 }
 
 @if (!chargement) {

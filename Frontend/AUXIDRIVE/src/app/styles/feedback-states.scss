@@ -1,0 +1,92 @@
+/* États d'interface partagés par les espaces client, agent et admin. */
+app-etat-vide { display: block; }
+app-etat-vide.liste-mobile-carte { border-left-color: #d5dcd9; }
+.etat-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.8rem 1rem;
+  text-align: center;
+  color: var(--gris);
+
+  .etat-vide-icone {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0.3rem;
+    border-radius: 50%;
+    background: #e7f2ed;
+    color: var(--lagon);
+    font-size: 1.35rem;
+  }
+  .etat-vide-titre { color: var(--nuit); font-size: 1rem; font-weight: 700; }
+  .etat-vide-description { max-width: 30rem; font-size: 0.88rem; line-height: 1.5; }
+  .etat-vide-action { margin-top: 0.5rem; }
+  .etat-vide-icone .bi { color: var(--lagon); font-size: 1.35rem; }
+}
+
+/* La forme est visible, le texte de chargement reste disponible aux lecteurs d'écran. */
+app-squelette { display: grid; }
+.squelette {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.squelette-cartes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.squelette-deux-colonnes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.squelette-carte, .squelette-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  border: 1px solid #d5dcd9;
+  border-radius: 12px;
+  background: #fff;
+}
+.squelette-carte { min-height: 11rem; }
+.squelette-ligne {
+  display: block;
+  width: 75%;
+  height: 0.9rem;
+  border-radius: 6px;
+  background: #e3e9e7;
+  animation: squelette-pulsation 1.6s ease-in-out infinite alternate;
+}
+.squelette-ligne:first-child { width: 42%; }
+.squelette-ligne:last-child { width: 58%; }
+.squelette-ligne-large { width: 90%; height: 1.5rem; }
+
+@keyframes squelette-pulsation {
+  to { opacity: 0.45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .squelette-ligne { animation: none; }
+}
+
+@media (max-width: 767.98px) {
+  .squelette-cartes, .squelette-deux-colonnes { grid-template-columns: minmax(0, 1fr); }
+  .squelette-carte { min-height: 8rem; }
+  .dashboard-contenu, .agent-contenu, .admin-contenu {
+    .liste-mobile-carte { padding: 1.1rem; }
+    .liste-mobile-entete > div, .liste-mobile-entete .liste-mobile-titre { min-width: 0; overflow-wrap: anywhere; }
+    .liste-mobile-details { min-width: 0; }
+    .liste-mobile-details dd, .liste-mobile-details dd a { overflow-wrap: anywhere; word-break: break-word; }
+    .liste-mobile-action, .admin-actions-mobile button, .agent-actions-mobile button,
+    .fac-actions-mobile button, .admin-modale-pied button, .agent-modale-piede button {
+      min-height: 2.75rem;
+    }
+    .champ input, .champ select, .champ textarea { max-width: 100%; }
+  }
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-contenu, .agent-contenu, .admin-contenu {
+    .liste-mobile-entete { gap: 0.75rem; }
+    .liste-mobile-details > div { flex-wrap: wrap; gap: 0.15rem 0.6rem; }
+    .liste-mobile-details dd { margin-left: auto; }
+    .btn-signal, .btn-contour-sombre, .agent-btn, .admin-btn-danger { overflow-wrap: anywhere; }
+  }
+  .admin-modale .admin-modale-pied, .agent-modale .agent-modale-piede { gap: 0.65rem; }
+}

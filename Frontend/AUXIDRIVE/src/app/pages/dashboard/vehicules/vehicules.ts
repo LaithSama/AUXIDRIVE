@@ -4,10 +4,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { VehiculeService } from '../../../services/vehicule-service';
 import { CodeTarif, Vehicule } from '../../../core/interfaces/vehicule';
+import { EtatVide } from '../../../components/etat-vide/etat-vide';
+import { Squelette } from '../../../components/squelette/squelette';
 
 @Component({
   selector: 'app-dashboard-vehicules',
-  imports: [FormsModule],
+  imports: [FormsModule, EtatVide, Squelette],
   templateUrl: './vehicules.html',
   styleUrl: './vehicules.scss',
 })

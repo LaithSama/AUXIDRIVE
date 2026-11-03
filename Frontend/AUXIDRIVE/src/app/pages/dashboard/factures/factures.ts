@@ -5,10 +5,12 @@ import { FactureService } from '../../../services/facture-service';
 import { Facture } from '../../../core/interfaces/facture';
 import { MontantPipe } from '../../../core/pipes/montant.pipe';
 import { DateFrPipe } from '../../../core/pipes/date-fr.pipe';
+import { EtatVide } from '../../../components/etat-vide/etat-vide';
+import { Squelette } from '../../../components/squelette/squelette';
 
 @Component({
   selector: 'app-dashboard-factures',
-  imports: [MontantPipe, DateFrPipe],
+  imports: [MontantPipe, DateFrPipe, EtatVide, Squelette],
   templateUrl: './factures.html',
   styleUrl: './factures.scss',
 })

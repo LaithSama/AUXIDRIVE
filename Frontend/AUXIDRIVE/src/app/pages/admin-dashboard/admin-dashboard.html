@@ -304,7 +304,7 @@
           </div>
         </section>
       } @else {
-        <p class="message-info">Chargement des statistiques…</p>
+        <app-squelette libelle="Chargement des statistiques" />
       }
     }
 
@@ -347,6 +347,11 @@
         <span class="admin-filtres-compteur">{{ utilisateursAffiches().length }} résultat(s)</span>
         </div>
       </div>
+      @if (chargementUtilisateurs()) {
+        <app-squelette libelle="Chargement des utilisateurs" mode="liste" [nombre]="4" />
+      } @else if (erreurUtilisateurs()) {
+        <p class="message-erreur" role="alert">Impossible de charger les utilisateurs.</p>
+      } @else {
       <div class="admin-tableau-carte d-none d-lg-block">
         <table class="tableau">
           <thead>
@@ -382,10 +387,10 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="admin-vide">
-                  <i class="bi bi-people" aria-hidden="true"></i>
-                  <span>Aucun utilisateur trouvé.</span>
-                </td>
+                <td colspan="5"><app-etat-vide titre="Aucun utilisateur trouvé." icone="bi-people"
+                  [description]="utilisateurs().length ? 'Essayez une autre recherche ou réinitialisez les filtres.' : 'Créez votre premier compte agent ou administrateur.'"
+                  [action]="utilisateurs().length ? 'Réinitialiser les filtres' : 'Créer un utilisateur'"
+                  (actionCliquee)="utilisateurs().length ? reinitialiserFiltres() : ouvrirCreation('utilisateur')" /></td>
               </tr>
             }
           </tbody>
@@ -411,7 +416,12 @@
               <button type="button" class="admin-btn-danger" (click)="demanderSuppression('utilisateur', u.idUtil, nomUtilisateur(u))">Supprimer</button>
             </div>
           </article>
-        } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun utilisateur trouvé.</div> }
+        } @empty {
+          <app-etat-vide class="liste-mobile-carte" titre="Aucun utilisateur trouvé." icone="bi-people"
+            [description]="utilisateurs().length ? 'Essayez une autre recherche ou réinitialisez les filtres.' : 'Créez votre premier compte agent ou administrateur.'"
+            [action]="utilisateurs().length ? 'Réinitialiser les filtres' : 'Créer un utilisateur'"
+            (actionCliquee)="utilisateurs().length ? reinitialiserFiltres() : ouvrirCreation('utilisateur')" />
+        }
       </div>
       @if (totalPagesUtilisateurs() > 1) {
         <nav class="admin-pagination" aria-label="Pagination des utilisateurs">
@@ -421,6 +431,7 @@
           <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteUtilisateurs() === totalPagesUtilisateurs()"
                   (click)="changerPage(pageUtilisateurs, pageCouranteUtilisateurs() + 1, totalPagesUtilisateurs())">Suivant</button>
         </nav>
+      }
       }
     }
 
@@ -463,6 +474,11 @@
         <span class="admin-filtres-compteur">{{ comptesAffiches().length }} résultat(s)</span>
         </div>
       </div>
+      @if (chargementComptes()) {
+        <app-squelette libelle="Chargement des comptes clients" mode="liste" [nombre]="4" />
+      } @else if (erreurComptes()) {
+        <p class="message-erreur" role="alert">Impossible de charger les comptes clients.</p>
+      } @else {
       <div class="admin-tableau-carte d-none d-lg-block">
         <table class="tableau">
           <thead>
@@ -500,10 +516,10 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="admin-vide">
-                  <i class="bi bi-person-vcard" aria-hidden="true"></i>
-                  <span>Aucun compte client. Créez-en un pour un assuré existant.</span>
-                </td>
+                <td colspan="6"><app-etat-vide titre="Aucun compte client trouvé." icone="bi-person-vcard"
+                  [description]="comptes().length ? 'Essayez une autre recherche ou réinitialisez les filtres.' : 'Un compte client doit être rattaché à un assuré existant.'"
+                  [action]="comptes().length ? 'Réinitialiser les filtres' : assuresSansCompte().length ? 'Créer un compte' : 'Ajouter un assuré'"
+                  (actionCliquee)="comptes().length ? reinitialiserFiltres() : assuresSansCompte().length ? ouvrirCreation('compte') : changerVue('assures')" /></td>
               </tr>
             }
           </tbody>
@@ -530,7 +546,12 @@
               <button type="button" class="admin-btn-danger" (click)="demanderSuppression('compte', c.idCompteClient, c.email)">Supprimer</button>
             </div>
           </article>
-        } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun compte client trouvé.</div> }
+        } @empty {
+          <app-etat-vide class="liste-mobile-carte" titre="Aucun compte client trouvé." icone="bi-person-vcard"
+            [description]="comptes().length ? 'Essayez une autre recherche ou réinitialisez les filtres.' : 'Un compte client doit être rattaché à un assuré existant.'"
+            [action]="comptes().length ? 'Réinitialiser les filtres' : assuresSansCompte().length ? 'Créer un compte' : 'Ajouter un assuré'"
+            (actionCliquee)="comptes().length ? reinitialiserFiltres() : assuresSansCompte().length ? ouvrirCreation('compte') : changerVue('assures')" />
+        }
       </div>
       @if (totalPagesComptes() > 1) {
         <nav class="admin-pagination" aria-label="Pagination des comptes clients">
@@ -540,6 +561,7 @@
           <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteComptes() === totalPagesComptes()"
                   (click)="changerPage(pageComptes, pageCouranteComptes() + 1, totalPagesComptes())">Suivant</button>
         </nav>
+      }
       }
     }
 
@@ -582,6 +604,11 @@
         <span class="admin-filtres-compteur">{{ assuresAffiches().length }} résultat(s)</span>
         </div>
       </div>
+      @if (chargementAssures()) {
+        <app-squelette libelle="Chargement des assurés" mode="liste" [nombre]="4" />
+      } @else if (erreurAssures()) {
+        <p class="message-erreur" role="alert">Impossible de charger les assurés.</p>
+      } @else {
       <div class="admin-tableau-carte d-none d-lg-block">
         <table class="tableau">
           <thead>
@@ -616,10 +643,10 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="6" class="admin-vide">
-                  <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
-                  <span>Aucun assuré enregistré.</span>
-                </td>
+                <td colspan="6"><app-etat-vide [titre]="assures().length ? 'Aucun assuré trouvé.' : 'Aucun assuré enregistré.'" icone="bi-person-lines-fill"
+                  [description]="assures().length ? 'Essayez une autre recherche ou réinitialisez les filtres.' : 'Ajoutez un assuré pour gérer ses informations et son compte.'"
+                  [action]="assures().length ? 'Réinitialiser les filtres' : 'Créer un assuré'"
+                  (actionCliquee)="assures().length ? reinitialiserFiltres() : ouvrirCreation('assure')" /></td>
               </tr>
             }
           </tbody>
@@ -642,7 +669,12 @@
               <button type="button" class="admin-btn-danger" (click)="demanderSuppression('assure', a.idAssure, libelleAssure(a))">Supprimer</button>
             </div>
           </article>
-        } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun assuré enregistré.</div> }
+        } @empty {
+          <app-etat-vide class="liste-mobile-carte" [titre]="assures().length ? 'Aucun assuré trouvé.' : 'Aucun assuré enregistré.'" icone="bi-person-lines-fill"
+            [description]="assures().length ? 'Essayez une autre recherche ou réinitialisez les filtres.' : 'Ajoutez un assuré pour gérer ses informations et son compte.'"
+            [action]="assures().length ? 'Réinitialiser les filtres' : 'Créer un assuré'"
+            (actionCliquee)="assures().length ? reinitialiserFiltres() : ouvrirCreation('assure')" />
+        }
       </div>
       @if (totalPagesAssures() > 1) {
         <nav class="admin-pagination" aria-label="Pagination des assurés">
@@ -652,6 +684,7 @@
           <button type="button" class="btn-contour-sombre" [disabled]="pageCouranteAssures() === totalPagesAssures()"
                   (click)="changerPage(pageAssures, pageCouranteAssures() + 1, totalPagesAssures())">Suivant</button>
         </nav>
+      }
       }
     }
     <!-- ==================== PROFIL ==================== -->

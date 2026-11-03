@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { AuthService } from '../../services/auth-service';
 import { AgentDashboard } from './agent-dashboard';
@@ -257,5 +257,25 @@ describe('AgentDashboard', () => {
     expect(fixture.nativeElement.querySelector('.agent-apercu').textContent)
       .toContain('Aucune demande en attente');
     vi.restoreAllMocks();
+  });
+
+  it('affiche un squelette puis une erreur, sans état vide, pour une liste indisponible', () => {
+    const attente = new Subject<any[]>();
+    http.get.mockImplementation((url: string) => url.endsWith('/contrats') ? attente.asObservable() : of([]));
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    page.vue.set('contrats');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-squelette[role="status"]')?.textContent)
+      .toContain('Chargement des contrats');
+    expect(fixture.nativeElement.querySelector('app-etat-vide')).toBeNull();
+
+    const erreurConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
+    attente.error({ status: 500 });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.message-erreur')?.textContent)
+      .toContain('Impossible de charger les contrats');
+    expect(fixture.nativeElement.querySelector('app-etat-vide')).toBeNull();
+    erreurConsole.mockRestore();
   });
 });

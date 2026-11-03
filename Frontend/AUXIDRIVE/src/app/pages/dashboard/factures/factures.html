@@ -6,14 +6,14 @@
 </div>
 
 @if (chargement) {
-  <p class="text-muted">Chargement…</p>
+  <app-squelette libelle="Chargement des factures" mode="liste" [nombre]="4" />
 }
 
 @if (erreur) {
   <div class="message-erreur">{{ erreur }}</div>
 }
 
-@if (!chargement) {
+@if (!chargement && !erreur) {
   <div class="carte p-0 overflow-hidden fac-liste d-none d-lg-block">
     <div class="table-responsive">
       <table class="tableau">
@@ -61,7 +61,7 @@
           } @empty {
             <tr>
               <td colspan="6" class="fac-vide">
-                Aucune facture pour le moment.
+                <app-etat-vide titre="Aucune facture pour le moment." description="Vos factures apparaîtront ici lorsqu'elles seront disponibles." icone="bi-receipt" />
               </td>
             </tr>
           }
@@ -99,7 +99,7 @@
         </div>
       </article>
     } @empty {
-      <div class="liste-mobile-carte liste-mobile-vide">Aucune facture pour le moment.</div>
+      <app-etat-vide class="liste-mobile-carte" titre="Aucune facture pour le moment." description="Vos factures apparaîtront ici lorsqu'elles seront disponibles." icone="bi-receipt" />
     }
   </div>
 }

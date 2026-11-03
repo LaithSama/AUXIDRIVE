@@ -8,10 +8,11 @@ import { AuthService } from '../../../services/auth-service';
 import { Contrat } from '../../../core/interfaces/contrat';
 import { Sinistre } from '../../../core/interfaces/sinistre';
 import { Facture } from '../../../core/interfaces/facture';
+import { Squelette } from '../../../components/squelette/squelette';
 
 @Component({
   selector: 'app-dashboard-accueil',
-  imports: [RouterLink],
+  imports: [RouterLink, Squelette],
   templateUrl: './accueil.html',
   styleUrl: './accueil.scss',
 })

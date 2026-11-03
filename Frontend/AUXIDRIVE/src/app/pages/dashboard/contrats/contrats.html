@@ -6,7 +6,7 @@
 </div>
 
 @if (chargement) {
-  <p class="text-muted">Chargement…</p>
+  <app-squelette libelle="Chargement des contrats" mode="liste" [nombre]="4" />
 }
 
 @if (erreur) {
@@ -16,7 +16,7 @@
   <div class="message-ok">{{ messageSucces }}</div>
 }
 
-@if (!chargement) {
+@if (!chargement && !erreur) {
   <!-- Liste des contrats -->
   <div class="carte p-0 overflow-hidden contrats-liste d-none d-lg-block">
     <div class="table-responsive">
@@ -71,7 +71,8 @@
           } @empty {
             <tr>
               <td colspan="6" class="contrats-vide">
-                Aucun contrat pour le moment. Souscrivez une offre ci-dessous.
+                <app-etat-vide titre="Aucun contrat pour le moment." description="Découvrez les offres disponibles pour assurer votre véhicule."
+                  icone="bi-file-earmark-plus" action="Voir les offres" lien="#contrats-souscription" />
               </td>
             </tr>
           }
@@ -117,12 +118,13 @@
         }
       </article>
     } @empty {
-      <div class="liste-mobile-carte liste-mobile-vide">Aucun contrat pour le moment. Souscrivez une offre ci-dessous.</div>
+      <app-etat-vide class="liste-mobile-carte" titre="Aucun contrat pour le moment." description="Découvrez les offres disponibles pour assurer votre véhicule."
+        icone="bi-file-earmark-plus" action="Voir les offres" lien="#contrats-souscription" />
     }
   </div>
 
   <!-- Souscription -->
-  <h2 class="titre-section contrats-souscription-titre">Souscrire une offre</h2>
+  <h2 id="contrats-souscription" class="titre-section contrats-souscription-titre">Souscrire une offre</h2>
 
   <div class="row g-4">
     <div class="col-lg-8">
