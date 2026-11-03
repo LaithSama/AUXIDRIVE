@@ -220,29 +220,33 @@
         <i class="bi bi-search" aria-hidden="true"></i>
         <input type="search" class="saisie" placeholder="Rechercher un dossier, un nom, un CIN, un e-mail…"
                aria-label="Rechercher un dossier"
-               [ngModel]="rechercheInscription()" (ngModelChange)="rechercheInscription.set($event)"
+               [ngModel]="rechercheInscription()" (ngModelChange)="changerFiltre(rechercheInscription, $event, pageInscriptions)"
                autocomplete="off" />
       </div>
+      <div class="agent-filtres-options">
       <select class="saisie" aria-label="Filtrer par pièce d'identité"
-              [ngModel]="filtreCin()" (ngModelChange)="filtreCin.set($event)">
+               [ngModel]="filtreCin()" (ngModelChange)="changerFiltre(filtreCin, $event, pageInscriptions)">
         <option value="tous">CIN : tous</option>
         <option value="avec">CIN fourni</option>
         <option value="sans">CIN absent</option>
       </select>
       <input type="date" class="saisie" title="Demandé depuis" aria-label="Demandé depuis"
-             [ngModel]="dateDemandeDepuis()" (ngModelChange)="dateDemandeDepuis.set($event)" />
+              [ngModel]="dateDemandeDepuis()" (ngModelChange)="changerFiltre(dateDemandeDepuis, $event, pageInscriptions)" />
       <input type="date" class="saisie" title="Demandé jusqu'au" aria-label="Demandé jusqu'au"
-             [ngModel]="dateDemandeJusqua()" (ngModelChange)="dateDemandeJusqua.set($event)" />
+              [ngModel]="dateDemandeJusqua()" (ngModelChange)="changerFiltre(dateDemandeJusqua, $event, pageInscriptions)" />
       <select class="saisie" aria-label="Trier les inscriptions"
-              [ngModel]="triInscription()" (ngModelChange)="triInscription.set($event)">
+               [ngModel]="triInscription()" (ngModelChange)="changerFiltre(triInscription, $event, pageInscriptions)">
         <option value="recent">Plus récents</option>
         <option value="ancien">Plus anciens</option>
         <option value="nom">Nom (A → Z)</option>
       </select>
+      </div>
+      <div class="agent-filtres-pied">
       <button type="button" class="agent-btn agent-btn-annuler" (click)="reinitialiserFiltres()">
         <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
       </button>
       <span class="agent-filtres-compteur">{{ inscriptionsAffichees().length }} résultat(s)</span>
+      </div>
     </div>
 
     <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-lg-block">
@@ -268,7 +272,7 @@
 
             <!-- CAS 1 : EN ATTENTE -->
             @if (ongletActif() === 'EN_ATTENTE') {
-              @for (d of inscriptionsAffichees(); track d.idInscription) {
+               @for (d of inscriptionsPage(); track d.idInscription) {
                  <tr class="agent-ligne-action">
                    <td class="ps-4 agent-num">#{{ d.idInscription }} <span class="pastille agent-pastille-action">À vérifier</span></td>
                   <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
@@ -291,7 +295,7 @@
 
             <!-- CAS 2 : VALIDÉS -->
             @if (ongletActif() === 'VALIDEE') {
-              @for (d of inscriptionsAffichees(); track d.idInscription) {
+               @for (d of inscriptionsPage(); track d.idInscription) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ok">#{{ d.idInscription }}</td>
                   <td>
@@ -315,7 +319,7 @@
 
             <!-- CAS 3 : REFUSÉS -->
             @if (ongletActif() === 'REFUSEE') {
-              @for (d of inscriptionsAffichees(); track d.idInscription) {
+               @for (d of inscriptionsPage(); track d.idInscription) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ko">#{{ d.idInscription }}</td>
                   <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
@@ -342,8 +346,8 @@
       </div>
     </div>
     <div class="liste-mobile d-lg-none">
-      @for (d of inscriptionsAffichees(); track d.idInscription) {
-         <article class="liste-mobile-carte" [class.agent-carte-action]="ongletActif() === 'EN_ATTENTE'">
+       @for (d of inscriptionsPage(); track d.idInscription) {
+        <article class="liste-mobile-carte agent-fiche" [class.agent-carte-action]="ongletActif() === 'EN_ATTENTE'">
           <div class="liste-mobile-entete">
             <div><small class="agent-num">#{{ d.idInscription }}</small><h2 class="liste-mobile-titre">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</h2></div>
             @switch (ongletActif()) {
@@ -375,6 +379,15 @@
         </article>
       } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun dossier pour ce statut.</div> }
     </div>
+    @if (totalPagesInscriptions() > 1) {
+      <nav class="agent-pagination" aria-label="Pagination des inscriptions">
+        <button type="button" class="agent-btn" [disabled]="pageCouranteInscriptions() === 1"
+                (click)="changerPage(pageInscriptions, pageCouranteInscriptions() - 1, totalPagesInscriptions())">Précédent</button>
+        <span aria-live="polite">Page {{ pageCouranteInscriptions() }} sur {{ totalPagesInscriptions() }}</span>
+        <button type="button" class="agent-btn" [disabled]="pageCouranteInscriptions() === totalPagesInscriptions()"
+                (click)="changerPage(pageInscriptions, pageCouranteInscriptions() + 1, totalPagesInscriptions())">Suivant</button>
+      </nav>
+    }
   }
 
   <!-- ==================== CONTRATS ==================== -->
@@ -438,35 +451,39 @@
         <i class="bi bi-search" aria-hidden="true"></i>
         <input type="search" class="saisie" placeholder="Rechercher un contrat, un n° de police, un client, une agence…"
                aria-label="Rechercher un contrat"
-               [ngModel]="rechercheContrat()" (ngModelChange)="rechercheContrat.set($event)"
+               [ngModel]="rechercheContrat()" (ngModelChange)="changerFiltre(rechercheContrat, $event, pageContrats)"
                autocomplete="off" />
       </div>
+      <div class="agent-filtres-options">
       <input type="number" class="saisie" min="0" placeholder="Prime min (Ar)" aria-label="Prime minimale"
-             [ngModel]="primeMinContrat()" (ngModelChange)="primeMinContrat.set($event)" />
+              [ngModel]="primeMinContrat()" (ngModelChange)="changerFiltre(primeMinContrat, $event, pageContrats)" />
       <input type="number" class="saisie" min="0" placeholder="Prime max (Ar)" aria-label="Prime maximale"
-             [ngModel]="primeMaxContrat()" (ngModelChange)="primeMaxContrat.set($event)" />
+              [ngModel]="primeMaxContrat()" (ngModelChange)="changerFiltre(primeMaxContrat, $event, pageContrats)" />
       <select class="saisie" aria-label="Filtrer par canal de souscription"
-              [ngModel]="canalContrat()" (ngModelChange)="canalContrat.set($event)">
+               [ngModel]="canalContrat()" (ngModelChange)="changerFiltre(canalContrat, $event, pageContrats)">
         <option value="">Tous les canaux</option>
         @for (canal of canauxDisponibles(); track canal) {
           <option [value]="canal">{{ canal }}</option>
         }
       </select>
       <label class="agent-filtres-case">
-        <input type="checkbox" [ngModel]="echeanceProche()" (ngModelChange)="echeanceProche.set($event)" />
+         <input type="checkbox" [ngModel]="echeanceProche()" (ngModelChange)="changerFiltre(echeanceProche, $event, pageContrats)" />
         Échéance &lt; 30 j
       </label>
       <select class="saisie" aria-label="Trier les contrats"
-              [ngModel]="triContrat()" (ngModelChange)="triContrat.set($event)">
+               [ngModel]="triContrat()" (ngModelChange)="changerFiltre(triContrat, $event, pageContrats)">
         <option value="recent">Plus récents</option>
         <option value="ancien">Plus anciens</option>
         <option value="primeDesc">Prime décroissante</option>
         <option value="primeAsc">Prime croissante</option>
       </select>
+      </div>
+      <div class="agent-filtres-pied">
       <button type="button" class="agent-btn agent-btn-annuler" (click)="reinitialiserFiltres()">
         <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
       </button>
       <span class="agent-filtres-compteur">{{ contratsAffiches().length }} résultat(s)</span>
+      </div>
     </div>
 
     <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-lg-block">
@@ -490,7 +507,7 @@
 
             <!-- EN ATTENTE -->
             @if (ongletContrat() === 'EN_ATTENTE') {
-              @for (c of contratsAffiches(); track c.idContrat) {
+               @for (c of contratsPage(); track c.idContrat) {
                  <tr class="agent-ligne-cliquable agent-ligne-action" (click)="ouvrirModaleContrat(c)"
                     title="Cliquer pour calculer la prime et traiter le contrat">
                   <td class="ps-4 agent-num">#{{ c.idContrat }}</td>
@@ -508,7 +525,7 @@
 
             <!-- VALIDÉS -->
             @if (ongletContrat() === 'VALIDE') {
-              @for (c of contratsAffiches(); track c.idContrat) {
+               @for (c of contratsPage(); track c.idContrat) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ok">#{{ c.idContrat }}</td>
                   <td class="font-monospace">{{ c.numPolice || '—' }}</td>
@@ -526,7 +543,7 @@
 
             <!-- REFUSÉS -->
             @if (ongletContrat() === 'REFUSE') {
-              @for (c of contratsAffiches(); track c.idContrat) {
+               @for (c of contratsPage(); track c.idContrat) {
                 <tr>
                   <td class="ps-4 agent-num agent-num-ko">#{{ c.idContrat }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
@@ -546,8 +563,8 @@
       </div>
     </div>
     <div class="liste-mobile d-lg-none">
-      @for (c of contratsAffiches(); track c.idContrat) {
-         <article class="liste-mobile-carte" [class.agent-carte-action]="ongletContrat() === 'EN_ATTENTE'">
+       @for (c of contratsPage(); track c.idContrat) {
+        <article class="liste-mobile-carte agent-fiche" [class.agent-carte-action]="ongletContrat() === 'EN_ATTENTE'">
           <div class="liste-mobile-entete">
             <div><small class="agent-num">#{{ c.idContrat }}</small><h2 class="liste-mobile-titre">{{ c.nomAssure }} {{ c.prenomAssure }}</h2></div>
             @switch (ongletContrat()) {
@@ -569,6 +586,15 @@
         </article>
       } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun contrat pour ce statut.</div> }
     </div>
+    @if (totalPagesContrats() > 1) {
+      <nav class="agent-pagination" aria-label="Pagination des contrats">
+        <button type="button" class="agent-btn" [disabled]="pageCouranteContrats() === 1"
+                (click)="changerPage(pageContrats, pageCouranteContrats() - 1, totalPagesContrats())">Précédent</button>
+        <span aria-live="polite">Page {{ pageCouranteContrats() }} sur {{ totalPagesContrats() }}</span>
+        <button type="button" class="agent-btn" [disabled]="pageCouranteContrats() === totalPagesContrats()"
+                (click)="changerPage(pageContrats, pageCouranteContrats() + 1, totalPagesContrats())">Suivant</button>
+      </nav>
+    }
   }
 
   <!-- ==================== SINISTRES ==================== -->
@@ -632,41 +658,45 @@
         <i class="bi bi-search" aria-hidden="true"></i>
         <input type="search" class="saisie" placeholder="Rechercher un sinistre, un n° de police, un rapport, un lieu…"
                aria-label="Rechercher un sinistre"
-               [ngModel]="rechercheSinistre()" (ngModelChange)="rechercheSinistre.set($event)"
+               [ngModel]="rechercheSinistre()" (ngModelChange)="changerFiltre(rechercheSinistre, $event, pageSinistres)"
                autocomplete="off" />
       </div>
+      <div class="agent-filtres-options">
       <input type="date" class="saisie" title="Sinistre du" aria-label="Sinistre depuis"
-             [ngModel]="dateSinistreDepuis()" (ngModelChange)="dateSinistreDepuis.set($event)" />
+              [ngModel]="dateSinistreDepuis()" (ngModelChange)="changerFiltre(dateSinistreDepuis, $event, pageSinistres)" />
       <input type="date" class="saisie" title="Sinistre au" aria-label="Sinistre jusqu'au"
-             [ngModel]="dateSinistreJusqua()" (ngModelChange)="dateSinistreJusqua.set($event)" />
+              [ngModel]="dateSinistreJusqua()" (ngModelChange)="changerFiltre(dateSinistreJusqua, $event, pageSinistres)" />
       <select class="saisie" aria-label="Filtrer par responsabilité"
-              [ngModel]="responsabiliteFiltre()" (ngModelChange)="responsabiliteFiltre.set($event)">
+               [ngModel]="responsabiliteFiltre()" (ngModelChange)="changerFiltre(responsabiliteFiltre, $event, pageSinistres)">
         <option value="toutes">Responsabilité : toutes</option>
         <option value="assure">À l'assuré</option>
         <option value="tiers">À un tiers</option>
         <option value="indeterminee">Non déterminée</option>
       </select>
       <input type="number" class="saisie" min="0" placeholder="Indemn. min (Ar)" aria-label="Indemnisation minimale"
-             [ngModel]="montantMinSinistre()" (ngModelChange)="montantMinSinistre.set($event)" />
+              [ngModel]="montantMinSinistre()" (ngModelChange)="changerFiltre(montantMinSinistre, $event, pageSinistres)" />
       <input type="number" class="saisie" min="0" placeholder="Indemn. max (Ar)" aria-label="Indemnisation maximale"
-             [ngModel]="montantMaxSinistre()" (ngModelChange)="montantMaxSinistre.set($event)" />
+              [ngModel]="montantMaxSinistre()" (ngModelChange)="changerFiltre(montantMaxSinistre, $event, pageSinistres)" />
       <select class="saisie" aria-label="Filtrer par rapport de police"
-              [ngModel]="rapportRecu()" (ngModelChange)="rapportRecu.set($event)">
+               [ngModel]="rapportRecu()" (ngModelChange)="changerFiltre(rapportRecu, $event, pageSinistres)">
         <option value="tous">Rapport : tous</option>
         <option value="oui">Rapport reçu</option>
         <option value="non">Sans rapport</option>
       </select>
       <select class="saisie" aria-label="Trier les sinistres"
-              [ngModel]="triSinistre()" (ngModelChange)="triSinistre.set($event)">
+               [ngModel]="triSinistre()" (ngModelChange)="changerFiltre(triSinistre, $event, pageSinistres)">
         <option value="recent">Plus récents</option>
         <option value="ancien">Plus anciens</option>
         <option value="montantDesc">Indemn. décroissante</option>
         <option value="montantAsc">Indemn. croissante</option>
       </select>
+      </div>
+      <div class="agent-filtres-pied">
       <button type="button" class="agent-btn agent-btn-annuler" (click)="reinitialiserFiltres()">
         <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
       </button>
       <span class="agent-filtres-compteur">{{ sinistresAffiches().length }} résultat(s)</span>
+      </div>
     </div>
 
     <div class="carte agent-tableau-carte p-0 overflow-hidden d-none d-lg-block">
@@ -687,7 +717,7 @@
 
             <!-- À INSTRUIRE -->
             @if (ongletSinistre() === 'DECLARE') {
-              @for (s of sinistresAffiches(); track s.idSinistre) {
+               @for (s of sinistresPage(); track s.idSinistre) {
                  <tr class="agent-ligne-action">
                    <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
                   <td class="d-none d-md-table-cell">{{ s.dateSinistre | dateFr }}</td>
@@ -706,7 +736,7 @@
 
             <!-- RAPPORT EN COURS -->
             @if (ongletSinistre() === 'RAPPORT_EN_COURS') {
-              @for (s of sinistresAffiches(); track s.idSinistre) {
+               @for (s of sinistresPage(); track s.idSinistre) {
                  <tr class="agent-ligne-action">
                    <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
                   <td class="d-none d-md-table-cell">{{ s.dateSinistre | dateFr }}</td>
@@ -725,7 +755,7 @@
 
             <!-- CLÔTURÉS -->
             @if (ongletSinistre() === 'CLOTURES') {
-              @for (s of sinistresAffiches(); track s.idSinistre) {
+               @for (s of sinistresPage(); track s.idSinistre) {
                 <tr>
                   <td class="ps-4">
                     <span class="agent-num"
@@ -744,7 +774,7 @@
                   </td>
                   <td class="text-end fw-medium">{{ s.montantIndemnisation | montant }}</td>
                   <td class="text-end pe-4">
-                    <button type="button" class="agent-btn" (click)="ouvrirDetail(s)"><i class="bi bi-eye-fill" aria-hidden="true"></i>Détail</button>
+                     <button type="button" class="agent-btn agent-action-secondaire" (click)="ouvrirDetail(s)"><i class="bi bi-eye-fill" aria-hidden="true"></i>Détail</button>
                   </td>
                 </tr>
               } @empty {
@@ -757,8 +787,8 @@
       </div>
     </div>
     <div class="liste-mobile d-lg-none">
-      @for (s of sinistresAffiches(); track s.idSinistre) {
-         <article class="liste-mobile-carte" [class.agent-carte-action]="ongletSinistre() !== 'CLOTURES'">
+       @for (s of sinistresPage(); track s.idSinistre) {
+        <article class="liste-mobile-carte agent-fiche" [class.agent-carte-action]="ongletSinistre() !== 'CLOTURES'">
           <div class="liste-mobile-entete">
             <div><small class="agent-num">#{{ s.idSinistre }}</small><h2 class="liste-mobile-titre">{{ s.nomAssure }} {{ s.prenomAssure }}</h2></div>
             @switch (s.statutSinistre) {
@@ -781,6 +811,15 @@
         </article>
       } @empty { <div class="liste-mobile-carte liste-mobile-vide">Aucun sinistre pour ce statut.</div> }
     </div>
+    @if (totalPagesSinistres() > 1) {
+      <nav class="agent-pagination" aria-label="Pagination des sinistres">
+        <button type="button" class="agent-btn" [disabled]="pageCouranteSinistres() === 1"
+                (click)="changerPage(pageSinistres, pageCouranteSinistres() - 1, totalPagesSinistres())">Précédent</button>
+        <span aria-live="polite">Page {{ pageCouranteSinistres() }} sur {{ totalPagesSinistres() }}</span>
+        <button type="button" class="agent-btn" [disabled]="pageCouranteSinistres() === totalPagesSinistres()"
+                (click)="changerPage(pageSinistres, pageCouranteSinistres() + 1, totalPagesSinistres())">Suivant</button>
+      </nav>
+    }
   }
 
   <!-- ==================== PROFIL ==================== -->

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -22,6 +22,7 @@ type OngletSinistre = 'DECLARE' | 'RAPPORT_EN_COURS' | 'CLOTURES';
   styleUrl: './agent-dashboard.scss',
 })
 export class AgentDashboard implements OnInit {
+  readonly taillePage = 10;
   private http = inject(HttpClient);
   private router = inject(Router);
   private authService = inject(AuthService);
@@ -87,6 +88,10 @@ export class AgentDashboard implements OnInit {
 
     return this.trierInscriptions(filtree);
   });
+  pageInscriptions = signal(1);
+  totalPagesInscriptions = computed(() => Math.max(1, Math.ceil(this.inscriptionsAffichees().length / this.taillePage)));
+  pageCouranteInscriptions = computed(() => Math.min(this.pageInscriptions(), this.totalPagesInscriptions()));
+  inscriptionsPage = computed(() => this.paginer(this.inscriptionsAffichees(), this.pageCouranteInscriptions()));
 
   demandeSelectionnee: any = null;
   numAssureSaisi = '';
@@ -159,6 +164,10 @@ export class AgentDashboard implements OnInit {
 
     return this.trierContrats(filtree);
   });
+  pageContrats = signal(1);
+  totalPagesContrats = computed(() => Math.max(1, Math.ceil(this.contratsAffiches().length / this.taillePage)));
+  pageCouranteContrats = computed(() => Math.min(this.pageContrats(), this.totalPagesContrats()));
+  contratsPage = computed(() => this.paginer(this.contratsAffiches(), this.pageCouranteContrats()));
 
   // ---------- Sinistres ----------
   sinistres = signal<Sinistre[]>([]);
@@ -220,6 +229,10 @@ export class AgentDashboard implements OnInit {
 
     return this.trierSinistres(filtree);
   });
+  pageSinistres = signal(1);
+  totalPagesSinistres = computed(() => Math.max(1, Math.ceil(this.sinistresAffiches().length / this.taillePage)));
+  pageCouranteSinistres = computed(() => Math.min(this.pageSinistres(), this.totalPagesSinistres()));
+  sinistresPage = computed(() => this.paginer(this.sinistresAffiches(), this.pageCouranteSinistres()));
 
   // Formulaire de rapport policier
   numRapportSaisi = '';
@@ -254,7 +267,11 @@ export class AgentDashboard implements OnInit {
   chargerInitialisation(): void {
     this.chargementInscriptions.set(true);
     this.http.get<any[]>(this.apiUrlInscriptions).subscribe({
-      next: (liste) => { this.toutesLesInscriptions.set(liste); this.chargementInscriptions.set(false); },
+      next: (liste) => {
+        this.toutesLesInscriptions.set(liste);
+        this.pageInscriptions.set(this.pageCouranteInscriptions());
+        this.chargementInscriptions.set(false);
+      },
       error: (err) => { this.chargementInscriptions.set(false); this.erreurChargement(err); },
     });
   }
@@ -262,7 +279,11 @@ export class AgentDashboard implements OnInit {
   chargerContrats(): void {
     this.chargementContrats.set(true);
     this.http.get<Contrat[]>(`${this.apiUrl}/contrats`).subscribe({
-      next: (liste) => { this.contrats.set(liste); this.chargementContrats.set(false); },
+      next: (liste) => {
+        this.contrats.set(liste);
+        this.pageContrats.set(this.pageCouranteContrats());
+        this.chargementContrats.set(false);
+      },
       error: (err) => { this.chargementContrats.set(false); this.erreurChargement(err); },
     });
   }
@@ -270,7 +291,11 @@ export class AgentDashboard implements OnInit {
   chargerSinistres(): void {
     this.chargementSinistres.set(true);
     this.http.get<Sinistre[]>(`${this.apiUrl}/sinistres`).subscribe({
-      next: (liste) => { this.sinistres.set(liste); this.chargementSinistres.set(false); },
+      next: (liste) => {
+        this.sinistres.set(liste);
+        this.pageSinistres.set(this.pageCouranteSinistres());
+        this.chargementSinistres.set(false);
+      },
       error: (err) => { this.chargementSinistres.set(false); this.erreurChargement(err); },
     });
   }
@@ -295,9 +320,9 @@ export class AgentDashboard implements OnInit {
 
   /** Les raccourcis ouvrent l'onglet qui correspond au dossier à traiter. */
   ouvrirDossiers(vue: 'inscriptions' | 'contrats' | 'sinistres'): void {
-    if (vue === 'inscriptions') this.ongletActif.set('EN_ATTENTE');
-    if (vue === 'contrats') this.ongletContrat.set('EN_ATTENTE');
-    if (vue === 'sinistres') this.ongletSinistre.set(this.sinistresDeclares().length ? 'DECLARE' : 'RAPPORT_EN_COURS');
+    if (vue === 'inscriptions') this.changerOnglet('EN_ATTENTE');
+    if (vue === 'contrats') this.changerOngletContrat('EN_ATTENTE');
+    if (vue === 'sinistres') this.changerOngletSinistre(this.sinistresDeclares().length ? 'DECLARE' : 'RAPPORT_EN_COURS');
     this.changerVue(vue);
   }
 
@@ -316,18 +341,21 @@ export class AgentDashboard implements OnInit {
 
   changerOnglet(statut: 'EN_ATTENTE' | 'VALIDEE' | 'REFUSEE'): void {
     this.ongletActif.set(statut);
+    this.pageInscriptions.set(1);
     this.messageSucces = '';
     this.messageErreur = '';
   }
 
   changerOngletContrat(statut: StatutContrat): void {
     this.ongletContrat.set(statut);
+    this.pageContrats.set(1);
     this.messageSucces = '';
     this.messageErreur = '';
   }
 
   changerOngletSinistre(onglet: OngletSinistre): void {
     this.ongletSinistre.set(onglet);
+    this.pageSinistres.set(1);
     this.messageSucces = '';
     this.messageErreur = '';
   }
@@ -621,6 +649,20 @@ export class AgentDashboard implements OnInit {
 
   // ---------- Filtres : utilitaires ----------
 
+  changerFiltre<T>(filtre: WritableSignal<T>, valeur: T, page: WritableSignal<number>): void {
+    filtre.set(valeur);
+    page.set(1);
+  }
+
+  changerPage(page: WritableSignal<number>, destination: number, total: number): void {
+    page.set(Math.max(1, Math.min(destination, total)));
+  }
+
+  private paginer<T>(liste: T[], page: number): T[] {
+    const debut = (page - 1) * this.taillePage;
+    return liste.slice(debut, debut + this.taillePage);
+  }
+
   reinitialiserFiltres(): void {
     switch (this.vue()) {
       case 'contrats':
@@ -630,6 +672,7 @@ export class AgentDashboard implements OnInit {
         this.canalContrat.set('');
         this.echeanceProche.set(false);
         this.triContrat.set('recent');
+        this.pageContrats.set(1);
         break;
       case 'sinistres':
         this.rechercheSinistre.set('');
@@ -640,6 +683,7 @@ export class AgentDashboard implements OnInit {
         this.montantMaxSinistre.set('');
         this.rapportRecu.set('tous');
         this.triSinistre.set('recent');
+        this.pageSinistres.set(1);
         break;
       default:
         this.rechercheInscription.set('');
@@ -647,6 +691,7 @@ export class AgentDashboard implements OnInit {
         this.dateDemandeDepuis.set('');
         this.dateDemandeJusqua.set('');
         this.triInscription.set('recent');
+        this.pageInscriptions.set(1);
     }
   }
 

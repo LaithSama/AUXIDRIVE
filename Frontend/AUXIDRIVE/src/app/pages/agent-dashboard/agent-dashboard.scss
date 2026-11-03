@@ -175,17 +175,13 @@
 
 /* ---------- barre de filtres ---------- */
 .agent-filtres {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.6rem;
+  display: grid;
+  gap: 0;
   background: #fff;
   border: 2px solid rgba(28, 34, 39, 0.12);
   border-radius: 12px 12px 12px 4px;
-  padding: 0.85rem 1rem;
+  padding: 0;
   margin-bottom: 1.25rem;
-
-  .saisie { width: auto; flex: 0 1 auto; }
 }
 
 .agent-filtres-recherche {

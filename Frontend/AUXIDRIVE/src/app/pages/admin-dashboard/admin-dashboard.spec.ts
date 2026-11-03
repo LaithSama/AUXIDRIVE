@@ -101,6 +101,11 @@ describe('AdminDashboard : modification', () => {
       fixture.detectChanges();
 
       const racine = fixture.nativeElement as HTMLElement;
+      expect(racine.querySelector('.admin-filtres-recherche')).not.toBeNull();
+      expect(racine.querySelectorAll('.admin-filtres-options select').length).toBe(3);
+      expect(racine.querySelector('.admin-filtres-pied .admin-btn-reset')).not.toBeNull();
+      expect(racine.querySelectorAll('.liste-mobile .admin-fiche').length).toBe(10);
+      expect(racine.querySelectorAll('.admin-tableau-carte .admin-btn-danger[aria-label]').length).toBe(10);
       const pagination = racine.querySelector('.admin-pagination') as HTMLElement;
       expect(pagination).toBeTruthy();
       expect(pagination.compareDocumentPosition(racine.querySelector('.liste-mobile')!) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();

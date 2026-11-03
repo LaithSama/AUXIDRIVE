@@ -279,17 +279,14 @@
 
 /* ---------- barre de filtres ---------- */
 .admin-filtres {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.6rem;
+  display: grid;
+  gap: 0;
   background: #fff;
   border: 2px solid rgba(28, 34, 39, 0.12);
   border-radius: 12px 12px 12px 4px;
-  padding: 0.85rem 1rem;
+  padding: 0;
   margin-bottom: 1.25rem;
 
-  .saisie { width: auto; flex: 0 1 auto; }
 }
 
 .admin-filtres-recherche {
@@ -335,27 +332,7 @@
   &:hover:not(:disabled) { background: #f0f2f4; color: var(--encre); }
 }
 
-@media (max-width: 575.98px) {
-  .admin-filtres .saisie,
-  .admin-filtres-recherche { flex: 1 1 100%; }
-
-  .admin-filtres-compteur { margin-left: 0; }
-}
-
 /* ---------- tableaux ---------- */
-.admin-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
-
-  span { font-weight: 600; color: var(--encre); }
-  button { padding: 0.45rem 0.85rem; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-}
-
 .admin-tableau-carte {
   background: #fff;
   border: 2px solid rgba(28, 34, 39, 0.12);

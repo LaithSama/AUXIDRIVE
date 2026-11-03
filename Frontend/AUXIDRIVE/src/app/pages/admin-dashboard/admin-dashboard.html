@@ -318,6 +318,7 @@
                   [ngModel]="rechercheUtilisateur()" (ngModelChange)="changerFiltre(rechercheUtilisateur, $event, pageUtilisateurs)"
                  autocomplete="off" />
         </div>
+        <div class="admin-filtres-options">
         <select class="saisie" aria-label="Filtrer par rôle"
                  [ngModel]="filtreRoleUtilisateur()" (ngModelChange)="changerFiltre(filtreRoleUtilisateur, $event, pageUtilisateurs)">
           <option value="tous">Rôle : tous</option>
@@ -338,10 +339,13 @@
           <option value="recent">Plus récents</option>
           <option value="ancien">Plus anciens</option>
         </select>
+        </div>
+        <div class="admin-filtres-pied">
         <button type="button" class="admin-btn-reset" (click)="reinitialiserFiltres()">
           <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
         </button>
         <span class="admin-filtres-compteur">{{ utilisateursAffiches().length }} résultat(s)</span>
+        </div>
       </div>
       <div class="admin-tableau-carte d-none d-lg-block">
         <table class="tableau">
@@ -371,7 +375,7 @@
                   <button type="button" class="btn-contour-sombre admin-action" (click)="ouvrirEditionUtilisateur(u)">
                     <i class="bi bi-pencil" aria-hidden="true"></i> Modifier
                   </button>
-                  <button type="button" class="admin-btn-danger admin-action" (click)="demanderSuppression('utilisateur', u.idUtil, nomUtilisateur(u))">
+                  <button type="button" class="admin-btn-danger admin-action" [attr.aria-label]="'Supprimer ' + nomUtilisateur(u)" (click)="demanderSuppression('utilisateur', u.idUtil, nomUtilisateur(u))">
                     <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </td>
@@ -389,7 +393,7 @@
       </div>
       <div class="liste-mobile d-lg-none">
         @for (u of utilisateursPage(); track u.idUtil) {
-          <article class="liste-mobile-carte">
+          <article class="liste-mobile-carte admin-fiche">
             <div class="liste-mobile-entete">
               <h2 class="liste-mobile-titre">{{ u.nomUtil }}</h2>
               @switch (u.statutUtilisateur) {
@@ -430,6 +434,7 @@
                   [ngModel]="rechercheCompte()" (ngModelChange)="changerFiltre(rechercheCompte, $event, pageComptes)"
                  autocomplete="off" />
         </div>
+        <div class="admin-filtres-options">
         <select class="saisie" aria-label="Filtrer par statut"
                  [ngModel]="filtreStatutCompte()" (ngModelChange)="changerFiltre(filtreStatutCompte, $event, pageComptes)">
           <option value="tous">Statut : tous</option>
@@ -450,10 +455,13 @@
           <option value="recent">Plus récents</option>
           <option value="ancien">Plus anciens</option>
         </select>
+        </div>
+        <div class="admin-filtres-pied">
         <button type="button" class="admin-btn-reset" (click)="reinitialiserFiltres()">
           <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
         </button>
         <span class="admin-filtres-compteur">{{ comptesAffiches().length }} résultat(s)</span>
+        </div>
       </div>
       <div class="admin-tableau-carte d-none d-lg-block">
         <table class="tableau">
@@ -485,7 +493,7 @@
                   <button type="button" class="btn-contour-sombre admin-action" (click)="ouvrirEditionCompte(c)">
                     <i class="bi bi-pencil" aria-hidden="true"></i> Modifier
                   </button>
-                  <button type="button" class="admin-btn-danger admin-action" (click)="demanderSuppression('compte', c.idCompteClient, c.email)">
+                  <button type="button" class="admin-btn-danger admin-action" [attr.aria-label]="'Supprimer le compte ' + (c.email || libelleAssure(c))" (click)="demanderSuppression('compte', c.idCompteClient, c.email)">
                     <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </td>
@@ -503,7 +511,7 @@
       </div>
       <div class="liste-mobile d-lg-none">
         @for (c of comptesPage(); track c.idCompteClient) {
-          <article class="liste-mobile-carte">
+          <article class="liste-mobile-carte admin-fiche">
             <div class="liste-mobile-entete">
               <h2 class="liste-mobile-titre">{{ libelleAssure(c) }}</h2>
               @switch (c.statutCompte) {
@@ -545,6 +553,7 @@
                   [ngModel]="rechercheAssure()" (ngModelChange)="changerFiltre(rechercheAssure, $event, pageAssures)"
                  autocomplete="off" />
         </div>
+        <div class="admin-filtres-options">
         <select class="saisie" aria-label="Filtrer par type"
                  [ngModel]="filtreTypeAssure()" (ngModelChange)="changerFiltre(filtreTypeAssure, $event, pageAssures)">
           <option value="tous">Type : tous</option>
@@ -565,10 +574,13 @@
           <option value="recent">Plus récents</option>
           <option value="ancien">Plus anciens</option>
         </select>
+        </div>
+        <div class="admin-filtres-pied">
         <button type="button" class="admin-btn-reset" (click)="reinitialiserFiltres()">
           <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Réinitialiser
         </button>
         <span class="admin-filtres-compteur">{{ assuresAffiches().length }} résultat(s)</span>
+        </div>
       </div>
       <div class="admin-tableau-carte d-none d-lg-block">
         <table class="tableau">
@@ -597,7 +609,7 @@
                   <button type="button" class="btn-contour-sombre admin-action" (click)="ouvrirEditionAssure(a)">
                     <i class="bi bi-pencil" aria-hidden="true"></i> Modifier
                   </button>
-                  <button type="button" class="admin-btn-danger admin-action" (click)="demanderSuppression('assure', a.idAssure, libelleAssure(a))">
+                  <button type="button" class="admin-btn-danger admin-action" [attr.aria-label]="'Supprimer ' + libelleAssure(a)" (click)="demanderSuppression('assure', a.idAssure, libelleAssure(a))">
                     <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </td>
@@ -615,10 +627,10 @@
       </div>
       <div class="liste-mobile d-lg-none">
         @for (a of assuresPage(); track a.idAssure) {
-          <article class="liste-mobile-carte">
+          <article class="liste-mobile-carte admin-fiche">
             <div class="liste-mobile-entete">
               <h2 class="liste-mobile-titre">{{ a.nomAssure }} {{ a.prenomAssure || '' }}</h2>
-              @if (a.personneMorale) { <span class="pastille pastille-sombre">Morale</span> }
+              <span class="pastille pastille-sombre">{{ a.personneMorale ? 'Personne morale' : 'Personne physique' }}</span>
             </div>
             <dl class="liste-mobile-details">
               <div><dt>N° assuré</dt><dd>{{ a.numerosAssure || '—' }}</dd></div>

@@ -101,6 +101,30 @@ describe('AgentDashboard', () => {
     expect(fixture.nativeElement.querySelector('.agent-pastille-action')?.textContent).toContain('À clôturer');
   });
 
+  it('regroupe les filtres et hiérarchise les cartes sans masquer les actions principales', () => {
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+
+    for (const vue of ['inscriptions', 'contrats', 'sinistres'] as const) {
+      page.changerVue(vue);
+      fixture.detectChanges();
+      const racine = fixture.nativeElement as HTMLElement;
+      expect(racine.querySelector('.agent-filtres-recherche input')).not.toBeNull();
+      expect(racine.querySelector('.agent-filtres-options .saisie')).not.toBeNull();
+      expect(racine.querySelector('.agent-filtres-pied .agent-btn-annuler')).not.toBeNull();
+      expect(racine.querySelector('.agent-filtres-pied .agent-filtres-compteur')).not.toBeNull();
+      expect(racine.querySelector('.liste-mobile .agent-fiche .liste-mobile-titre')).not.toBeNull();
+      expect(racine.querySelector('.liste-mobile .agent-fiche .pastille')).not.toBeNull();
+      expect(racine.querySelector('.liste-mobile .agent-fiche .liste-mobile-details')).not.toBeNull();
+    }
+
+    page.changerVue('inscriptions');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.agent-tableau .agent-btn-valider')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.agent-tableau .agent-btn-refuser')).not.toBeNull();
+  });
+
   it('ouvre les sinistres à clôturer si aucun ne reste à instruire', () => {
     const fixture = TestBed.createComponent(AgentDashboard);
     const page = fixture.componentInstance;
@@ -111,6 +135,97 @@ describe('AgentDashboard', () => {
     expect(page.ongletSinistre()).toBe('RAPPORT_EN_COURS');
     expect(fixture.nativeElement.querySelector('.agent-apercu-carte')).toBeNull();
     expect(fixture.nativeElement.querySelector('.agent-pastille-action')?.textContent).toContain('À clôturer');
+  });
+
+  for (const vue of ['inscriptions', 'contrats', 'sinistres'] as const) {
+    it(`pagine les ${vue} après filtrage sur bureau et mobile`, () => {
+      const fixture = TestBed.createComponent(AgentDashboard);
+      const page = fixture.componentInstance;
+      fixture.detectChanges();
+      page.changerVue(vue);
+      const ids = Array.from({ length: 11 }, (_, i) => i + 1);
+      if (vue === 'inscriptions') {
+        page.toutesLesInscriptions.set(ids.map(id => ({
+          idInscription: id, statutInscription: 'EN_ATTENTE', assure: { nomAssure: `Dossier ${String(id).padStart(2, '0')}` },
+        })));
+      } else if (vue === 'contrats') {
+        page.contrats.set(ids.map(id => ({
+          ...page.contrats()[0], idContrat: id, statutContrat: 'EN_ATTENTE' as const,
+          nomAssure: `Dossier ${String(id).padStart(2, '0')}`,
+        })));
+      } else {
+        page.sinistres.set(ids.map(id => ({
+          ...page.sinistres()[0], idSinistre: id, statutSinistre: 'DECLARE' as const,
+          nomAssure: `Dossier ${String(id).padStart(2, '0')}`,
+        })));
+      }
+      fixture.detectChanges();
+
+      const racine = fixture.nativeElement as HTMLElement;
+      const pagination = racine.querySelector('.agent-pagination') as HTMLElement;
+      expect(pagination).not.toBeNull();
+      expect(pagination.compareDocumentPosition(racine.querySelector('.liste-mobile')!) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+      expect(pagination.textContent).toContain('Page 1 sur 2');
+      expect(racine.querySelector('.agent-filtres-compteur')?.textContent).toContain('11 résultat(s)');
+      expect(racine.querySelectorAll('.agent-tableau tbody tr').length).toBe(10);
+      expect(racine.querySelectorAll('.liste-mobile .agent-fiche').length).toBe(10);
+
+      const boutons = pagination.querySelectorAll('button');
+      expect(boutons[0].disabled).toBe(true);
+      boutons[1].click();
+      fixture.detectChanges();
+      expect(pagination.textContent).toContain('Page 2 sur 2');
+      expect(boutons[1].disabled).toBe(true);
+      expect(racine.querySelectorAll('.agent-tableau tbody tr').length).toBe(1);
+      expect(racine.querySelectorAll('.liste-mobile .agent-fiche').length).toBe(1);
+
+      const recherche = racine.querySelector('.agent-filtres-recherche input') as HTMLInputElement;
+      recherche.value = 'Dossier 01';
+      recherche.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      expect(racine.querySelector('.agent-pagination')).toBeNull();
+      expect(racine.querySelector('.agent-filtres-compteur')?.textContent).toContain('1 résultat(s)');
+      expect(racine.querySelectorAll('.agent-tableau tbody tr').length).toBe(1);
+
+      page.reinitialiserFiltres();
+      fixture.detectChanges();
+      expect(racine.querySelector('.agent-pagination')?.textContent).toContain('Page 1 sur 2');
+    });
+  }
+
+  it('revient à la première page en changeant d’onglet et ajuste la page après actualisation', () => {
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.changerVue('contrats');
+    const contrats = Array.from({ length: 11 }, (_, i) => ({
+      ...page.contrats()[0], idContrat: i + 1, statutContrat: 'EN_ATTENTE' as const,
+    }));
+    page.contrats.set(contrats);
+    page.changerPage(page.pageContrats, 2, page.totalPagesContrats());
+    fixture.detectChanges();
+    page.changerOngletContrat('VALIDE');
+    expect(page.pageContrats()).toBe(1);
+    page.changerOngletContrat('EN_ATTENTE');
+    page.changerPage(page.pageContrats, 2, page.totalPagesContrats());
+    page.chargerContrats();
+    fixture.detectChanges();
+    expect(page.pageContrats()).toBe(1);
+    expect(page.contratsPage().length).toBe(1);
+    expect(fixture.nativeElement.querySelector('.agent-pagination')).toBeNull();
+  });
+
+  it('ne montre pas la navigation quand une liste contient exactement dix dossiers', () => {
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.changerVue('inscriptions');
+    page.toutesLesInscriptions.set(Array.from({ length: 10 }, (_, i) => ({
+      idInscription: i + 1, statutInscription: 'EN_ATTENTE', assure: { nomAssure: `Dossier ${i + 1}` },
+    })));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.agent-tableau tbody tr').length).toBe(10);
+    expect(fixture.nativeElement.querySelector('.agent-pagination')).toBeNull();
   });
 
   it('distingue aucun dossier à traiter d’un échec de chargement', () => {

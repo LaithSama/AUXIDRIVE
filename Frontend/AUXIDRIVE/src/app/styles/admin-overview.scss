@@ -80,6 +80,64 @@
   .admin-vue-ensemble, .admin-graphiques { margin-top: 2rem; }
 
   .admin-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* Listes de gestion : recherche, options, puis commandes secondaires. */
+  .admin-filtres-recherche { margin: 0.9rem 1rem; }
+  .admin-filtres-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 0 1rem 0.9rem;
+  }
+  .admin-filtres-options .saisie { flex: 1 1 10rem; min-width: 0; }
+  .admin-filtres-pied {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-top: 1px solid #e3e7ea;
+    background: #f6f7f5;
+    border-radius: 0 0 12px 4px;
+  }
+  .admin-filtres-pied .admin-btn-reset { padding: 0.35rem 0.65rem; border-color: transparent; background: transparent; }
+
+  /* Les actions restent visibles et accessibles au clavier, sans dominer les données. */
+  .admin-actions .admin-action { padding: 0.3rem 0.6rem; border-color: #c7d0d5; background: #fff; color: var(--nuit); }
+  .admin-actions .admin-btn-danger .bi { color: var(--erreur); }
+  .admin-actions .admin-btn-danger:hover { background: var(--erreur); border-color: var(--erreur); color: #fff; }
+  .admin-actions .admin-btn-danger:hover .bi { color: #fff; }
+  .admin-actions .admin-action:focus-visible { outline: 3px solid var(--lagon); outline-offset: 2px; }
+
+  .admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-top: 0.75rem;
+    background: #fff;
+    border: 1px solid #d5dcd9;
+    border-top: 3px solid var(--lagon);
+    border-radius: 4px 4px 12px 12px;
+    box-shadow: 3px 3px 0 rgba(46, 52, 55, 0.06);
+
+    span { color: var(--nuit); font-size: 0.9rem; font-weight: 700; }
+    button { padding: 0.4rem 0.8rem; font-size: 0.9rem; }
+  }
+
+  .admin-fiche {
+    border-left-color: #d5dcd9;
+    .liste-mobile-entete { align-items: center; padding-bottom: 0.7rem; border-bottom: 1px solid #e3e7ea; }
+    .liste-mobile-titre { color: var(--nuit); font-size: 1.2rem; }
+    .liste-mobile-entete .pastille { flex-shrink: 0; font-size: 0.85rem; }
+    .liste-mobile-details { gap: 0.55rem; }
+    .liste-mobile-details dt { font-size: 0.85rem; }
+    .liste-mobile-details dd { color: var(--encre); font-size: 0.92rem; }
+    .admin-actions-mobile { padding-top: 0.8rem; border-top: 1px solid #e3e7ea; }
+  }
 }
 
 @media (max-width: 991.98px) {
@@ -92,5 +150,9 @@
     .admin-suivi { padding: 1rem; }
     .admin-suivi-carte { padding: 0.9rem; }
     .admin-suivi-action { display: flex; justify-content: center; width: 100%; }
+    .admin-filtres-options .saisie { flex-basis: 100%; }
+    .admin-filtres-pied .admin-btn-reset { width: auto; flex: 0 0 auto; }
+    .admin-pagination { gap: 0.5rem; padding: 0.7rem 0.5rem; }
+    .admin-pagination button { padding: 0.4rem 0.6rem; }
   }
 }
