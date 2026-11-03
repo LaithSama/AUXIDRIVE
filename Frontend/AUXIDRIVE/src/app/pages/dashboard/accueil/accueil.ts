@@ -31,6 +31,43 @@ export class DashboardAccueil implements OnInit {
   facturesEmises = 0;
   totalFactures = 0;
 
+  get prochaineEtape(): { icone: string; titre: string; description: string; lien: string; action: string } {
+    if (this.contratsEnAttente > 0) {
+      return {
+        icone: 'bi-hourglass-split',
+        titre: this.contratsEnAttente === 1 ? 'Votre contrat attend une validation' : 'Vos contrats attendent une validation',
+        description: 'Suivez le traitement de votre demande de contrat.',
+        lien: '/dashboard/contrats', action: 'Suivre mes contrats',
+      };
+    }
+    if (this.sinistresEnCours > 0) {
+      return {
+        icone: 'bi-shield-exclamation', titre: 'Un sinistre est en cours',
+        description: 'Consultez les dernières informations sur votre dossier.',
+        lien: '/dashboard/sinistres', action: 'Suivre mes sinistres',
+      };
+    }
+    if (this.facturesEmises > 0) {
+      return {
+        icone: 'bi-receipt', titre: this.facturesEmises === 1 ? 'Une facture est disponible' : 'Des factures sont disponibles',
+        description: 'Retrouvez vos factures dans votre espace.',
+        lien: '/dashboard/factures', action: 'Voir mes factures',
+      };
+    }
+    if (this.contratsActifs === 0) {
+      return {
+        icone: 'bi-file-earmark-plus', titre: 'Découvrez les contrats disponibles',
+        description: 'Consultez les offres pour protéger votre véhicule.',
+        lien: '/dashboard/contrats', action: 'Voir les contrats',
+      };
+    }
+    return {
+      icone: 'bi-shield-check', titre: 'Vos dossiers sont à jour',
+      description: 'En cas d’accident ou de dommage, vous pouvez déclarer un sinistre en ligne.',
+      lien: '/dashboard/sinistres', action: 'Déclarer un sinistre',
+    };
+  }
+
   ngOnInit(): void {
     forkJoin({
       contrats: this.contratService.mesContrats(),

@@ -67,24 +67,16 @@
   </section>
 
   <section class="accueil-actions" aria-labelledby="accueil-actions-titre">
-    <h2 id="accueil-actions-titre" class="accueil-section-titre">Actions rapides</h2>
-    <div class="row g-3">
-    <div class="col-md-6">
-      <div class="carte carte-bande-lagon accueil-raccourci accueil-raccourci-principal">
-        <i class="bi bi-file-earmark-plus accueil-raccourci-icone" aria-hidden="true"></i>
-        <h3 class="accueil-raccourci-titre">Gérer mes contrats</h3>
-        <p class="chapeau">Consultez vos contrats et découvrez les offres disponibles.</p>
-        <a routerLink="/dashboard/contrats" class="btn-signal">Voir mes contrats <span aria-hidden="true">→</span></a>
+    <h2 id="accueil-actions-titre" class="accueil-section-titre">Votre prochaine étape</h2>
+    @if (prochaineEtape; as etape) {
+      <div class="carte accueil-prochaine-etape">
+        <span class="accueil-prochaine-icone" aria-hidden="true"><i [class]="'bi ' + etape.icone"></i></span>
+        <div class="accueil-prochaine-texte">
+          <h3>{{ etape.titre }}</h3>
+          <p>{{ etape.description }}</p>
+        </div>
+        <a [routerLink]="etape.lien" class="btn-signal">{{ etape.action }} <span aria-hidden="true">→</span></a>
       </div>
-    </div>
-    <div class="col-md-6">
-      <div class="carte accueil-raccourci">
-        <i class="bi bi-shield-exclamation accueil-raccourci-icone" aria-hidden="true"></i>
-        <h3 class="accueil-raccourci-titre">Besoin de déclarer un sinistre ?</h3>
-        <p class="chapeau">Signalez un accident ou un dommage et suivez votre dossier.</p>
-        <a routerLink="/dashboard/sinistres" class="btn-contour-sombre">Déclarer un sinistre <span aria-hidden="true">→</span></a>
-      </div>
-    </div>
-    </div>
+    }
   </section>
 }
