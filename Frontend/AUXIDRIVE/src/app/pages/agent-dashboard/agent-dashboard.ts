@@ -168,6 +168,7 @@ export class AgentDashboard implements OnInit {
     this.sinistres().filter(s => s.statutSinistre === 'DECLARE'));
   sinistresEnCours = computed(() =>
     this.sinistres().filter(s => s.statutSinistre === 'RAPPORT_EN_COURS'));
+  sinistresATraiter = computed(() => this.sinistresDeclares().length + this.sinistresEnCours().length);
   sinistresClotures = computed(() =>
     this.sinistres().filter(s =>
       s.statutSinistre === 'INDEMNISE' || s.statutSinistre === 'REFUSE'));
@@ -296,7 +297,7 @@ export class AgentDashboard implements OnInit {
   ouvrirDossiers(vue: 'inscriptions' | 'contrats' | 'sinistres'): void {
     if (vue === 'inscriptions') this.ongletActif.set('EN_ATTENTE');
     if (vue === 'contrats') this.ongletContrat.set('EN_ATTENTE');
-    if (vue === 'sinistres') this.ongletSinistre.set('DECLARE');
+    if (vue === 'sinistres') this.ongletSinistre.set(this.sinistresDeclares().length ? 'DECLARE' : 'RAPPORT_EN_COURS');
     this.changerVue(vue);
   }
 

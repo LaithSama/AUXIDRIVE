@@ -62,7 +62,6 @@
 
   &.onglet-valide { background: var(--lagon); border-color: var(--lagon); }
   &.onglet-refuse { background: var(--erreur); border-color: var(--erreur); }
-  &.onglet-attente { background: var(--nuit); border-color: var(--nuit); }
 }
 
 /* ---------- tableau ---------- */
@@ -146,7 +145,7 @@
 
 .agent-kpi-lagon { border-left-color: var(--lagon); }
 .agent-kpi-erreur { border-left-color: var(--erreur); }
-.agent-kpi-signal { border-left-color: var(--signal); }
+.agent-kpi-signal { border-left-color: var(--ambre); }
 
 .agent-kpi-actif {
   background: var(--nuit);
@@ -156,6 +155,7 @@
   .agent-kpi-libelle { color: #c5d2dc; }
   .bi { color: var(--signal-clair); }
 }
+
 
 .agent-kpi-valeur {
   display: block;

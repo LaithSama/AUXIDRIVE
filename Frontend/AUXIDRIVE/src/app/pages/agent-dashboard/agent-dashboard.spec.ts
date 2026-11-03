@@ -55,7 +55,7 @@ describe('AgentDashboard', () => {
     fixture.detectChanges();
 
     const compteurs = fixture.nativeElement.querySelectorAll('.agent-apercu-valeur');
-    expect(Array.from(compteurs, (element: any) => element.textContent.trim())).toEqual(['1', '1', '1']);
+    expect(Array.from(compteurs, (element: any) => element.textContent.trim())).toEqual(['1', '1', '2']);
     expect(fixture.nativeElement.querySelector('.agent-apercu-suite').textContent)
       .toContain('rapports de sinistre en cours');
 
@@ -72,6 +72,45 @@ describe('AgentDashboard', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.agent-tableau-carte').classList.contains('d-lg-block')).toBe(true);
     expect(fixture.nativeElement.querySelector('.liste-mobile').classList.contains('d-lg-none')).toBe(true);
+  });
+
+  it('réserve le repère action requise aux dossiers à traiter sur bureau et mobile', () => {
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+
+    for (const vue of ['inscriptions', 'contrats', 'sinistres'] as const) {
+      page.changerVue(vue);
+      fixture.detectChanges();
+      const racine = fixture.nativeElement as HTMLElement;
+      expect(racine.querySelector('.agent-tableau tbody .agent-ligne-action')).not.toBeNull();
+      expect(racine.querySelector('.liste-mobile .agent-carte-action')).not.toBeNull();
+      expect(racine.querySelector('.agent-pastille-action')).not.toBeNull();
+    }
+
+    page.changerVue('contrats');
+    page.changerOngletContrat('VALIDE');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.agent-ligne-action')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.agent-carte-action')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.agent-pastille-action')).toBeNull();
+
+    page.changerVue('sinistres');
+    page.changerOngletSinistre('RAPPORT_EN_COURS');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.agent-pastille-action')?.textContent).toContain('À clôturer');
+  });
+
+  it('ouvre les sinistres à clôturer si aucun ne reste à instruire', () => {
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.sinistres.set(page.sinistresEnCours());
+    page.ouvrirDossiers('sinistres');
+    fixture.detectChanges();
+    expect(page.ongletSinistre()).toBe('RAPPORT_EN_COURS');
+    expect(fixture.nativeElement.querySelector('.agent-apercu-carte')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.agent-pastille-action')?.textContent).toContain('À clôturer');
   });
 
   it('distingue aucun dossier à traiter d’un échec de chargement', () => {

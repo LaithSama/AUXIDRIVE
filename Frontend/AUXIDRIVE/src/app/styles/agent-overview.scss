@@ -57,6 +57,27 @@
   }
   .agent-apercu-libelle { font-weight: 700; }
   .agent-apercu-detail { font-size: 0.87rem; color: var(--gris); }
+  .agent-apercu-carte-active .agent-apercu-detail { color: #704608; font-weight: 700; }
+
+  .onglet-attente.onglet-actif { background: var(--ambre); border-color: var(--ambre); color: var(--encre); }
+  .onglet-attente:not(.onglet-actif) { border-color: var(--ambre); color: #704608; }
+  .agent-kpi-signal.agent-kpi-actif { border-left-color: var(--ambre); }
+  .agent-kpi-signal.agent-kpi-actif .bi { color: #ffd28a; }
+
+  /* L'ambre signale une action à effectuer, pas une échéance dépassée. */
+  .agent-tableau tbody tr.agent-ligne-action > td:first-child {
+    box-shadow: inset 4px 0 0 var(--ambre);
+  }
+
+  .agent-pastille-action {
+    background: #fff0d4;
+    color: #704608;
+    border: 1px solid #dbac59;
+    font-weight: 700;
+  }
+
+  .liste-mobile-carte.agent-carte-action { border-left: 4px solid var(--ambre); }
+  .liste-mobile-carte:not(.agent-carte-action) { border-left-color: #d5dcd9; }
   .agent-apercu-lien {
     display: inline-flex;
     align-items: center;

@@ -46,8 +46,8 @@
               (click)="changerVue('sinistres')">
         <i class="bi bi-car-front-fill" aria-hidden="true"></i>
         <span>Sinistres</span>
-        @if (sinistresDeclares().length > 0) {
-          <span class="agent-sidebar-badge">{{ sinistresDeclares().length }}</span>
+        @if (sinistresATraiter() > 0) {
+          <span class="agent-sidebar-badge">{{ sinistresATraiter() }}</span>
         }
       </button>
 
@@ -126,7 +126,7 @@
             <span class="agent-apercu-icone" aria-hidden="true"><i class="bi bi-clipboard2-check-fill"></i></span>
             <span class="agent-apercu-valeur">{{ demandesEnAttente().length }}</span>
             <span class="agent-apercu-libelle">Inscriptions à vérifier</span>
-            <span class="agent-apercu-detail">{{ demandesEnAttente().length === 0 ? 'Aucune demande en attente' : 'Consulter les demandes' }}</span>
+            <span class="agent-apercu-detail">{{ demandesEnAttente().length === 0 ? 'Aucune demande en attente' : 'Action requise · À vérifier' }}</span>
             <span class="agent-apercu-lien">Voir les inscriptions <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
           </button>
           <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="contratsAttente().length > 0"
@@ -134,15 +134,15 @@
             <span class="agent-apercu-icone" aria-hidden="true"><i class="bi bi-file-earmark-text-fill"></i></span>
             <span class="agent-apercu-valeur">{{ contratsAttente().length }}</span>
             <span class="agent-apercu-libelle">Contrats à valider</span>
-            <span class="agent-apercu-detail">{{ contratsAttente().length === 0 ? 'Aucun contrat en attente' : 'Consulter les contrats' }}</span>
+            <span class="agent-apercu-detail">{{ contratsAttente().length === 0 ? 'Aucun contrat en attente' : 'Action requise · À valider' }}</span>
             <span class="agent-apercu-lien">Voir les contrats <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
           </button>
-          <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="sinistresDeclares().length > 0"
+          <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="sinistresATraiter() > 0"
                   (click)="ouvrirDossiers('sinistres')">
             <span class="agent-apercu-icone" aria-hidden="true"><i class="bi bi-car-front-fill"></i></span>
-            <span class="agent-apercu-valeur">{{ sinistresDeclares().length }}</span>
-            <span class="agent-apercu-libelle">Sinistres à instruire</span>
-            <span class="agent-apercu-detail">{{ sinistresDeclares().length === 0 ? 'Aucun sinistre déclaré' : 'Consulter les sinistres' }}</span>
+            <span class="agent-apercu-valeur">{{ sinistresATraiter() }}</span>
+            <span class="agent-apercu-libelle">Sinistres à traiter</span>
+            <span class="agent-apercu-detail">{{ sinistresATraiter() === 0 ? 'Aucun sinistre déclaré' : sinistresDeclares().length > 0 ? 'Action requise · À instruire' : 'Action requise · À clôturer' }}</span>
             <span class="agent-apercu-lien">Voir les sinistres <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
           </button>
         </div>
@@ -168,7 +168,7 @@
         <i class="bi bi-inbox-fill" aria-hidden="true"></i>
         <span>
           <span class="agent-kpi-valeur">{{ demandesEnAttente().length }}</span>
-          <span class="agent-kpi-libelle">En attente</span>
+          <span class="agent-kpi-libelle">À vérifier</span>
         </span>
       </button>
       <button type="button" class="agent-kpi agent-kpi-lagon"
@@ -269,8 +269,8 @@
             <!-- CAS 1 : EN ATTENTE -->
             @if (ongletActif() === 'EN_ATTENTE') {
               @for (d of inscriptionsAffichees(); track d.idInscription) {
-                <tr>
-                  <td class="ps-4 agent-num">#{{ d.idInscription }}</td>
+                 <tr class="agent-ligne-action">
+                   <td class="ps-4 agent-num">#{{ d.idInscription }} <span class="pastille agent-pastille-action">À vérifier</span></td>
                   <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
                   <td>
                     <div class="fw-semibold small">{{ d.assure?.contact }}</div>
@@ -343,11 +343,11 @@
     </div>
     <div class="liste-mobile d-lg-none">
       @for (d of inscriptionsAffichees(); track d.idInscription) {
-        <article class="liste-mobile-carte">
+         <article class="liste-mobile-carte" [class.agent-carte-action]="ongletActif() === 'EN_ATTENTE'">
           <div class="liste-mobile-entete">
             <div><small class="agent-num">#{{ d.idInscription }}</small><h2 class="liste-mobile-titre">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</h2></div>
             @switch (ongletActif()) {
-              @case ('EN_ATTENTE') { <span class="pastille">En attente</span> }
+               @case ('EN_ATTENTE') { <span class="pastille agent-pastille-action">À vérifier</span> }
               @case ('VALIDEE') { <span class="pastille pastille-lagon">Validé</span> }
               @case ('REFUSEE') { <span class="pastille pastille-rouge">Refusé</span> }
             }
@@ -491,7 +491,7 @@
             <!-- EN ATTENTE -->
             @if (ongletContrat() === 'EN_ATTENTE') {
               @for (c of contratsAffiches(); track c.idContrat) {
-                <tr class="agent-ligne-cliquable" (click)="ouvrirModaleContrat(c)"
+                 <tr class="agent-ligne-cliquable agent-ligne-action" (click)="ouvrirModaleContrat(c)"
                     title="Cliquer pour calculer la prime et traiter le contrat">
                   <td class="ps-4 agent-num">#{{ c.idContrat }}</td>
                   <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
@@ -499,7 +499,7 @@
                   <td>{{ c.dateEffet | dateFr }}</td>
                   <td>{{ c.dateExpiration | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
-                  <td><span class="pastille">En attente</span></td>
+                   <td><span class="pastille agent-pastille-action">À valider</span></td>
                 </tr>
               } @empty {
                 <tr><td colspan="7"><div class="agent-vide"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Aucune demande de contrat en attente.</span></div></td></tr>
@@ -547,11 +547,11 @@
     </div>
     <div class="liste-mobile d-lg-none">
       @for (c of contratsAffiches(); track c.idContrat) {
-        <article class="liste-mobile-carte">
+         <article class="liste-mobile-carte" [class.agent-carte-action]="ongletContrat() === 'EN_ATTENTE'">
           <div class="liste-mobile-entete">
             <div><small class="agent-num">#{{ c.idContrat }}</small><h2 class="liste-mobile-titre">{{ c.nomAssure }} {{ c.prenomAssure }}</h2></div>
             @switch (ongletContrat()) {
-              @case ('EN_ATTENTE') { <span class="pastille">En attente</span> }
+               @case ('EN_ATTENTE') { <span class="pastille agent-pastille-action">À valider</span> }
               @case ('VALIDE') { <span class="pastille pastille-lagon">Validé</span> }
               @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
             }
@@ -580,7 +580,7 @@
         <i class="bi bi-inbox-fill" aria-hidden="true"></i>
         <span>
           <span class="agent-kpi-valeur">{{ sinistresDeclares().length }}</span>
-          <span class="agent-kpi-libelle">Rapport en cours</span>
+           <span class="agent-kpi-libelle">À instruire</span>
         </span>
       </button>
       <button type="button" class="agent-kpi agent-kpi-signal"
@@ -589,7 +589,7 @@
         <i class="bi bi-pencil-fill" aria-hidden="true"></i>
         <span>
           <span class="agent-kpi-valeur">{{ sinistresEnCours().length }}</span>
-          <span class="agent-kpi-libelle">Indemnisation et clôturation</span>
+           <span class="agent-kpi-libelle">À clôturer</span>
         </span>
       </button>
       <button type="button" class="agent-kpi agent-kpi-lagon"
@@ -608,14 +608,14 @@
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletSinistre() === 'DECLARE'"
                 (click)="changerOngletSinistre('DECLARE')">
-          <i class="bi bi-inbox-fill" aria-hidden="true"></i>Rapport en cours ({{ sinistresDeclares().length }})
+           <i class="bi bi-inbox-fill" aria-hidden="true"></i>À instruire ({{ sinistresDeclares().length }})
         </button>
       </li>
       <li>
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletSinistre() === 'RAPPORT_EN_COURS'"
                 (click)="changerOngletSinistre('RAPPORT_EN_COURS')">
-          <i class="bi bi-pencil-fill" aria-hidden="true"></i>Indemnisation et clôturation ({{ sinistresEnCours().length }})
+           <i class="bi bi-pencil-fill" aria-hidden="true"></i>À clôturer ({{ sinistresEnCours().length }})
         </button>
       </li>
       <li>
@@ -688,12 +688,12 @@
             <!-- À INSTRUIRE -->
             @if (ongletSinistre() === 'DECLARE') {
               @for (s of sinistresAffiches(); track s.idSinistre) {
-                <tr>
-                  <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
+                 <tr class="agent-ligne-action">
+                   <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
                   <td class="d-none d-md-table-cell">{{ s.dateSinistre | dateFr }}</td>
                   <td class="d-none d-md-table-cell font-monospace">{{ s.numPolice || '—' }}</td>
                   <td class="fw-medium">{{ s.nomAssure }} {{ s.prenomAssure }}</td>
-                  <td><span class="pastille">Déclaré</span></td>
+                   <td><span class="pastille agent-pastille-action">À instruire</span></td>
                   <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
                   <td class="text-end pe-4">
                     <button type="button" class="agent-btn" (click)="ouvrirRapport(s)"><i class="bi bi-clipboard2-fill" aria-hidden="true"></i>Rapport</button>
@@ -707,12 +707,12 @@
             <!-- RAPPORT EN COURS -->
             @if (ongletSinistre() === 'RAPPORT_EN_COURS') {
               @for (s of sinistresAffiches(); track s.idSinistre) {
-                <tr>
-                  <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
+                 <tr class="agent-ligne-action">
+                   <td class="ps-4 agent-num">#{{ s.idSinistre }}</td>
                   <td class="d-none d-md-table-cell">{{ s.dateSinistre | dateFr }}</td>
                   <td class="d-none d-md-table-cell font-monospace">{{ s.numPolice || '—' }}</td>
                   <td class="fw-medium">{{ s.nomAssure }} {{ s.prenomAssure }}</td>
-                  <td><span class="pastille pastille-sombre">Rapport reçu</span></td>
+                   <td><span class="pastille agent-pastille-action">À clôturer</span></td>
                   <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
                   <td class="text-end pe-4">
                     <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirCloture(s)"><i class="bi bi-archive-fill" aria-hidden="true"></i>Clôturer</button>
@@ -758,12 +758,12 @@
     </div>
     <div class="liste-mobile d-lg-none">
       @for (s of sinistresAffiches(); track s.idSinistre) {
-        <article class="liste-mobile-carte">
+         <article class="liste-mobile-carte" [class.agent-carte-action]="ongletSinistre() !== 'CLOTURES'">
           <div class="liste-mobile-entete">
             <div><small class="agent-num">#{{ s.idSinistre }}</small><h2 class="liste-mobile-titre">{{ s.nomAssure }} {{ s.prenomAssure }}</h2></div>
             @switch (s.statutSinistre) {
-              @case ('DECLARE') { <span class="pastille">Déclaré</span> }
-              @case ('RAPPORT_EN_COURS') { <span class="pastille pastille-sombre">Rapport reçu</span> }
+               @case ('DECLARE') { <span class="pastille agent-pastille-action">À instruire</span> }
+               @case ('RAPPORT_EN_COURS') { <span class="pastille agent-pastille-action">À clôturer</span> }
               @case ('INDEMNISE') { <span class="pastille pastille-lagon">Indemnisé</span> }
               @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
             }
