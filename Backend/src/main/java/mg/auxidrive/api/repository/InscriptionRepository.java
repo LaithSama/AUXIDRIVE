@@ -26,6 +26,8 @@ public interface InscriptionRepository extends JpaRepository<Inscription, Long> 
 
     boolean existsByAssure_MailAndStatutInscription(String mail, StatutInscription statutInscription);
 
+    Optional<Inscription> findByJetonCorrectionHash(String jetonCorrectionHash);
+
     /** Comptage par statut, pour le tableau de bord administrateur. */
     long countByStatutInscription(StatutInscription statutInscription);
 }

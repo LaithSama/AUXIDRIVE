@@ -127,7 +127,7 @@
         </form>
       </div>
 
-      <div class="carte profil-carte zone-dangereuse">
+      <div class="carte profil-carte zone-dangereuse" id="suppression-compte">
         <h2 class="profil-titre">Supprimer mon compte</h2>
 
         @if (!suppressionPlanifiee) {
@@ -173,5 +173,169 @@
         }
       </div>
     </div>
+  </div>
+
+  <!-- Pièces justificatives du client -->
+  <section class="carte profil-carte mes-documents" aria-labelledby="titre-documents">
+    <div class="documents-entete">
+      <div>
+        <h2 id="titre-documents" class="profil-titre">Mes documents</h2>
+        <p class="chapeau mb-0">
+          Ajoutez, remplacez ou supprimez vos pièces justificatives. Chaque ajout est vérifié
+          par un agent avant d’être validé.
+        </p>
+      </div>
+      <span class="documents-compteur">{{ nombrePieces }} / {{ typesDocuments.length }} pièces</span>
+    </div>
+
+    @if (messageDocuments) {
+      <div class="message-ok" role="status">{{ messageDocuments }}</div>
+    }
+    @if (erreurDocument) {
+      <div class="message-erreur" role="alert">{{ erreurDocument }}</div>
+    }
+
+    @if (documentsChargement) {
+      <app-squelette libelle="Chargement de vos pièces justificatives" mode="liste" [nombre]="4" />
+    } @else if (documentsErreur) {
+      <div class="message-erreur" role="alert">{{ documentsErreur }}</div>
+      <button type="button" class="btn-contour-sombre documents-reessayer" (click)="rechargerDocuments()">
+        Réessayer
+      </button>
+    } @else {
+      @if (nombrePieces === 0) {
+        <app-etat-vide
+          titre="Aucune pièce déposée"
+          description="Ajoutez votre carte d’identité, votre carte grise, votre carte rose ou votre modèle N°1. Formats PDF, JPEG ou PNG, 5 Mo maximum."
+          icone="bi-folder2-open" />
+      }
+
+      <div class="documents-grille">
+        @for (element of piecesParType; track element.type.valeur) {
+          <article class="document-carte"
+                   [class.document-carte-verrouillee]="element.document?.verrouille">
+            <div class="document-entete">
+              <span class="document-icone" aria-hidden="true"><i class="bi {{ element.type.icone }}"></i></span>
+              <div>
+                <h3 class="document-titre">{{ element.type.libelle }}</h3>
+                <p class="document-description">{{ element.type.description }}</p>
+              </div>
+            </div>
+
+            @if (element.document; as doc) {
+              <div class="document-details">
+                <span [class]="'document-statut ' + statutClasse(doc)">
+                  <i class="bi bi-circle-fill" aria-hidden="true"></i>{{ statutLibelle(doc) }}
+                </span>
+                <small>
+                  {{ (doc.formatFichier || '').toUpperCase() }}
+                  @if (tailleDocument(doc)) { · {{ tailleDocument(doc) }} }
+                  · {{ dateDocument(doc) }}
+                </small>
+              </div>
+
+              @if (doc.statutDocuments === 'REJETE' && doc.motifRejet) {
+                <p class="document-motif" role="status">
+                  <strong>Motif du rejet :</strong> {{ doc.motifRejet }}
+                </p>
+              }
+
+              @if (doc.verrouille) {
+                <p class="document-verrou">
+                  Dossier en cours d’instruction : remplacez cette pièce depuis le lien de correction
+                  reçu par e-mail.
+                </p>
+              }
+
+              <div class="document-actions">
+                <button type="button" class="btn-contour-sombre" (click)="voirDocument(doc)">
+                  <i class="bi bi-eye" aria-hidden="true"></i> Aperçu
+                </button>
+                @if (!doc.verrouille) {
+                  <button type="button" class="btn-contour-sombre" [disabled]="documentEnCours"
+                          (click)="ouvrirSelecteur(element.type.valeur)">
+                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Remplacer
+                  </button>
+                  <button type="button" class="document-supprimer" [disabled]="documentEnCours"
+                          (click)="demanderSuppression(doc)">
+                    <i class="bi bi-trash3" aria-hidden="true"></i> Supprimer
+                  </button>
+                }
+              </div>
+
+              @if (typeOuvert === element.type.valeur && !doc.verrouille) {
+                <div class="document-envoi">
+                  <label [for]="'fichier-' + element.type.valeur">
+                    Nouveau fichier (PDF, JPEG ou PNG, 5 Mo max)
+                  </label>
+                  <input type="file" [id]="'fichier-' + element.type.valeur"
+                         accept=".pdf,.jpg,.jpeg,.png" [disabled]="documentEnCours"
+                         (change)="choisirFichier(element.type.valeur, $event)" />
+                  @if (documentEnCours) { <small role="status">Envoi en cours…</small> }
+                </div>
+              }
+            } @else {
+              <p class="document-absente"><i class="bi bi-dash-circle" aria-hidden="true"></i> Non fournie</p>
+              <div class="document-actions">
+                <button type="button" class="btn-signal document-ajouter" [disabled]="documentEnCours"
+                        (click)="ouvrirSelecteur(element.type.valeur)">
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i> Ajouter la pièce
+                </button>
+              </div>
+
+              @if (typeOuvert === element.type.valeur) {
+                <div class="document-envoi">
+                  <label [for]="'fichier-' + element.type.valeur">
+                    Fichier à ajouter (PDF, JPEG ou PNG, 5 Mo max)
+                  </label>
+                  <input type="file" [id]="'fichier-' + element.type.valeur"
+                         accept=".pdf,.jpg,.jpeg,.png" [disabled]="documentEnCours"
+                         (change)="choisirFichier(element.type.valeur, $event)" />
+                  @if (documentEnCours) { <small role="status">Envoi en cours…</small> }
+                </div>
+              }
+            }
+          </article>
+        }
+      </div>
+    }
+  </section>
+}
+
+<!-- Confirmation de suppression d’une pièce -->
+@if (documentASupprimer) {
+  <div class="document-voile" (click)="annulerSuppressionDocument()"></div>
+  <div class="document-modale" role="dialog" aria-modal="true" aria-labelledby="titre-suppression-document">
+    <h2 id="titre-suppression-document" class="profil-titre">Supprimer cette pièce ?</h2>
+    <p>
+      La pièce « <strong>{{ libelleType(documentASupprimer.typeDocument) }}</strong> » sera
+      définitivement supprimée. Vous pourrez la déposer à nouveau depuis cette page.
+    </p>
+    <div class="document-actions document-actions-modale">
+      <button type="button" class="btn-zone" [disabled]="documentEnCours" (click)="confirmerSuppressionDocument()">
+        {{ documentEnCours ? 'Suppression…' : 'Oui, supprimer' }}
+      </button>
+      <button type="button" class="btn-contour-sombre" [disabled]="documentEnCours" (click)="annulerSuppressionDocument()">
+        Annuler
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Aperçu d’une pièce -->
+@if (apercuDocument) {
+  <div class="document-voile" (click)="fermerApercuDocument()"></div>
+  <div class="document-modale document-modale-apercu" role="dialog" aria-modal="true" aria-label="Aperçu de la pièce justificative">
+    <div class="document-apercu-entete">
+      <strong>Aperçu de la pièce</strong>
+      <button type="button" class="document-fermer" (click)="fermerApercuDocument()" aria-label="Fermer l’aperçu">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    @if (apercuDocumentType === 'pdf') {
+      <iframe [src]="apercuDocument" title="Aperçu du document" width="100%" height="420"></iframe>
+    } @else {
+      <img [src]="apercuDocument" alt="Aperçu de la pièce justificative" />
+    }
   </div>
 }

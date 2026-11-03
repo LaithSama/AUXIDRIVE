@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 // le client soumet sa demande d'inscription sans être connecté
                 .requestMatchers(HttpMethod.POST, "/api/inscriptions").permitAll()
+                .requestMatchers("/api/inscriptions/correction").permitAll()
                 // catalogue d'offres : lecture publique, modification réservée à l'administrateur
                 .requestMatchers(HttpMethod.GET, "/api/offres/**").permitAll()
                 .requestMatchers("/api/offres/**").hasRole("ADMIN")

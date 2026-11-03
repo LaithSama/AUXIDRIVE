@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -80,8 +81,36 @@ public class InscriptionController {
 
     @PostMapping("/{id}/valider")
     public Inscription valider(@PathVariable Long id, @RequestParam String numerosAssure,
-                               Authentication authentication) {
-        return inscriptionService.valider(id, numerosAssure, authentication.getName());
+                               @RequestParam(required = false) String cin,
+                                Authentication authentication) {
+        return inscriptionService.valider(id, numerosAssure, cin, authentication.getName());
+    }
+
+    @GetMapping("/correction")
+    public ResponseEntity<InscriptionService.Correction> consulterCorrection(@RequestParam String jeton) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(inscriptionService.consulterCorrection(jeton));
+    }
+
+    @PostMapping(value = "/correction", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> corriger(@RequestParam String jeton,
+            @RequestPart(value = "cin", required = false) MultipartFile cin,
+            @RequestPart(value = "carteGrise", required = false) MultipartFile carteGrise,
+            @RequestPart(value = "carteRose", required = false) MultipartFile carteRose,
+            @RequestPart(value = "modeleN1", required = false) MultipartFile modeleN1) {
+        Map<String, MultipartFile> fichiers = new LinkedHashMap<>();
+        ajouter(fichiers, "CIN", cin);
+        ajouter(fichiers, "CARTE_GRISE", carteGrise);
+        ajouter(fichiers, "CARTE_ROSE", carteRose);
+        ajouter(fichiers, "MODELE_N1", modeleN1);
+        inscriptionService.corriger(jeton, fichiers);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/renvoyer-correction")
+    public ResponseEntity<Void> renvoyerCorrection(@PathVariable Long id) {
+        inscriptionService.renvoyerCorrection(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/refuser")

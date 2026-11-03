@@ -4,10 +4,23 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { Profil } from '../../../core/interfaces/profil';
+import { DocumentProfil } from '../../../core/interfaces/document-profil';
 import { DashboardProfil } from './profil';
 import { environment } from '../../../../environments/environment';
 
 const API = `${environment.apiUrl}/api/profil`;
+
+const DOCUMENT: DocumentProfil = {
+  idDocument: 1,
+  typeDocument: 'CIN',
+  formatFichier: 'jpg',
+  tailleKo: 120,
+  dateTeleversement: '2026-10-01T10:00:00',
+  statutDocuments: 'EN_ATTENTE',
+  motifRejet: null,
+  dateValidation: null,
+  verrouille: false,
+};
 
 const PROFIL: Profil = {
   compte: { email: 'client@auxi.mg', dateCreation: '2026-01-05T09:00:00', dateSuppressionPlanifiee: null },
@@ -42,6 +55,11 @@ describe('DashboardProfil', () => {
     const requete = httpMock.expectOne(API);
     expect(requete.request.method).toBe('GET');
     requete.flush(PROFIL);
+
+    const documents = httpMock.expectOne(`${API}/documents`);
+    expect(documents.request.method).toBe('GET');
+    documents.flush([]);
+
     await fixture.whenStable();
   });
 
@@ -113,5 +131,62 @@ describe('DashboardProfil', () => {
 
     expect(component.suppressionPlanifiee).toBe(false);
     expect(component.messageSucces).toContain('annulée');
+  });
+
+  it('ajoute une pièce manquante et la place en attente de vérification', () => {
+    const fichier = new File(['contenu'], 'cin.jpg', { type: 'image/jpeg' });
+    const entree = { files: [fichier], value: 'cin.jpg' } as unknown as HTMLInputElement;
+
+    component.choisirFichier('CIN', { target: entree } as unknown as Event);
+
+    const requete = httpMock.expectOne((r) => r.url === `${API}/documents` && r.method === 'POST');
+    const corps = requete.request.body as FormData;
+    expect(corps.get('type')).toBe('CIN');
+    expect((corps.get('fichier') as File).name).toBe('cin.jpg');
+    requete.flush(DOCUMENT);
+
+    expect(component.documents.length).toBe(1);
+    expect(component.documents[0].statutDocuments).toBe('EN_ATTENTE');
+    expect(component.messageDocuments).toContain('ajoutée');
+  });
+
+  it('refuse localement un fichier trop volumineux sans appeler le serveur', () => {
+    const tropGros = { name: 'scan.pdf', size: 6 * 1024 * 1024 } as File;
+    const entree = { files: [tropGros], value: 'scan.pdf' } as unknown as HTMLInputElement;
+
+    component.choisirFichier('CARTE_GRISE', { target: entree } as unknown as Event);
+
+    expect(component.erreurDocument).toContain('5 Mo maximum');
+    httpMock.expectNone(`${API}/documents`);
+  });
+
+  it('supprime une pièce après confirmation', () => {
+    component.documents = [DOCUMENT];
+    component.demanderSuppression(DOCUMENT);
+    expect(component.documentASupprimer).toBe(DOCUMENT);
+
+    component.confirmerSuppressionDocument();
+    const requete = httpMock.expectOne((r) =>
+      r.url === `${API}/documents/1` && r.method === 'DELETE');
+    requete.flush(null);
+
+    expect(component.documents).toEqual([]);
+    expect(component.documentASupprimer).toBeNull();
+    expect(component.messageDocuments).toContain('supprimée');
+  });
+
+  it('affiche un motif de rejet et bloque les actions d’une pièce verrouillée', () => {
+    const rejetee: DocumentProfil = {
+      ...DOCUMENT,
+      statutDocuments: 'REJETE',
+      motifRejet: 'Photo illisible',
+      verrouille: true,
+    };
+    component.documents = [rejetee];
+
+    expect(component.statutLibelle(rejetee)).toBe('À remplacer');
+    expect(component.statutClasse(rejetee)).toBe('statut-rejete');
+    expect(rejetee.motifRejet).toBe('Photo illisible');
+    expect(rejetee.verrouille).toBe(true);
   });
 });

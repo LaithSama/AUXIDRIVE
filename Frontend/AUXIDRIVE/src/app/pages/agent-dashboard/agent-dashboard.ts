@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal, computed, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Contrat, StatutContrat } from '../../core/interfaces/contrat';
@@ -13,8 +14,32 @@ import { EtatVide } from '../../components/etat-vide/etat-vide';
 import { Squelette } from '../../components/squelette/squelette';
 import { environment } from '../../../environments/environment';
 
-type VueAgent = 'tableau' | 'inscriptions' | 'contrats' | 'sinistres' | 'profil';
+type VueAgent = 'tableau' | 'inscriptions' | 'contrats' | 'sinistres' | 'documents' | 'profil';
 type OngletSinistre = 'DECLARE' | 'RAPPORT_EN_COURS' | 'CLOTURES';
+interface DocumentInscription {
+  idDocument: number;
+  typeDocument: string;
+  formatFichier: string;
+  tailleKo?: number;
+  dateTeleversement?: string;
+  statutDocuments: 'EN_ATTENTE' | 'VALIDE' | 'REJETE';
+  motifRejet?: string;
+}
+interface DocumentAVerifier {
+  idDocument: number;
+  typeDocument: string;
+  formatFichier: string;
+  tailleKo?: number;
+  dateTeleversement?: string;
+  statutDocuments: string;
+  motifRejet?: string;
+  idAssure?: number;
+  nomAssure?: string;
+  prenomAssure?: string;
+  numerosAssure?: string;
+  mailAssure?: string;
+  origine: 'PROFIL' | 'INSCRIPTION';
+}
 
 @Component({
   selector: 'app-agent-dashboard',
@@ -28,6 +53,7 @@ export class AgentDashboard implements OnInit {
   private http = inject(HttpClient);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private sanitizer = inject(DomSanitizer);
 
   private apiUrl = `${environment.apiUrl}/api`;
 
@@ -53,7 +79,9 @@ export class AgentDashboard implements OnInit {
   ongletActif = signal<'EN_ATTENTE' | 'VALIDEE' | 'REFUSEE'>('EN_ATTENTE');
 
   demandesEnAttente = computed(() =>
-    this.toutesLesInscriptions().filter(d => d.statutInscription === 'EN_ATTENTE'));
+    this.toutesLesInscriptions().filter(d => d.statutInscription === 'EN_ATTENTE' || d.statutInscription === 'CORRECTION_DEMANDEE'));
+  demandesAVerifier = computed(() => this.toutesLesInscriptions().filter(d => d.statutInscription === 'EN_ATTENTE'));
+  demandesEnCorrection = computed(() => this.toutesLesInscriptions().filter(d => d.statutInscription === 'CORRECTION_DEMANDEE'));
   demandesValidees = computed(() =>
     this.toutesLesInscriptions().filter(d => d.statutInscription === 'VALIDEE'));
   demandesRefusees = computed(() =>
@@ -96,9 +124,25 @@ export class AgentDashboard implements OnInit {
   inscriptionsPage = computed(() => this.paginer(this.inscriptionsAffichees(), this.pageCouranteInscriptions()));
 
   demandeSelectionnee: any = null;
+  documentsInscription: DocumentInscription[] = [];
+  documentsChargement = false;
+  documentsErreur = '';
+  motifDocument: Record<number, string> = {};
+  cinVerifie = '';
+  documentEnCours = false;
+  apercuDocument: SafeResourceUrl | null = null;
+  apercuDocumentType = '';
+  private apercuDocumentObjet: string | null = null;
   numAssureSaisi = '';
   motifRefusSaisi = '';
   modeAction: 'VALIDER' | 'REFUSER' | null = null;
+
+  // ---------- Documents à vérifier (ajoutés depuis le profil client) ----------
+  documentsVerification = signal<DocumentAVerifier[]>([]);
+  chargementVerification = signal(true);
+  erreurVerification = signal(false);
+  motifVerification: Record<number, string> = {};
+  documentVerifEnCours = false;
 
   // ---------- Contrats ----------
   contrats = signal<Contrat[]>([]);
@@ -266,6 +310,7 @@ export class AgentDashboard implements OnInit {
     this.chargerInitialisation();
     this.chargerContrats();
     this.chargerSinistres();
+    this.chargerDocumentsVerification();
   }
 
   /** Récupère l'intégralité des dossiers auprès du backend */
@@ -305,6 +350,72 @@ export class AgentDashboard implements OnInit {
         this.chargementSinistres.set(false);
       },
       error: (err) => { this.chargementSinistres.set(false); this.erreurSinistres.set(true); this.erreurChargement(err); },
+    });
+  }
+
+  /** Pièces ajoutées depuis le profil client, hors dossiers d'inscription. */
+  chargerDocumentsVerification(): void {
+    this.chargementVerification.set(true);
+    this.erreurVerification.set(false);
+    this.http.get<DocumentAVerifier[]>(`${this.apiUrl}/documents/a-verifier`).subscribe({
+      next: (liste) => {
+        this.documentsVerification.set(Array.isArray(liste) ? liste : []);
+        this.chargementVerification.set(false);
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des documents à vérifier :', err);
+        this.chargementVerification.set(false);
+        this.erreurVerification.set(true);
+        if (err.status === 401 || err.status === 403) this.deconnexion();
+      },
+    });
+  }
+
+  libelleDocument(type: string): string {
+    const libelles: Record<string, string> = {
+      CIN: 'Carte d’identité',
+      CARTE_GRISE: 'Carte grise',
+      CARTE_ROSE: 'Carte rose',
+      MODELE_N1: 'Modèle N°1',
+    };
+    return libelles[type] ?? type.replaceAll('_', ' ');
+  }
+
+  examinerDocumentVerification(doc: DocumentAVerifier, decision: 'valider' | 'rejeter'): void {
+    const motif = (this.motifVerification[doc.idDocument] ?? '').trim();
+    if (this.documentVerifEnCours || (decision === 'rejeter' && !motif)) return;
+    this.documentVerifEnCours = true;
+    this.messageSucces = '';
+    this.messageErreur = '';
+    this.http.put(`${this.apiUrl}/documents/${doc.idDocument}/${decision}`, null,
+      { params: decision === 'rejeter' ? { motif } : {} }).subscribe({
+      next: () => {
+        this.documentVerifEnCours = false;
+        this.fermerApercuDocument();
+        this.chargerDocumentsVerification();
+        this.messageSucces = decision === 'valider'
+          ? `La pièce « ${this.libelleDocument(doc.typeDocument)} » a été acceptée.`
+          : `La pièce « ${this.libelleDocument(doc.typeDocument)} » a été rejetée : le client verra le motif dans son profil.`;
+      },
+      error: () => {
+        this.documentVerifEnCours = false;
+        this.messageErreur = 'Impossible de traiter cette pièce.';
+      },
+    });
+  }
+
+  voirDocumentVerification(doc: DocumentAVerifier): void {
+    this.fermerApercuDocument();
+    this.messageErreur = '';
+    this.http.get(`${this.apiUrl}/documents/${doc.idDocument}/fichier`, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        this.apercuDocumentObjet = URL.createObjectURL(blob);
+        this.apercuDocument = this.sanitizer.bypassSecurityTrustResourceUrl(this.apercuDocumentObjet);
+        this.apercuDocumentType = (doc.formatFichier || 'pdf').toLowerCase();
+      },
+      error: () => {
+        this.messageErreur = 'Impossible d’ouvrir ce fichier.';
+      },
     });
   }
 
@@ -371,15 +482,96 @@ export class AgentDashboard implements OnInit {
   // ---------- Modale inscriptions ----------
 
   ouvrirModale(demande: any, mode: 'VALIDER' | 'REFUSER'): void {
+    this.fermerApercuDocument();
     this.demandeSelectionnee = demande;
     this.modeAction = mode;
     this.numAssureSaisi = '';
     this.motifRefusSaisi = '';
     this.messageSucces = '';
     this.messageErreur = '';
+    this.motifDocument = {};
+    this.cinVerifie = demande.identifiants?.cin ?? '';
+    this.chargerDocumentsInscription(demande.idInscription);
+  }
+
+  private chargerDocumentsInscription(id: number): void {
+    this.documentsChargement = true;
+    this.documentsErreur = '';
+    this.documentsInscription = [];
+    this.http.get<{ documents: DocumentInscription[] }>(`${this.apiUrlInscriptions}/${id}`).subscribe({
+      next: dossier => {
+        if (this.demandeSelectionnee?.idInscription !== id) return;
+        this.documentsInscription = Array.isArray(dossier?.documents) ? dossier.documents : [];
+        this.documentsChargement = false;
+      },
+      error: () => {
+        if (this.demandeSelectionnee?.idInscription !== id) return;
+        this.documentsErreur = 'Impossible de charger les pièces du dossier.';
+        this.documentsChargement = false;
+      },
+    });
+  }
+
+  get documentsPrets(): boolean {
+    return !this.documentsChargement && !this.documentsErreur && !this.documentEnCours
+      && this.demandeSelectionnee?.statutInscription === 'EN_ATTENTE'
+      && this.documentsInscription.every(d => d.statutDocuments === 'VALIDE') && !!this.cinVerifie.trim();
+  }
+
+  examinerDocument(document: DocumentInscription, decision: 'valider' | 'rejeter'): void {
+    const motif = this.motifDocument[document.idDocument]?.trim() ?? '';
+    if (this.documentEnCours || document.statutDocuments !== 'EN_ATTENTE' || (decision === 'rejeter' && !motif)) return;
+    this.documentEnCours = true;
+    this.documentsErreur = '';
+    this.http.put(`${this.apiUrl}/documents/${document.idDocument}/${decision}`, null,
+      { params: decision === 'rejeter' ? { motif } : {} }).subscribe({
+      next: () => {
+        this.documentEnCours = false;
+        this.fermerApercuDocument();
+        this.chargerDocumentsInscription(this.demandeSelectionnee.idInscription);
+        if (decision === 'rejeter') {
+          this.demandeSelectionnee.statutInscription = 'CORRECTION_DEMANDEE';
+          this.chargerInitialisation();
+          this.messageSucces = 'Correction demandée. Vérifiez la remise de l’e-mail ; vous pouvez renvoyer le lien si nécessaire.';
+        }
+      },
+      error: () => { this.documentEnCours = false; this.documentsErreur = 'Impossible de traiter cette pièce.'; },
+    });
+  }
+
+  renvoyerCorrection(): void {
+    if (!this.demandeSelectionnee || this.documentEnCours) return;
+    this.documentEnCours = true;
+    this.http.post(`${this.apiUrlInscriptions}/${this.demandeSelectionnee.idInscription}/renvoyer-correction`, null)
+      .subscribe({
+        next: () => { this.documentEnCours = false; this.messageSucces = 'Un nouveau lien de correction a été généré et son envoi a été demandé.'; },
+        error: () => { this.documentEnCours = false; this.documentsErreur = 'Impossible de renvoyer la demande de correction.'; },
+      });
+  }
+
+  voirDocument(document: DocumentInscription): void {
+    this.fermerApercuDocument();
+    this.documentsErreur = '';
+    const dossierId = this.demandeSelectionnee?.idInscription;
+    this.http.get(`${this.apiUrl}/documents/${document.idDocument}/fichier`, { responseType: 'blob' }).subscribe({
+      next: blob => {
+        if (this.demandeSelectionnee?.idInscription !== dossierId) return;
+        this.apercuDocumentObjet = URL.createObjectURL(blob);
+        this.apercuDocument = this.sanitizer.bypassSecurityTrustResourceUrl(this.apercuDocumentObjet);
+        this.apercuDocumentType = document.formatFichier.toLowerCase();
+      },
+      error: () => { this.documentsErreur = 'Impossible d’ouvrir ce fichier.'; },
+    });
+  }
+
+  fermerApercuDocument(): void {
+    if (this.apercuDocumentObjet) URL.revokeObjectURL(this.apercuDocumentObjet);
+    this.apercuDocumentObjet = null;
+    this.apercuDocument = null;
   }
 
   fermerModale(): void {
+    this.fermerApercuDocument();
     this.demandeSelectionnee = null;
     this.modeAction = null;
     this.contratSelectionne = null;
@@ -403,12 +595,12 @@ export class AgentDashboard implements OnInit {
 
   /** POST /api/inscriptions/{id}/valider?numerosAssure=... */
   confirmerValidation(): void {
-    if (!this.numAssureValide || !this.demandeSelectionnee) return;
+    if (!this.numAssureValide || !this.demandeSelectionnee || !this.documentsPrets) return;
 
     const id = this.demandeSelectionnee.idInscription;
 
     this.http.post(`${this.apiUrlInscriptions}/${id}/valider`, null, {
-      params: { numerosAssure: this.numAssureSaisi.trim() }
+      params: { numerosAssure: this.numAssureSaisi.trim(), cin: this.cinVerifie.trim() }
     }).subscribe({
       next: () => {
         this.messageSucces = `Le dossier #${id} a été validé avec succès !`;

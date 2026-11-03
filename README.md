@@ -51,6 +51,16 @@ Le développement d'AUXIDRIVE poursuit plusieurs objectifs :
 
 ## ✨ Fonctionnalités principales
 
+### Pièces justificatives à l'inscription
+
+Le demandeur fournit un numéro de CIN ou une photo de CIN. Les autres pièces sont facultatives.
+Les fichiers (PDF, JPEG, PNG, 5 Mo par pièce) sont stockés dans `app.upload.dir` (par défaut `Backend/uploads` selon le dossier de lancement). Sauvegarder ce répertoire avec la base de données et le protéger contre l'accès public direct.
+
+L'agent examine chaque pièce dans le dossier d'inscription. Une pièce rejetée déclenche une demande de correction : le demandeur reçoit un lien personnel valable sept jours et remplace les pièces rejetées sans créer de nouveau dossier. Une fois toutes les pièces acceptées et le numéro de CIN renseigné, l'agent peut ouvrir le compte. Le lien expiré peut être renvoyé par l'agent depuis le dossier.
+
+En déploiement, renseigner `app.url.correction` avec l'URL publique de la page Angular `/correction` (par défaut `http://localhost:4200/correction`) et configurer l'envoi d'e-mails. En production, ne pas journaliser les URL complètes contenant le paramètre `jeton` ; en mode mail désactivé, le service affiche le message dans les logs de développement.
+Sur une base existante, exécuter une fois `Backend/database/2026-11-03-correction-demande.sql` : il ajoute `CORRECTION_DEMANDEE` au type `ENUM` de `Inscriptions.statut_inscription` et crée l'index unique du jeton de correction. Une base recréée par Hibernate n'a pas besoin de ce script.
+
 ### 👤 1. Espace Client
 
 L'espace client permet à un assuré d'effectuer différentes démarches d'assurance automobile en ligne.
@@ -63,6 +73,7 @@ L'espace client permet à un assuré d'effectuer différentes démarches d'assur
 - Réception des identifiants de connexion par email.
 - Connexion à un espace personnel.
 - Consultation et modification du profil.
+- Gestion des pièces justificatives depuis le profil : ajout, remplacement, aperçu et suppression (PDF, JPEG ou PNG, 5 Mo maximum). Toute pièce ajoutée ou remplacée repasse en vérification par un agent ; un dossier d'inscription en cours reste corrigé via le lien reçu par e-mail.
 
 #### Gestion des véhicules
 - Ajout de véhicules.
@@ -104,6 +115,7 @@ L'espace agent permet aux collaborateurs du service d'assurance de traiter les d
 - Validation ou refus des dossiers.
 - Précision du motif en cas de refus.
 - Activation des comptes après validation.
+- File « Documents à vérifier » pour les pièces ajoutées ou remplacées depuis le profil client : acceptation ou rejet avec motif, sans ouvrir de correction d'inscription.
 
 #### Gestion des contrats
 - Consultation des demandes de souscription.

@@ -52,6 +52,16 @@
       </button>
 
       <button type="button" class="agent-sidebar-lien"
+              [class.agent-sidebar-lien-actif]="vue() === 'documents'"
+              (click)="changerVue('documents')">
+        <i class="bi bi-folder2-open" aria-hidden="true"></i>
+        <span>Documents à vérifier</span>
+        @if (documentsVerification().length > 0) {
+          <span class="agent-sidebar-badge">{{ documentsVerification().length }}</span>
+        }
+      </button>
+
+      <button type="button" class="agent-sidebar-lien"
               [class.agent-sidebar-lien-actif]="vue() === 'profil'"
               (click)="changerVue('profil')">
         <i class="bi bi-person-circle" aria-hidden="true"></i>
@@ -97,6 +107,9 @@
       } @else if (vue() === 'contrats') {
         <h1 class="titre-section agent-titre">Validation des contrats</h1>
         <p class="chapeau mb-0">Validez les demandes de souscription : la validation attribue le numéro de police et émet la facture. <span class="agent-entete-compte">{{ contratsAttente().length }} à valider · {{ contratsValides().length }} validés · {{ contratsRefuses().length }} refusés</span></p>
+      } @else if (vue() === 'documents') {
+        <h1 class="titre-section agent-titre">Documents à vérifier</h1>
+        <p class="chapeau mb-0">Pièces ajoutées ou remplacées depuis le profil des clients : acceptez-les ou rejetez-les avec un motif. <span class="agent-entete-compte">{{ documentsVerification().length }} en attente</span></p>
       } @else {
         <h1 class="titre-section agent-titre">Instruction des sinistres</h1>
         <p class="chapeau mb-0">Rédigez le rapport policier, puis validez (indemnisation) ou refusez chaque dossier. <span class="agent-entete-compte">{{ sinistresDeclares().length }} à instruire · {{ sinistresEnCours().length }} rapports en cours · {{ sinistresClotures().length }} clôturés</span></p>
@@ -121,12 +134,12 @@
           </div>
         </div>
         <div class="agent-apercu-grille">
-          <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="demandesEnAttente().length > 0"
+          <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="demandesAVerifier().length > 0"
                   (click)="ouvrirDossiers('inscriptions')">
             <span class="agent-apercu-icone" aria-hidden="true"><i class="bi bi-clipboard2-check-fill"></i></span>
-            <span class="agent-apercu-valeur">{{ demandesEnAttente().length }}</span>
+            <span class="agent-apercu-valeur">{{ demandesAVerifier().length }}</span>
             <span class="agent-apercu-libelle">Inscriptions à vérifier</span>
-            <span class="agent-apercu-detail">{{ demandesEnAttente().length === 0 ? 'Aucune demande en attente' : 'Action requise · À vérifier' }}</span>
+            <span class="agent-apercu-detail">{{ demandesAVerifier().length === 0 ? 'Aucune demande en attente' : 'Action requise · À vérifier' }}</span>
             <span class="agent-apercu-lien">Voir les inscriptions <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
           </button>
           <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="contratsAttente().length > 0"
@@ -145,6 +158,14 @@
             <span class="agent-apercu-detail">{{ sinistresATraiter() === 0 ? 'Aucun sinistre déclaré' : sinistresDeclares().length > 0 ? 'Action requise · À instruire' : 'Action requise · À clôturer' }}</span>
             <span class="agent-apercu-lien">Voir les sinistres <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
           </button>
+          <button type="button" class="agent-apercu-carte" [class.agent-apercu-carte-active]="documentsVerification().length > 0"
+                  (click)="changerVue('documents')">
+            <span class="agent-apercu-icone" aria-hidden="true"><i class="bi bi-folder2-open"></i></span>
+            <span class="agent-apercu-valeur">{{ erreurVerification() ? '—' : documentsVerification().length }}</span>
+            <span class="agent-apercu-libelle">Documents à vérifier</span>
+            <span class="agent-apercu-detail">{{ erreurVerification() ? 'Chargement impossible' : documentsVerification().length === 0 ? 'Aucune pièce de profil en attente' : 'Action requise · À examiner' }}</span>
+            <span class="agent-apercu-lien">Voir les documents <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+          </button>
         </div>
       </section>
 
@@ -155,6 +176,9 @@
           <div><strong>{{ contratsValides().length }}</strong><span>contrats validés</span></div>
           <div><strong>{{ sinistresEnCours().length }}</strong><span>rapports de sinistre en cours</span></div>
         </div>
+        @if (demandesEnCorrection().length) {
+          <p>{{ demandesEnCorrection().length }} dossier(s) en attente de correction par les demandeurs.</p>
+        }
       </section>
     }
   }
@@ -168,7 +192,7 @@
         <i class="bi bi-inbox-fill" aria-hidden="true"></i>
         <span>
           <span class="agent-kpi-valeur">{{ demandesEnAttente().length }}</span>
-          <span class="agent-kpi-libelle">À vérifier</span>
+          <span class="agent-kpi-libelle">Ouverts</span>
         </span>
       </button>
       <button type="button" class="agent-kpi agent-kpi-lagon"
@@ -196,7 +220,7 @@
         <button type="button" class="onglet onglet-attente"
                 [class.onglet-actif]="ongletActif() === 'EN_ATTENTE'"
                 (click)="changerOnglet('EN_ATTENTE')">
-          <i class="bi bi-inbox-fill" aria-hidden="true"></i>À vérifier ({{ demandesEnAttente().length }})
+          <i class="bi bi-inbox-fill" aria-hidden="true"></i>Dossiers ouverts ({{ demandesEnAttente().length }})
         </button>
       </li>
       <li>
@@ -278,8 +302,8 @@
             <!-- CAS 1 : EN ATTENTE -->
             @if (ongletActif() === 'EN_ATTENTE') {
                @for (d of inscriptionsPage(); track d.idInscription) {
-                 <tr class="agent-ligne-action">
-                   <td class="ps-4 agent-num">#{{ d.idInscription }} <span class="pastille agent-pastille-action">À vérifier</span></td>
+                  <tr [class.agent-ligne-action]="d.statutInscription === 'EN_ATTENTE'">
+                    <td class="ps-4 agent-num">#{{ d.idInscription }} <span class="pastille" [class.agent-pastille-action]="d.statutInscription === 'EN_ATTENTE'">{{ d.statutInscription === 'CORRECTION_DEMANDEE' ? 'Correction demandée' : 'À vérifier' }}</span></td>
                   <td class="fw-medium">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</td>
                   <td>
                     <div class="fw-semibold small">{{ d.assure?.contact }}</div>
@@ -288,8 +312,10 @@
                   <td class="d-none d-md-table-cell"><span class="pastille pastille-sombre font-monospace">{{ d.identifiants?.cin || 'Absent' }}</span></td>
                   <td class="text-end pe-4">
                     <div class="d-inline-flex gap-2">
-                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')"><i class="bi bi-check-lg" aria-hidden="true"></i>Valider</button>
-                      <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')"><i class="bi bi-x-lg" aria-hidden="true"></i>Refuser</button>
+                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')"><i class="bi bi-folder2-open" aria-hidden="true"></i>{{ d.statutInscription === 'CORRECTION_DEMANDEE' ? 'Voir correction' : 'Examiner' }}</button>
+                      @if (d.statutInscription === 'EN_ATTENTE') {
+                        <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')"><i class="bi bi-x-lg" aria-hidden="true"></i>Refuser</button>
+                      }
                     </div>
                   </td>
                 </tr>
@@ -352,11 +378,14 @@
     </div>
     <div class="liste-mobile d-lg-none">
        @for (d of inscriptionsPage(); track d.idInscription) {
-        <article class="liste-mobile-carte agent-fiche" [class.agent-carte-action]="ongletActif() === 'EN_ATTENTE'">
+         <article class="liste-mobile-carte agent-fiche" [class.agent-carte-action]="d.statutInscription === 'EN_ATTENTE'">
           <div class="liste-mobile-entete">
             <div><small class="agent-num">#{{ d.idInscription }}</small><h2 class="liste-mobile-titre">{{ d.assure?.nomAssure }} {{ d.assure?.prenomAssure }}</h2></div>
             @switch (ongletActif()) {
-               @case ('EN_ATTENTE') { <span class="pastille agent-pastille-action">À vérifier</span> }
+                @case ('EN_ATTENTE') {
+                  @if (d.statutInscription === 'CORRECTION_DEMANDEE') { <span class="pastille">Correction demandée</span> }
+                  @else { <span class="pastille agent-pastille-action">À vérifier</span> }
+                }
               @case ('VALIDEE') { <span class="pastille pastille-lagon">Validé</span> }
               @case ('REFUSEE') { <span class="pastille pastille-rouge">Refusé</span> }
             }
@@ -377,8 +406,10 @@
           </dl>
           @if (ongletActif() === 'EN_ATTENTE') {
             <div class="agent-actions-mobile">
-              <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')">Valider</button>
-              <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')">Refuser</button>
+               <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')">{{ d.statutInscription === 'CORRECTION_DEMANDEE' ? 'Voir correction' : 'Examiner' }}</button>
+               @if (d.statutInscription === 'EN_ATTENTE') {
+                 <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')">Refuser</button>
+               }
             </div>
           }
         </article>
@@ -852,6 +883,83 @@
     }
   }
 
+  <!-- ==================== DOCUMENTS À VÉRIFIER ==================== -->
+  @if (vue() === 'documents') {
+    @if (messageSucces) { <div class="message-ok" role="status">{{ messageSucces }}</div> }
+    @if (messageErreur) { <div class="message-erreur" role="alert">{{ messageErreur }}</div> }
+
+    @if (chargementVerification()) {
+      <app-squelette libelle="Chargement des documents à vérifier" mode="liste" [nombre]="4" />
+    } @else if (erreurVerification()) {
+      <div class="message-erreur" role="alert">Impossible de charger les documents à vérifier.</div>
+      <button type="button" class="agent-btn agent-btn-annuler" (click)="chargerDocumentsVerification()">Réessayer</button>
+    } @else if (documentsVerification().length === 0) {
+      <app-etat-vide
+        titre="Aucun document à vérifier"
+        description="Les pièces ajoutées ou remplacées depuis le profil des clients apparaîtront ici. Les pièces d’un dossier d’inscription restent traitées dans la modale du dossier."
+        icone="bi-folder2-open" />
+    } @else {
+      <div class="agent-documents-grille">
+        @for (doc of documentsVerification(); track doc.idDocument) {
+          <article class="agent-document-verif">
+            <header class="agent-document-verif-entete">
+              <span class="agent-document-verif-icone" aria-hidden="true"><i class="bi bi-file-earmark-text"></i></span>
+              <div>
+                <h2>{{ libelleDocument(doc.typeDocument) }}</h2>
+                <p>
+                  {{ doc.nomAssure }} {{ doc.prenomAssure }}
+                  @if (doc.numerosAssure) { <span> · N° {{ doc.numerosAssure }}</span> }
+                </p>
+              </div>
+            </header>
+
+            <dl class="agent-document-verif-meta">
+              <div>
+                <dt>Format</dt>
+                <dd>{{ (doc.formatFichier || '').toUpperCase() }}@if (doc.tailleKo) { · {{ doc.tailleKo }} Ko }</dd>
+              </div>
+              <div>
+                <dt>Déposé le</dt>
+                <dd>{{ doc.dateTeleversement ? (doc.dateTeleversement.slice(0, 10) | dateFr) : '—' }}</dd>
+              </div>
+              <div>
+                <dt>Contact</dt>
+                <dd>{{ doc.mailAssure || '—' }}</dd>
+              </div>
+            </dl>
+
+            <div class="agent-document-verif-actions">
+              <button type="button" class="btn-contour-sombre" (click)="voirDocumentVerification(doc)">Voir la pièce</button>
+              <button type="button" class="agent-btn agent-btn-valider"
+                      [disabled]="documentVerifEnCours"
+                      (click)="examinerDocumentVerification(doc, 'valider')">Accepter la pièce</button>
+            </div>
+
+            <div class="agent-document-verif-rejet">
+              <label [for]="'motif-verif-' + doc.idDocument">Motif si la pièce doit être remplacée</label>
+              <textarea [id]="'motif-verif-' + doc.idDocument" rows="2" maxlength="255"
+                        [(ngModel)]="motifVerification[doc.idDocument]"></textarea>
+              <button type="button" class="agent-btn agent-btn-refuser"
+                      [disabled]="documentVerifEnCours || !motifVerification[doc.idDocument]?.trim()"
+                      (click)="examinerDocumentVerification(doc, 'rejeter')">Rejeter avec motif</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    @if (apercuDocument) {
+      <div class="agent-document-apercu">
+        <button type="button" class="btn-contour-sombre" (click)="fermerApercuDocument()">Fermer l’aperçu</button>
+        @if (apercuDocumentType === 'pdf') {
+          <iframe [src]="apercuDocument" title="Aperçu du document" width="100%" height="420"></iframe>
+        } @else {
+          <img [src]="apercuDocument" alt="Aperçu de la pièce justificative" />
+        }
+      </div>
+    }
+  }
+
   <!-- ==================== PROFIL ==================== -->
   @if (vue() === 'profil') {
     <app-profil-staff />
@@ -879,11 +987,51 @@
               Traitement du dossier lié à l'usager : <br>
               <span class="fs-5 fw-bold">{{ demandeSelectionnee.assure?.nomAssure }} {{ demandeSelectionnee.assure?.prenomAssure }}</span>
             </p>
+            @if (demandeSelectionnee.statutInscription === 'CORRECTION_DEMANDEE') {
+              <p class="message-info">Correction demandée : attendez le remplacement des pièces avant de valider le compte.</p>
+              <button type="button" class="btn-contour-sombre" [disabled]="documentEnCours" (click)="renvoyerCorrection()">Renvoyer un lien de correction</button>
+            }
+            <section aria-label="Pièces justificatives du dossier">
+              <h6>Pièces justificatives</h6>
+              @if (documentsChargement) { <p role="status">Chargement des pièces…</p> }
+              @if (documentsErreur) { <p class="message-erreur" role="alert">{{ documentsErreur }}</p> }
+              @for (doc of documentsInscription; track doc.idDocument) {
+                <div class="agent-document">
+                  <strong>{{ doc.typeDocument.replaceAll('_', ' ') }}</strong>
+                  <span> — {{ doc.statutDocuments === 'VALIDE' ? 'Validée' : doc.statutDocuments === 'REJETE' ? 'Correction demandée' : 'À examiner' }}</span>
+                  <small>{{ doc.formatFichier.toUpperCase() }} @if (doc.tailleKo) { · {{ doc.tailleKo }} Ko } @if (doc.dateTeleversement) { · Déposé le {{ doc.dateTeleversement.slice(0, 10) | dateFr }} }</small>
+                  @if (doc.motifRejet) { <p>Motif : {{ doc.motifRejet }}</p> }
+                  <button type="button" class="btn-contour-sombre" (click)="voirDocument(doc)">Voir la pièce</button>
+                  @if (doc.statutDocuments === 'EN_ATTENTE' && demandeSelectionnee.statutInscription === 'EN_ATTENTE') {
+                    <button type="button" class="agent-btn agent-btn-valider" [disabled]="documentEnCours" (click)="examinerDocument(doc, 'valider')">Accepter la pièce</button>
+                    <label [for]="'motif-document-' + doc.idDocument">Motif si correction nécessaire</label>
+                    <textarea [id]="'motif-document-' + doc.idDocument" [(ngModel)]="motifDocument[doc.idDocument]" rows="2" maxlength="255"></textarea>
+                    <button type="button" class="agent-btn agent-btn-refuser" [disabled]="documentEnCours || !motifDocument[doc.idDocument]?.trim()" (click)="examinerDocument(doc, 'rejeter')">Demander une correction</button>
+                  }
+                </div>
+              } @empty {
+                @if (!documentsChargement && !documentsErreur) { <p>Aucune photo jointe : numéro de CIN saisi manuellement.</p> }
+              }
+              @if (apercuDocument) {
+                <div class="agent-document-apercu">
+                  <button type="button" class="btn-contour-sombre" (click)="fermerApercuDocument()">Fermer l’aperçu</button>
+                  @if (apercuDocumentType === 'pdf') {
+                    <iframe [src]="apercuDocument" title="Aperçu du document" width="100%" height="340"></iframe>
+                  } @else {
+                    <img [src]="apercuDocument" alt="Aperçu de la pièce justificative" />
+                  }
+                </div>
+              }
+            </section>
 
             @if (messageSucces) { <div class="message-ok text-center">{{ messageSucces }}</div> }
             @if (messageErreur) { <div class="message-erreur text-center">{{ messageErreur }}</div> }
 
             @if (modeAction === 'VALIDER' && !messageSucces) {
+              <div class="champ mb-2">
+                <label for="cinVerifie">Numéro de CIN (à relever sur la photo si non saisi)</label>
+                <input type="text" id="cinVerifie" [(ngModel)]="cinVerifie" maxlength="20" />
+              </div>
               <div class="champ mb-2">
                 <label for="numAssure">Attribuer un numéro d'assuré obligatoire (8 chiffres max) :</label>
                 <input type="text" id="numAssure" name="numAssureSaisi" class="font-monospace" inputmode="numeric" pattern="[0-9]*" placeholder="Ex : 37015" [(ngModel)]="numAssureSaisi" (input)="filtrerNumAssure()" maxlength="8" required autocomplete="off" />
@@ -901,7 +1049,7 @@
           <div class="agent-modale-piede">
             <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
             @if (modeAction === 'VALIDER' && !messageSucces) {
-              <button type="button" class="btn-signal" [disabled]="!numAssureValide" (click)="confirmerValidation()">Valider l'inscription</button>
+              <button type="button" class="btn-signal" [disabled]="!numAssureValide || !documentsPrets" (click)="confirmerValidation()">Valider l'inscription</button>
             }
             @if (modeAction === 'REFUSER' && !messageSucces) {
               <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" [disabled]="!motifRefusSaisi.trim()" (click)="confirmerRefus()">Refuser le dossier</button>

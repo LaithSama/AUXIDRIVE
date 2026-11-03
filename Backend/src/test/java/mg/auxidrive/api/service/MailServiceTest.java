@@ -44,7 +44,7 @@ class MailServiceTest {
     void setUp() {
         // lenient : le scénario « mail désactivé » n'appelle jamais getIfAvailable()
         lenient().when(mailSenderProvider.getIfAvailable()).thenReturn(mailSender);
-        service = new MailService(mailSenderProvider, true, "no-reply@auxidrive.mg", URL, RELAIS);
+        service = new MailService(mailSenderProvider, true, "no-reply@auxidrive.mg", URL, RELAIS, "http://localhost:4200/correction");
     }
 
     private static DonneesIdentifiants donnees(OrigineCompte origine) {
@@ -169,7 +169,7 @@ class MailServiceTest {
     @Test
     @DisplayName("Mail désactivé : pas d'envoi réel mais retour true, le contenu étant journalisé")
     void mailDesactive() {
-        MailService dev = new MailService(mailSenderProvider, false, "", URL, RELAIS);
+        MailService dev = new MailService(mailSenderProvider, false, "", URL, RELAIS, "http://localhost:4200/correction");
 
         assertThat(dev.envoyerIdentifiants(donnees(OrigineCompte.COMPTE_CREE))).isTrue();
 
@@ -179,7 +179,7 @@ class MailServiceTest {
     @Test
     @DisplayName("Expéditeur absent : le message part sans en-tête From plutôt qu'en échec")
     void expediteurAbsent() {
-        MailService sansExpediteur = new MailService(mailSenderProvider, true, "", URL, RELAIS);
+        MailService sansExpediteur = new MailService(mailSenderProvider, true, "", URL, RELAIS, "http://localhost:4200/correction");
 
         assertThat(sansExpediteur.envoyerIdentifiants(donnees(OrigineCompte.COMPTE_CREE))).isTrue();
 

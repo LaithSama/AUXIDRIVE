@@ -52,17 +52,29 @@ public class MailService {
 
     private final String urlConnexion;
     private final String relais;
+    private final String urlCorrection;
 
     public MailService(ObjectProvider<JavaMailSender> mailSender,
                        @Value("${app.mail.enabled:false}") boolean actif,
                        @Value("${spring.mail.username:}") String expediteur,
                        @Value("${app.url.connexion:http://localhost:4200/connexion}") String urlConnexion,
-                       @Value("${app.mail.relay:${app.admin.email:}}") String relais) {
+                        @Value("${app.mail.relay:${app.admin.email:}}") String relais,
+                        @Value("${app.url.correction:http://localhost:4200/correction}") String urlCorrection) {
         this.mailSender = mailSender;
         this.actif = actif;
         this.expediteur = expediteur;
         this.urlConnexion = urlConnexion;
         this.relais = relais;
+        this.urlCorrection = urlCorrection;
+    }
+
+    /** Envoie le lien temporaire de correction, sans exposer le jeton dans les réponses API. */
+    public boolean envoyerDemandeCorrection(String destinataire, Long dossier, String type, String motif, String jeton) {
+        return envoyer(destinataire, "AUXIDRIVE - Pièce à corriger pour le dossier n°" + dossier,
+                "Bonjour,\n\nLa pièce " + type + " de votre dossier n°" + dossier
+                + " doit être remplacée.\nMotif : " + motif
+                + "\n\nCorrigez votre dossier sous 7 jours : " + urlCorrection + "?jeton=" + jeton
+                + "\n\nCe lien est personnel : ne le partagez pas.\nL'équipe AUXIDRIVE");
     }
 
     /**

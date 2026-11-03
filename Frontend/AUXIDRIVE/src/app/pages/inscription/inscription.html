@@ -108,31 +108,32 @@
       </div>
 
       <div class="champ">
-        <label for="numCinText">Numéro de CIN (Saisie manuelle)</label>
+        <label for="numCinText">Numéro de CIN (ou ajoutez une photo de votre CIN ci-dessous)</label>
         <input type="text" id="numCinText" name="cinText" placeholder="101..." [(ngModel)]="identifiantsLegaux.cin" />
       </div>
 
       <hr class="inscription-separateur" />
-      <h2 class="inscription-sous-titre">Pièces justificatives (Facultatives)</h2>
+      <h2 class="inscription-sous-titre">Pièces justificatives</h2>
+      <p>Le numéro de CIN ou une photo de CIN est obligatoire pour demander un compte. Les autres pièces sont facultatives. PDF, JPEG ou PNG, 5 Mo maximum par fichier.</p>
 
       <div class="champ">
         <label for="cin">Carte d'Identité Nationale (CIN)</label>
-        <input type="file" id="cin" (change)="onFileChange($event, 'cin')" />
+        <input type="file" id="cin" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileChange($event, 'cin')" />
       </div>
 
       <div class="champ">
         <label for="carteGrise">Carte Grise</label>
-        <input type="file" id="carteGrise" (change)="onFileChange($event, 'carteGrise')" />
+        <input type="file" id="carteGrise" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileChange($event, 'carteGrise')" />
       </div>
 
       <div class="champ">
         <label for="carteRose">Carte Rose</label>
-        <input type="file" id="carteRose" (change)="onFileChange($event, 'carteRose')" />
+        <input type="file" id="carteRose" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileChange($event, 'carteRose')" />
       </div>
 
       <div class="champ">
         <label for="modeleN1">Modèle N1</label>
-        <input type="file" id="modeleN1" (change)="onFileChange($event, 'modeleN1')" />
+        <input type="file" id="modeleN1" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileChange($event, 'modeleN1')" />
       </div>
 
       <button type="submit" class="btn-signal inscription-envoi" [disabled]="enCours || dossierEnvoye">

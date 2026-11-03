@@ -1,11 +1,12 @@
 package mg.auxidrive.api.service;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.BufferedInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -53,12 +54,26 @@ public class FichierService {
         }
         // Nom généré : on n'utilise jamais le nom envoyé par le client
         String nom = UUID.randomUUID() + "." + extension;
-        try (InputStream in = fichier.getInputStream()) {
+        try (BufferedInputStream in = new BufferedInputStream(fichier.getInputStream())) {
+            in.mark(8);
+            byte[] signature = in.readNBytes(8);
+            in.reset();
+            boolean valide = switch (extension) {
+                case "pdf" -> commencePar(signature, new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2d });
+                case "jpg", "jpeg" -> commencePar(signature, new byte[] { (byte) 0xff, (byte) 0xd8, (byte) 0xff });
+                case "png" -> commencePar(signature, new byte[] { (byte) 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a });
+                default -> false;
+            };
+            if (!valide) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le contenu du fichier ne correspond pas au format annoncé");
             Files.copy(in, racine.resolve(nom));
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Enregistrement du fichier impossible");
         }
         return new Fichier(nom, extension, (int) Math.ceil(fichier.getSize() / 1024.0));
+    }
+
+    private static boolean commencePar(byte[] contenu, byte[] signature) {
+        return contenu.length >= signature.length && Arrays.equals(contenu, 0, signature.length, signature, 0, signature.length);
     }
 
     /** Supprime un fichier stocké (sans erreur s'il n'existe plus). */

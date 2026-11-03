@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -35,6 +36,12 @@ public class DocumentController {
         return documentService.lister(idAssure, idInscription);
     }
 
+    /** File « Documents à vérifier » : pièces ajoutées depuis le profil, hors dossiers d'inscription. */
+    @GetMapping("/a-verifier")
+    public List<DocumentService.DocumentAVerifier> aVerifier() {
+        return documentService.aVerifier();
+    }
+
     @GetMapping("/{id}")
     public DocumentJustificatif trouver(@PathVariable Long id) {
         return documentService.trouver(id);
@@ -44,6 +51,7 @@ public class DocumentController {
     public ResponseEntity<Resource> fichier(@PathVariable Long id) {
         DocumentService.FichierDocument f = documentService.fichier(id);
         return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
                 .contentType(MediaType.parseMediaType(f.typeMime()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
                 .body(f.ressource());

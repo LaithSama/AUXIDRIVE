@@ -80,13 +80,11 @@ export class Inscription implements OnInit, OnDestroy {
 
   onFileChange(event: any, type: string): void {
     const files = event.target.files;
-    if (files && files.length > 0) {
-      const selectedFile = files[0];
-      if (type === 'cin') this.fichierCin = selectedFile;
-      if (type === 'carteGrise') this.fichierCarteGrise = selectedFile;
-      if (type === 'carteRose') this.fichierCarteRose = selectedFile;
-      if (type === 'modeleN1') this.fichierModeleN1 = selectedFile;
-    }
+    const selectedFile = files?.[0] ?? null;
+    if (type === 'cin') this.fichierCin = selectedFile;
+    if (type === 'carteGrise') this.fichierCarteGrise = selectedFile;
+    if (type === 'carteRose') this.fichierCarteRose = selectedFile;
+    if (type === 'modeleN1') this.fichierModeleN1 = selectedFile;
   }
 
   onSubmit(formulaire?: NgForm): void {
@@ -97,6 +95,15 @@ export class Inscription implements OnInit, OnDestroy {
     if (formulaire?.invalid) {
       formulaire.control.markAllAsTouched();
       this.messageErreur = 'Complétez les champs obligatoires et vérifiez votre adresse e-mail.';
+      return;
+    }
+    if (!this.identifiantsLegaux.cin?.trim() && !this.fichierCin) {
+      this.messageErreur = 'Saisissez votre numéro de CIN ou ajoutez une photo de votre CIN.';
+      return;
+    }
+    const pieces = [this.fichierCin, this.fichierCarteGrise, this.fichierCarteRose, this.fichierModeleN1];
+    if (pieces.some(f => f && (f.size > 5 * 1024 * 1024 || !/\.(pdf|jpe?g|png)$/i.test(f.name)))) {
+      this.messageErreur = 'Chaque pièce doit être un PDF, JPEG ou PNG de 5 Mo maximum.';
       return;
     }
     this.enCours = true;

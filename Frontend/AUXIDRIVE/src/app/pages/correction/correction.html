@@ -1,0 +1,24 @@
+<main class="correction-page carte" aria-labelledby="correction-titre">
+  <h1 id="correction-titre">Corriger mon dossier</h1>
+  @if (chargement) {
+    <p role="status">Chargement de votre demande…</p>
+  } @else if (termine) {
+    <p class="message-ok" role="status">Vos nouvelles pièces ont été transmises. Un agent va réexaminer votre dossier.</p>
+    <a routerLink="/connexion" class="btn-contour-sombre">Retour à la connexion</a>
+  } @else {
+    @if (erreur) { <p class="message-erreur" role="alert">{{ erreur }}</p> }
+    @if (dossier !== null) {
+      <p>Dossier n° {{ dossier }} — remplacez chaque pièce ci-dessous. Les autres informations de votre dossier sont conservées.</p>
+      @for (piece of pieces; track piece.type) {
+        <div class="correction-piece">
+          <label [for]="piece.type">{{ piece.type.replaceAll('_', ' ') }} — {{ piece.motif }}</label>
+          <input type="file" [id]="piece.type" accept=".pdf,.jpg,.jpeg,.png" (change)="choisir($event, piece)" />
+        </div>
+      }
+      <p>Formats acceptés : PDF, JPEG ou PNG. 5 Mo maximum par pièce.</p>
+      <button type="button" class="btn-signal" [disabled]="enCours || !pieces.length" (click)="envoyer()">
+        {{ enCours ? 'Transmission…' : 'Envoyer les pièces corrigées' }}
+      </button>
+    }
+  }
+</main>

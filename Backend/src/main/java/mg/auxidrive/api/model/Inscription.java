@@ -30,6 +30,19 @@ public class Inscription {
     @Column(name = "motif_refus", length = 255)
     private String motifRefus;
 
+    @JsonIgnore
+    @Column(name = "jeton_correction_hash", length = 64, unique = true)
+    private String jetonCorrectionHash;
+
+    @JsonIgnore
+    @Column(name = "expiration_correction")
+    private LocalDateTime expirationCorrection;
+
+    public String getJetonCorrectionHash() { return jetonCorrectionHash; }
+    public void setJetonCorrectionHash(String valeur) { this.jetonCorrectionHash = valeur; }
+    public LocalDateTime getExpirationCorrection() { return expirationCorrection; }
+    public void setExpirationCorrection(LocalDateTime valeur) { this.expirationCorrection = valeur; }
+
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"motDePasse", "role", "statutUtilisateur", "dateCreation", "derniereConnexion", "hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_agent")

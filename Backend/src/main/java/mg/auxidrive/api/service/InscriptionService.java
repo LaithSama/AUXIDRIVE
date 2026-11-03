@@ -1,6 +1,10 @@
 package mg.auxidrive.api.service;
 
 import java.security.SecureRandom;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -52,7 +56,7 @@ public class InscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(InscriptionService.class);
 
-    /** Types de documents que le client peut importer (tous facultatifs). */
+    /** La photo de CIN est facultative si son numéro est saisi. */
     public static final List<String> TYPES_DOCUMENTS = List.of("CIN", "CARTE_GRISE", "CARTE_ROSE", "MODELE_N1");
 
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
@@ -109,13 +113,14 @@ public class InscriptionService {
         verifierAssure(assure);
         String email = assure.getMail().trim().toLowerCase();
         if (emailDejaUtilise(email)
-                || inscriptionRepository.existsByAssure_MailAndStatutInscription(email, StatutInscription.EN_ATTENTE)) {
+                || inscriptionRepository.existsByAssure_MailAndStatutInscription(email, StatutInscription.EN_ATTENTE)
+                || inscriptionRepository.existsByAssure_MailAndStatutInscription(email, StatutInscription.CORRECTION_DEMANDEE)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Cette adresse e-mail est déjà utilisée ou une demande est déjà en attente");
         }
-        if (fichiers.isEmpty() && !contientUnIdentifiant(identifiants)) {
+        if (!fichiers.containsKey("CIN") && (identifiants == null || vide(identifiants.getCin()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Saisissez au moins un identifiant légal (CIN, NIF, CIF...) ou importez un document");
+                    "Saisissez le numéro de CIN ou importez sa photo");
         }
 
         // 1) fichiers sur le disque (leur validation peut échouer : rien n'est encore écrit en base)
@@ -124,6 +129,7 @@ public class InscriptionService {
             for (Map.Entry<String, MultipartFile> e : fichiers.entrySet()) {
                 stockes.put(e.getKey(), fichierService.stocker(e.getValue()));
             }
+            apresRollback(() -> stockes.values().forEach(f -> fichierService.supprimer(f.chemin())));
             return enregistrer(assure, email, profession, identifiants, stockes);
         } catch (RuntimeException e) {
             stockes.values().forEach(f -> fichierService.supprimer(f.chemin()));
@@ -218,9 +224,27 @@ public class InscriptionService {
      * dans tous les cas la validation reste effective.
      */
     @Transactional
-    public Inscription valider(Long id, String numerosAssure, String emailAgent) {
+    public Inscription valider(Long id, String numerosAssure, String cin, String emailAgent) {
         Inscription inscription = trouverEnAttente(id);
         Assure assure = inscription.getAssure();
+        List<DocumentJustificatif> documents = documentRepository.findByInscription_IdInscription(id);
+        if (documents.stream().anyMatch(d -> d.getStatutDocuments() != StatutDocument.VALIDE)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Examinez toutes les pièces avant de valider l'inscription");
+        }
+        AssureIdentifiantsLegaux identifiants = legauxRepository.findByAssure_IdAssure(assure.getIdAssure()).orElse(null);
+        String numeroCin = cin == null ? "" : cin.trim();
+        if ((identifiants == null || vide(identifiants.getCin())) && numeroCin.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le numéro de CIN doit être renseigné avant la validation");
+        }
+        if (!numeroCin.isEmpty()) {
+            if (numeroCin.length() > 20) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Numéro de CIN trop long");
+            if (identifiants == null) {
+                identifiants = new AssureIdentifiantsLegaux();
+                identifiants.setAssure(assure);
+            }
+            identifiants.setCin(numeroCin);
+            legauxRepository.save(identifiants);
+        }
 
         String numero = numerosAssure == null ? "" : numerosAssure.trim();
         if (numero.isEmpty() || numero.length() > 8) {
@@ -255,15 +279,6 @@ public class InscriptionService {
         inscription.setDateDecision(maintenant);
         inscription.setAgent(agent);
         inscription.setMotifRefus(null);
-
-        // les documents que l'agent n'a pas encore examinés sont validés avec la demande
-        for (DocumentJustificatif d : documentRepository.findByInscription_IdInscription(id)) {
-            if (d.getStatutDocuments() == StatutDocument.EN_ATTENTE) {
-                d.setStatutDocuments(StatutDocument.VALIDE);
-                d.setDateValidation(maintenant);
-                d.setUtilisateur(agent);
-            }
-        }
 
         final MailService.DonneesIdentifiants donneesIdentifiants = new MailService.DonneesIdentifiants(
                 compte.getEmail(), motDePasse,
@@ -324,6 +339,134 @@ public class InscriptionService {
         return inscription;
     }
 
+    /** Une pièce rejetée suspend le traitement sans refuser définitivement le dossier. */
+    @Transactional
+    public void demanderCorrection(DocumentJustificatif document, String motif) {
+        Inscription inscription = document.getInscription();
+        if (inscription == null || (inscription.getStatutInscription() != StatutInscription.EN_ATTENTE
+                && inscription.getStatutInscription() != StatutInscription.CORRECTION_DEMANDEE)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Dossier non modifiable");
+        }
+        inscription.setStatutInscription(StatutInscription.CORRECTION_DEMANDEE);
+        byte[] aleatoire = new byte[32];
+        RANDOM.nextBytes(aleatoire);
+        String jeton = HexFormat.of().formatHex(aleatoire);
+        inscription.setJetonCorrectionHash(hash(jeton));
+        inscription.setExpirationCorrection(LocalDateTime.now().plusDays(7));
+        String destinataire = inscription.getAssure().getMail();
+        Long id = inscription.getIdInscription();
+        String type = document.getTypeDocument();
+        apresCommit(() -> {
+            try {
+                if (!mailService.envoyerDemandeCorrection(destinataire, id, type, motif, jeton)) {
+                    log.error("Demande de correction non transmise pour le dossier {}", id);
+                }
+            } catch (RuntimeException e) {
+                log.error("Envoi de la demande de correction impossible pour le dossier {}", id, e);
+            }
+        });
+    }
+
+    @Transactional
+    public void renvoyerCorrection(Long id) {
+        Inscription inscription = trouver(id);
+        if (inscription.getStatutInscription() != StatutInscription.CORRECTION_DEMANDEE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Aucune correction en attente");
+        }
+        DocumentJustificatif piece = documentRepository.findByInscription_IdInscription(id).stream()
+                .filter(d -> d.getStatutDocuments() == StatutDocument.REJETE).findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "Aucune pièce à corriger"));
+        demanderCorrection(piece, piece.getMotifRejet());
+    }
+
+    public record Correction(Long idInscription, List<Map<String, Object>> documents) {}
+
+    @Transactional(readOnly = true)
+    public Correction consulterCorrection(String jeton) {
+        Inscription inscription = trouverParJeton(jeton);
+        List<Map<String, Object>> pieces = documentRepository.findByInscription_IdInscription(inscription.getIdInscription())
+                .stream().filter(d -> d.getStatutDocuments() == StatutDocument.REJETE)
+                .map(d -> Map.<String, Object>of("type", d.getTypeDocument(), "motif", d.getMotifRejet()))
+                .toList();
+        return new Correction(inscription.getIdInscription(), pieces);
+    }
+
+    @Transactional
+    public void corriger(String jeton, Map<String, MultipartFile> fichiers) {
+        Inscription inscription = trouverParJeton(jeton);
+        List<DocumentJustificatif> rejetes = documentRepository.findByInscription_IdInscription(inscription.getIdInscription())
+                .stream().filter(d -> d.getStatutDocuments() == StatutDocument.REJETE).toList();
+        if (rejetes.isEmpty() || fichiers.size() != rejetes.size()
+                || rejetes.stream().anyMatch(d -> !fichiers.containsKey(d.getTypeDocument()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Remplacez toutes les pièces demandées, et uniquement celles-ci");
+        }
+        Map<String, FichierService.Fichier> nouveaux = new LinkedHashMap<>();
+        try {
+            fichiers.forEach((type, fichier) -> nouveaux.put(type, fichierService.stocker(fichier)));
+            apresRollback(() -> nouveaux.values().forEach(f -> fichierService.supprimer(f.chemin())));
+            List<String> anciens = rejetes.stream().map(DocumentJustificatif::getCheminFichier).toList();
+            for (DocumentJustificatif d : rejetes) {
+                FichierService.Fichier fichier = nouveaux.get(d.getTypeDocument());
+                d.setCheminFichier(fichier.chemin());
+                d.setFormatFichier(fichier.format());
+                d.setTailleKo(fichier.tailleKo());
+                d.setDateTeleversement(LocalDateTime.now());
+                d.setStatutDocuments(StatutDocument.EN_ATTENTE);
+                d.setMotifRejet(null);
+                d.setDateValidation(null);
+                d.setUtilisateur(null);
+            }
+            inscription.setStatutInscription(StatutInscription.EN_ATTENTE);
+            inscription.setJetonCorrectionHash(null);
+            inscription.setExpirationCorrection(null);
+            documentRepository.saveAll(rejetes);
+            inscriptionRepository.saveAndFlush(inscription);
+            apresCommit(() -> anciens.forEach(fichierService::supprimer));
+        } catch (RuntimeException e) {
+            nouveaux.values().forEach(f -> fichierService.supprimer(f.chemin()));
+            throw e;
+        }
+    }
+
+    private Inscription trouverParJeton(String jeton) {
+        if (jeton == null || !jeton.matches("[0-9a-f]{64}")) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lien de correction invalide");
+        }
+        Inscription inscription = inscriptionRepository.findByJetonCorrectionHash(hash(jeton))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lien de correction invalide"));
+        if (inscription.getStatutInscription() != StatutInscription.CORRECTION_DEMANDEE
+                || inscription.getExpirationCorrection() == null
+                || !inscription.getExpirationCorrection().isAfter(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.GONE, "Lien de correction expiré");
+        }
+        return inscription;
+    }
+
+    private static String hash(String valeur) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(valeur.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
+    }
+
+    private static void apresCommit(Runnable action) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() { action.run(); }
+            });
+        } else { action.run(); }
+    }
+
+    private static void apresRollback(Runnable action) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCompletion(int statut) {
+                    if (statut != STATUS_COMMITTED) action.run();
+                }
+            });
+        }
+    }
+
     // ------------------------------------------------------------------ utilitaires
 
     private void verifierAssure(Assure a) {
@@ -339,10 +482,6 @@ public class InscriptionService {
         }
     }
 
-    private boolean contientUnIdentifiant(AssureIdentifiantsLegaux i) {
-        return i != null && (!vide(i.getCin()) || !vide(i.getNif()) || !vide(i.getCif())
-                || !vide(i.getNumPasseport()) || !vide(i.getNCarteProf()));
-    }
 
     private boolean vide(String s) {
         return s == null || s.isBlank();

@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth-service';
 import { AgentDashboard } from './agent-dashboard';
 
 describe('AgentDashboard', () => {
-  const http = { get: vi.fn() };
+  const http = { get: vi.fn(), put: vi.fn() };
 
   beforeEach(async () => {
     http.get.mockImplementation((url: string) => {
@@ -16,6 +16,9 @@ describe('AgentDashboard', () => {
       ]);
       if (url.endsWith('/contrats')) return of([
         { statutContrat: 'EN_ATTENTE' }, { statutContrat: 'VALIDE' },
+      ]);
+      if (url.endsWith('/documents/a-verifier')) return of([
+        { idDocument: 7, typeDocument: 'CIN', formatFichier: 'jpg', statutDocuments: 'EN_ATTENTE', origine: 'PROFIL' },
       ]);
       return of([
         { statutSinistre: 'DECLARE' }, { statutSinistre: 'RAPPORT_EN_COURS' },
@@ -35,7 +38,7 @@ describe('AgentDashboard', () => {
     const fixture = TestBed.createComponent(AgentDashboard);
     fixture.detectChanges();
     expect(fixture.componentInstance.vue()).toBe('tableau');
-    expect(fixture.nativeElement.querySelectorAll('.agent-apercu-carte').length).toBe(3);
+    expect(fixture.nativeElement.querySelectorAll('.agent-apercu-carte').length).toBe(4);
     expect(fixture.nativeElement.querySelector('.agent-apercu').textContent)
       .toContain('Inscriptions à vérifier');
 
@@ -55,7 +58,7 @@ describe('AgentDashboard', () => {
     fixture.detectChanges();
 
     const compteurs = fixture.nativeElement.querySelectorAll('.agent-apercu-valeur');
-    expect(Array.from(compteurs, (element: any) => element.textContent.trim())).toEqual(['1', '1', '2']);
+    expect(Array.from(compteurs, (element: any) => element.textContent.trim())).toEqual(['1', '1', '2', '1']);
     expect(fixture.nativeElement.querySelector('.agent-apercu-suite').textContent)
       .toContain('rapports de sinistre en cours');
 
@@ -235,6 +238,7 @@ describe('AgentDashboard', () => {
     page.toutesLesInscriptions.set([]);
     page.contrats.set([]);
     page.sinistres.set([]);
+    page.documentsVerification.set([]);
     page.changerVue('tableau');
     fixture.detectChanges();
 
@@ -277,5 +281,45 @@ describe('AgentDashboard', () => {
       .toContain('Impossible de charger les contrats');
     expect(fixture.nativeElement.querySelector('app-etat-vide')).toBeNull();
     erreurConsole.mockRestore();
+  });
+
+  it('vérifie les pièces ajoutées depuis le profil client', () => {
+    http.put.mockReturnValue(of({}));
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.changerVue('documents');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.agent-document-verif').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('.agent-document-verif').textContent)
+      .toContain('Carte d’identité');
+
+    page.motifVerification[7] = 'Photo floue';
+    page.examinerDocumentVerification(page.documentsVerification()[0], 'rejeter');
+
+    expect(http.put).toHaveBeenCalledWith(
+      expect.stringContaining('/documents/7/rejeter'),
+      null,
+      expect.objectContaining({ params: { motif: 'Photo floue' } }),
+    );
+  });
+
+  it('bloque la création du compte tant que les pièces ne sont pas validées', () => {
+    http.get.mockImplementation((url: string) => url.endsWith('/inscriptions/42')
+      ? of({ documents: [{ idDocument: 7, typeDocument: 'CIN', formatFichier: 'jpg', statutDocuments: 'EN_ATTENTE' }] })
+      : of([]));
+    http.put.mockReturnValue(of({}));
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.ouvrirModale({ idInscription: 42, statutInscription: 'EN_ATTENTE', identifiants: { cin: '123456' } }, 'VALIDER');
+    page.numAssureSaisi = '10001';
+    fixture.detectChanges();
+    expect(page.documentsPrets).toBe(false);
+    expect((fixture.nativeElement.querySelector('.agent-modale-piede .btn-signal') as HTMLButtonElement).disabled).toBe(true);
+
+    page.examinerDocument(page.documentsInscription[0], 'valider');
+    expect(http.put).toHaveBeenCalledWith(expect.stringContaining('/documents/7/valider'), null, expect.anything());
   });
 });

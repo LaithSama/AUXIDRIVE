@@ -24,6 +24,7 @@ describe('Inscription', () => {
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(Inscription);
     component = fixture.componentInstance;
+    component.identifiantsLegaux.cin = '101234567890';
     await fixture.whenStable();
   });
 
@@ -33,6 +34,19 @@ describe('Inscription', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('exige un numéro de CIN ou sa photo avant transmission', () => {
+    component.identifiantsLegaux.cin = '';
+    component.onSubmit();
+    expect(component.messageErreur).toContain('numéro de CIN');
+    expect(httpMock.match(API)).toHaveLength(0);
+
+    component.fichierCin = new File(['image'], 'cin.jpg', { type: 'image/jpeg' });
+    component.onSubmit();
+    const requete = httpMock.expectOne(API);
+    expect((requete.request.body as FormData).get('cin')).toBe(component.fichierCin);
+    requete.flush({ idInscription: 4 });
   });
 
   it('transmet le dossier et affiche la confirmation', () => {

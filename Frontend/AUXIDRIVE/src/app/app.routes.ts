@@ -21,6 +21,7 @@ export const routes: Routes = [
     {path: 'connexion', component: Connexion},
 
     {path: 'inscription', component: Inscription},
+    {path: 'correction', loadComponent: () => import('./pages/correction/correction').then(m => m.Correction)},
 
     {
         path: 'dashboard',
