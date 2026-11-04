@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import mg.auxidrive.api.model.Assure;
+import mg.auxidrive.api.model.AssureIdentifiantsLegaux;
 import mg.auxidrive.api.repository.AssureIdentifiantsLegauxRepository;
 import mg.auxidrive.api.repository.AssureProfessionRepository;
 import mg.auxidrive.api.repository.AssureRepository;
@@ -42,7 +45,15 @@ public class AssureService {
 
     @Transactional(readOnly = true)
     public List<Assure> lister() {
-        return assureRepository.findAll();
+        List<Assure> assures = assureRepository.findAll();
+        if (assures.isEmpty()) return assures;
+        Map<Long, AssureIdentifiantsLegaux> identifiants = legauxRepository.findAll().stream()
+                .collect(Collectors.toMap(i -> i.getAssure().getIdAssure(), Function.identity()));
+        assures.forEach(a -> {
+            AssureIdentifiantsLegaux legal = identifiants.get(a.getIdAssure());
+            a.setCin(legal == null ? null : legal.getCin());
+        });
+        return assures;
     }
 
     @Transactional(readOnly = true)
@@ -56,9 +67,11 @@ public class AssureService {
     public Map<String, Object> fiche(Long id) {
         Assure assure = trouver(id);
         Map<String, Object> fiche = new LinkedHashMap<>();
+        AssureIdentifiantsLegaux identifiants = legauxRepository.findByAssure_IdAssure(id).orElse(null);
+        assure.setCin(identifiants == null ? null : identifiants.getCin());
         fiche.put("assure", assure);
         fiche.put("professions", professionRepository.findByAssure_IdAssure(id));
-        fiche.put("identifiants", legauxRepository.findByAssure_IdAssure(id).orElse(null));
+        fiche.put("identifiants", identifiants);
         fiche.put("compte", compteClientRepository.findByAssure_IdAssure(id).orElse(null));
         return fiche;
     }
@@ -83,6 +96,19 @@ public class AssureService {
         if (donnees.getPaysResidence() != null) assure.setPaysResidence(trimOuNull(donnees.getPaysResidence()));
         if (donnees.getAdresse() != null) assure.setAdresse(trimOuNull(donnees.getAdresse()));
         if (donnees.getContact() != null) assure.setContact(trimOuNull(donnees.getContact()));
+        if (donnees.getCin() != null) {
+            String cin = verifierCin(donnees.getCin());
+            AssureIdentifiantsLegaux identifiants = legauxRepository.findByAssure_IdAssure(id).orElse(null);
+            if (identifiants == null && cin != null) {
+                identifiants = new AssureIdentifiantsLegaux();
+                identifiants.setAssure(assure);
+            }
+            if (identifiants != null) {
+                identifiants.setCin(cin);
+                legauxRepository.save(identifiants);
+            }
+            assure.setCin(cin);
+        }
         return assure;
     }
 
@@ -110,6 +136,11 @@ public class AssureService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Le prénom est obligatoire pour une personne physique");
         }
+        String cin = verifierCin(donnees.getCin());
+        if (!Boolean.TRUE.equals(donnees.getPersonneMorale()) && cin == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Le numéro de CIN est obligatoire pour une personne physique");
+        }
 
         Assure assure = new Assure();
         assure.setNumerosAssure(numero);
@@ -125,7 +156,15 @@ public class AssureService {
         assure.setContact(trimOuNull(donnees.getContact()));
         assure.setMail(normaliserMail(donnees.getMail()));
         assure.setDateCreation(LocalDate.now());
-        return assureRepository.save(assure);
+        assureRepository.save(assure);
+        if (cin != null) {
+            AssureIdentifiantsLegaux identifiants = new AssureIdentifiantsLegaux();
+            identifiants.setAssure(assure);
+            identifiants.setCin(cin);
+            legauxRepository.save(identifiants);
+        }
+        assure.setCin(cin);
+        return assure;
     }
 
     /** Suppression réelle : refusée si l'assuré est référencé (contrats, véhicules, documents...). */
@@ -144,6 +183,14 @@ public class AssureService {
 
     private String trimOuNull(String s) {
         return vide(s) ? null : s.trim();
+    }
+
+    private String verifierCin(String cin) {
+        String valeur = trimOuNull(cin);
+        if (valeur != null && valeur.length() > 20) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Numéro de CIN trop long (20 caractères maximum)");
+        }
+        return valeur;
     }
 
     private String normaliserMail(String mail) {

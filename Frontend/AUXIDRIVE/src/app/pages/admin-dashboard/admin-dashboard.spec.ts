@@ -31,10 +31,11 @@ describe('AdminDashboard : modification', () => {
   const admin = {
     getStatistiques: vi.fn(() => of(null)), getRoles: vi.fn(() => of([])),
     getComptesClients: vi.fn(() => of([compte])), getAssures: vi.fn(() => of([assure])),
-    modifierAssure: vi.fn(), modifierCompteClient: vi.fn(),
+    creerAssure: vi.fn(), modifierAssure: vi.fn(), modifierCompteClient: vi.fn(),
   };
 
   beforeEach(async () => {
+    admin.creerAssure.mockReset();
     admin.modifierAssure.mockReset();
     admin.modifierCompteClient.mockReset();
     await TestBed.configureTestingModule({
@@ -78,6 +79,79 @@ describe('AdminDashboard : modification', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.admin-tableau-carte').classList.contains('d-lg-block')).toBe(true);
     expect(fixture.nativeElement.querySelector('.liste-mobile').classList.contains('d-lg-none')).toBe(true);
+  });
+
+  it('préremplit et enregistre le CIN en édition', async () => {
+    admin.modifierAssure.mockReturnValue(of(assure));
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.ouvrirEditionAssure({ ...assure, cin: '101234567890' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const cin = fixture.nativeElement.querySelector('#a-cin') as HTMLInputElement;
+    expect(cin.value).toBe('101234567890');
+    cin.value = ' 101234567891 ';
+    cin.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.admin-modale-pied .btn-signal') as HTMLButtonElement).click();
+
+    expect(admin.modifierAssure).toHaveBeenCalledWith(7, expect.objectContaining({ cin: '101234567891' }));
+  });
+
+  it('exige le CIN à la création d’une personne physique, mais pas morale', () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.ouvrirCreation('assure');
+    page.formAssure.numerosAssure = '20260008';
+    page.formAssure.nomAssure = 'Rakoto';
+    page.formAssure.prenomAssure = 'Jean';
+    fixture.detectChanges();
+
+    const cin = fixture.nativeElement.querySelector('#a-cin') as HTMLInputElement;
+    expect(cin.getAttribute('aria-required')).toBe('true');
+    expect(page.assurePret).toBe(false);
+    page.formAssure.cin = '101234567890';
+    expect(page.assurePret).toBe(true);
+    page.formAssure.cin = '';
+    page.formAssure.personneMorale = true;
+    fixture.detectChanges();
+    expect(cin.getAttribute('aria-required')).toBe('false');
+    expect(page.assurePret).toBe(true);
+  });
+
+  it('transmet le CIN lors de la création d’un assuré', () => {
+    admin.creerAssure.mockReturnValue(of(assure));
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.ouvrirCreation('assure');
+    page.formAssure.numerosAssure = '20260008';
+    page.formAssure.nomAssure = 'Rakoto';
+    page.formAssure.prenomAssure = 'Jean';
+    page.formAssure.cin = ' 101234567890 ';
+
+    page.enregistrer();
+
+    expect(admin.creerAssure).toHaveBeenCalledWith(expect.objectContaining({ cin: '101234567890' }));
+  });
+
+  it('affiche le CIN et permet de rechercher un assuré par ce numéro', () => {
+    const fixture = TestBed.createComponent(AdminDashboard);
+    const page = fixture.componentInstance;
+    page.vue.set('assures');
+    fixture.detectChanges();
+    page.assures.set([{ ...assure, cin: '101234567890' }, { ...assure, idAssure: 8, cin: '201234567890' }]);
+    page.rechercheAssure.set('101234567890');
+    fixture.detectChanges();
+
+    expect(page.assuresAffiches().length).toBe(1);
+    expect(fixture.nativeElement.querySelector('.admin-tableau-carte thead')?.textContent).toContain('CIN');
+    expect(fixture.nativeElement.querySelector('.admin-tableau-carte tbody')?.textContent).toContain('101234567890');
+    expect(fixture.nativeElement.querySelector('.liste-mobile-details')?.textContent).toContain('101234567890');
   });
 
   it('présente les champs assurés par groupes sans imposer le prénom aux anciennes fiches', () => {

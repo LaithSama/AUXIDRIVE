@@ -49,6 +49,10 @@ public class Assure {
     @Column(name = "mail", length = 50)
     private String mail;
 
+    /** Exposé dans les fiches admin ; persisté dans Assures_identifiants_legaux. */
+    @Transient
+    private String cin;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_util")
@@ -159,6 +163,14 @@ public class Assure {
 
     public void setMail(String mail) {
         this.mail = mail;
+    }
+
+    public String getCin() {
+        return cin;
+    }
+
+    public void setCin(String cin) {
+        this.cin = cin;
     }
 
     public Utilisateur getUtilisateur() {

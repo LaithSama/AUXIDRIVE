@@ -1,6 +1,7 @@
 export interface Assure {
     idAssure: number;
     numerosAssure: string;
+    cin?: string | null;
     nomAssure: string;
     prenomAssure: string;
     dateNaissance: string;

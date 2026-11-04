@@ -614,6 +614,7 @@
           <thead>
             <tr>
               <th>N° assuré</th>
+              <th>CIN</th>
               <th>Nom</th>
               <th>Prénom</th>
               <th>Contact</th>
@@ -625,6 +626,7 @@
             @for (a of assuresPage(); track a.idAssure) {
               <tr>
                 <td class="fw-medium">{{ a.numerosAssure }}</td>
+                <td>{{ a.cin || '—' }}</td>
                 <td>
                   {{ a.nomAssure }}
                   @if (a.personneMorale) { <span class="pastille pastille-sombre admin-tag">Morale</span> }
@@ -643,7 +645,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="6"><app-etat-vide [titre]="assures().length ? 'Aucun assuré trouvé.' : 'Aucun assuré enregistré.'" icone="bi-person-lines-fill"
+                <td colspan="7"><app-etat-vide [titre]="assures().length ? 'Aucun assuré trouvé.' : 'Aucun assuré enregistré.'" icone="bi-person-lines-fill"
                   [description]="assures().length ? 'Essayez une autre recherche ou réinitialisez les filtres.' : 'Ajoutez un assuré pour gérer ses informations et son compte.'"
                   [action]="assures().length ? 'Réinitialiser les filtres' : 'Créer un assuré'"
                   (actionCliquee)="assures().length ? reinitialiserFiltres() : ouvrirCreation('assure')" /></td>
@@ -661,6 +663,7 @@
             </div>
             <dl class="liste-mobile-details">
               <div><dt>N° assuré</dt><dd>{{ a.numerosAssure || '—' }}</dd></div>
+              <div><dt>CIN</dt><dd>{{ a.cin || '—' }}</dd></div>
               <div><dt>Contact</dt><dd>{{ a.contact || '—' }}</dd></div>
               <div><dt>E-mail</dt><dd>{{ a.mail || '—' }}</dd></div>
             </dl>
@@ -845,6 +848,12 @@
               <input type="checkbox" name="personneMorale" [(ngModel)]="formAssure.personneMorale" />
               Personne morale (entreprise)
             </label>
+          </div>
+          <div class="champ">
+            <label for="a-cin">Numéro de CIN</label>
+            <input id="a-cin" type="text" name="cin" [(ngModel)]="formAssure.cin" maxlength="20"
+                   [attr.aria-required]="modeModale() === 'CREATION' && !formAssure.personneMorale" />
+            <span class="aide">Obligatoire à la création pour une personne physique.</span>
           </div>
           <div class="champ">
             <label for="a-naiss">Date de naissance</label>

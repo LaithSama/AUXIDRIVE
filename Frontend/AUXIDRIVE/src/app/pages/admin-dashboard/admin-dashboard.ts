@@ -162,7 +162,7 @@ export class AdminDashboard implements OnInit {
 
   assuresAffiches = computed(() => {
     const liste = this.assures().filter(a => {
-      const hay = [a.numerosAssure, a.nomAssure, a.prenomAssure, a.mail, a.contact]
+      const hay = [a.numerosAssure, a.cin, a.nomAssure, a.prenomAssure, a.mail, a.contact]
         .map(v => this.normaliser(v)).join(' ');
       if (!this.correspond(hay, this.rechercheAssure())) return false;
       if (this.filtreTypeAssure() === 'physique' && a.personneMorale) return false;
@@ -201,6 +201,7 @@ export class AdminDashboard implements OnInit {
   formAssure = {
     idAssure: null as number | null,
     numerosAssure: '',
+    cin: '',
     nomAssure: '',
     prenomAssure: '',
     personneMorale: false,
@@ -438,7 +439,7 @@ export class AdminDashboard implements OnInit {
       };
     } else {
       this.formAssure = {
-        idAssure: null, numerosAssure: '', nomAssure: '', prenomAssure: '',
+        idAssure: null, numerosAssure: '', cin: '', nomAssure: '', prenomAssure: '',
         personneMorale: false, dateNaissance: '', sexe: '', civilite: '',
         nationalite: 'Malgache', paysResidence: 'Madagascar', adresse: '', contact: '', mail: '',
       };
@@ -487,6 +488,7 @@ export class AdminDashboard implements OnInit {
     this.formAssure = {
       idAssure: a.idAssure,
       numerosAssure: a.numerosAssure ?? '',
+      cin: a.cin ?? '',
       nomAssure: a.nomAssure ?? '',
       prenomAssure: a.prenomAssure ?? '',
       personneMorale: !!a.personneMorale,
@@ -547,7 +549,8 @@ export class AdminDashboard implements OnInit {
       return !!this.formAssure.nomAssure.trim();
     }
     const identiteOk = this.formAssure.personneMorale || !!this.formAssure.prenomAssure.trim();
-    return !!this.formAssure.numerosAssure.trim() && !!this.formAssure.nomAssure.trim() && identiteOk;
+    const cinOk = this.formAssure.personneMorale || !!this.formAssure.cin.trim();
+    return !!this.formAssure.numerosAssure.trim() && !!this.formAssure.nomAssure.trim() && identiteOk && cinOk;
   }
 
   get pret(): boolean {
@@ -644,6 +647,7 @@ export class AdminDashboard implements OnInit {
     const f = this.formAssure;
     const corps: Partial<Assure> = {
       numerosAssure: f.numerosAssure.trim(),
+      cin: f.cin.trim(),
       nomAssure: f.nomAssure.trim(),
       prenomAssure: f.prenomAssure.trim(),
       personneMorale: f.personneMorale,
