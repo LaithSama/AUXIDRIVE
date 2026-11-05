@@ -25,6 +25,8 @@ const DOCUMENT: DocumentProfil = {
 const PROFIL: Profil = {
   compte: { email: 'client@auxi.mg', dateCreation: '2026-01-05T09:00:00', dateSuppressionPlanifiee: null },
   assure: {
+    cinRenseigne: true,
+    cinMasque: '•••• 7890',
     numerosAssure: 'A-001',
     civilite: 'M.',
     dateNaissance: '1990-05-12',
@@ -188,5 +190,49 @@ describe('DashboardProfil', () => {
     expect(component.statutClasse(rejetee)).toBe('statut-rejete');
     expect(rejetee.motifRejet).toBe('Photo illisible');
     expect(rejetee.verrouille).toBe(true);
+  });
+
+  it('affiche la CIN facultative quand le numéro est enregistré', () => {
+    expect(component.cinRenseigne).toBe(true);
+    expect(component.badgeType('CIN')).toBe('Facultatif');
+    expect(component.aideType('CIN')).toContain('•••• 7890');
+    expect(component.documentsComplets).toBe(true);
+    fixture.detectChanges();
+    const section: HTMLElement = fixture.nativeElement.querySelector('.mes-documents');
+    expect(section.textContent).toContain('Identité');
+    expect(section.textContent).toContain('Véhicule');
+    expect(section.textContent).toContain('Pièces requises fournies');
+    expect(section.textContent).toContain('•••• 7890');
+  });
+
+  it('exige la CIN sans numéro et refuse sa suppression', () => {
+    component.profil = { ...PROFIL, assure: { ...PROFIL.assure, cinRenseigne: false, cinMasque: null } };
+    expect(component.badgeType('CIN')).toBe('Obligatoire');
+    expect(component.documentsComplets).toBe(false);
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.documents-synthese')?.textContent).toContain('CIN à fournir');
+    component.documents = [DOCUMENT];
+    component.demanderSuppression(DOCUMENT);
+    expect(component.documentASupprimer).toBeNull();
+    expect(component.erreurDocument).toContain('Suppression impossible');
+    httpMock.expectNone(`${API}/documents/1`);
+  });
+
+  it('avertit quand une carte rose seule est ajoutée puis lors de la suppression de sa carte grise', () => {
+    const rose: DocumentProfil = { ...DOCUMENT, idDocument: 2, typeDocument: 'CARTE_ROSE' };
+    component.documents = [rose];
+    expect(component.roseIncomplete).toBe(true);
+    expect(component.documentsComplets).toBe(false);
+    expect(component.badgeType('CARTE_ROSE')).toBe('À compléter');
+
+    const grise: DocumentProfil = { ...DOCUMENT, idDocument: 3, typeDocument: 'CARTE_GRISE' };
+    component.documents = [rose, grise];
+    expect(component.documentsComplets).toBe(true);
+    expect(component.suppressionAvecAvertissement(grise)).toBe(true);
+    component.demanderSuppression(grise);
+    component.confirmerSuppressionDocument();
+    httpMock.expectOne(`${API}/documents/3`).flush(null);
+    expect(component.roseIncomplete).toBe(true);
+    expect(component.avertissementDocuments).toContain('carte rose');
   });
 });

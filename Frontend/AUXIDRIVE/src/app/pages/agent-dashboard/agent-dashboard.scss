@@ -497,6 +497,57 @@
 }
 
 /* ---------- modale ---------- */
+.document-voile {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 34, 39, 0.55);
+  z-index: 1060;
+}
+
+.document-modale {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1070;
+  width: min(900px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(28, 34, 39, 0.35);
+  padding: 1.4rem;
+}
+
+.document-modale-apercu {
+  iframe { border: 0; border-radius: 8px; display: block; width: 100%; }
+  img { display: block; max-width: 100%; max-height: calc(100dvh - 9rem); margin: 0 auto; border-radius: 8px; }
+}
+
+.document-apercu-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.document-fermer {
+  background: var(--papier);
+  border: 1px solid #e3e7ea;
+  border-radius: 8px;
+  color: var(--encre);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.5rem 0.65rem;
+
+  &:hover { background: #e9ecee; }
+}
+
+@media (max-width: 575.98px) {
+  .document-modale { padding: 1.1rem; }
+}
+
 .modal.d-block {
   display: block;
   background-color: rgba(46, 52, 55, 0.55);

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed, WritableSignal } from '@angular/core';
+import { Component, HostListener, inject, OnInit, signal, computed, WritableSignal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
@@ -132,7 +132,9 @@ export class AgentDashboard implements OnInit {
   documentEnCours = false;
   apercuDocument: SafeResourceUrl | null = null;
   apercuDocumentType = '';
+  apercuDocumentLibelle = '';
   private apercuDocumentObjet: string | null = null;
+  private requeteApercu = 0;
   numAssureSaisi = '';
   motifRefusSaisi = '';
   modeAction: 'VALIDER' | 'REFUSER' | null = null;
@@ -406,14 +408,18 @@ export class AgentDashboard implements OnInit {
 
   voirDocumentVerification(doc: DocumentAVerifier): void {
     this.fermerApercuDocument();
+    const requete = this.requeteApercu;
     this.messageErreur = '';
     this.http.get(`${this.apiUrl}/documents/${doc.idDocument}/fichier`, { responseType: 'blob' }).subscribe({
       next: (blob) => {
+        if (requete !== this.requeteApercu || this.vue() !== 'documents') return;
         this.apercuDocumentObjet = URL.createObjectURL(blob);
         this.apercuDocument = this.sanitizer.bypassSecurityTrustResourceUrl(this.apercuDocumentObjet);
         this.apercuDocumentType = (doc.formatFichier || 'pdf').toLowerCase();
+        this.apercuDocumentLibelle = this.libelleDocument(doc.typeDocument);
       },
       error: () => {
+        if (requete !== this.requeteApercu) return;
         this.messageErreur = 'Impossible d’ouvrir ce fichier.';
       },
     });
@@ -431,6 +437,7 @@ export class AgentDashboard implements OnInit {
   // ---------- Navigation ----------
 
   changerVue(vue: VueAgent): void {
+    this.fermerApercuDocument();
     this.vue.set(vue);
     this.messageSucces = '';
     this.messageErreur = '';
@@ -551,23 +558,33 @@ export class AgentDashboard implements OnInit {
 
   voirDocument(document: DocumentInscription): void {
     this.fermerApercuDocument();
+    const requete = this.requeteApercu;
     this.documentsErreur = '';
     const dossierId = this.demandeSelectionnee?.idInscription;
     this.http.get(`${this.apiUrl}/documents/${document.idDocument}/fichier`, { responseType: 'blob' }).subscribe({
       next: blob => {
-        if (this.demandeSelectionnee?.idInscription !== dossierId) return;
+        if (requete !== this.requeteApercu || this.demandeSelectionnee?.idInscription !== dossierId) return;
         this.apercuDocumentObjet = URL.createObjectURL(blob);
         this.apercuDocument = this.sanitizer.bypassSecurityTrustResourceUrl(this.apercuDocumentObjet);
         this.apercuDocumentType = document.formatFichier.toLowerCase();
+        this.apercuDocumentLibelle = this.libelleDocument(document.typeDocument);
       },
-      error: () => { this.documentsErreur = 'Impossible d’ouvrir ce fichier.'; },
+      error: () => { if (requete === this.requeteApercu) this.documentsErreur = 'Impossible d’ouvrir ce fichier.'; },
     });
   }
 
   fermerApercuDocument(): void {
+    this.requeteApercu++;
     if (this.apercuDocumentObjet) URL.revokeObjectURL(this.apercuDocumentObjet);
     this.apercuDocumentObjet = null;
     this.apercuDocument = null;
+    this.apercuDocumentType = '';
+    this.apercuDocumentLibelle = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  fermerApercuSurEchap(): void {
+    if (this.apercuDocument) this.fermerApercuDocument();
   }
 
   fermerModale(): void {

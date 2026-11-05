@@ -5,6 +5,8 @@ export interface ProfilCompte {
 }
 
 export interface ProfilAssure {
+  cinRenseigne: boolean;
+  cinMasque: string | null;
   numerosAssure: string | null;
   civilite: string | null;
   dateNaissance: string | null;

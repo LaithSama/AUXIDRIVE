@@ -305,6 +305,83 @@ describe('AgentDashboard', () => {
     );
   });
 
+  it('affiche les pièces des deux espaces dans une seule modale et ferme l’aperçu sans fermer l’inscription', () => {
+    const creerUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:apercu-test');
+    const revoquerUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    http.get.mockImplementation((url: string) => {
+      if (url.endsWith('/fichier')) return of(new Blob(['photo'], { type: 'image/jpeg' }));
+      if (url.endsWith('/inscriptions/42')) return of({ documents: [
+        { idDocument: 8, typeDocument: 'CARTE_GRISE', formatFichier: 'pdf', statutDocuments: 'EN_ATTENTE' },
+      ] });
+      if (url.endsWith('/documents/a-verifier')) return of([
+        { idDocument: 7, typeDocument: 'CIN', formatFichier: 'jpg', statutDocuments: 'EN_ATTENTE', origine: 'PROFIL' },
+      ]);
+      return of([]);
+    });
+
+    try {
+      const fixture = TestBed.createComponent(AgentDashboard);
+      const page = fixture.componentInstance;
+      fixture.detectChanges();
+      page.changerVue('documents');
+      fixture.detectChanges();
+      (fixture.nativeElement.querySelector('.agent-document-verif-actions button') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const racine = fixture.nativeElement as HTMLElement;
+      expect(racine.querySelectorAll('.document-modale-apercu').length).toBe(1);
+      expect(racine.querySelector('.document-modale-apercu')?.getAttribute('aria-modal')).toBe('true');
+      expect(racine.querySelector('.document-modale-apercu')?.textContent).toContain('Carte d’identité');
+      expect(racine.querySelector('.document-modale-apercu img')).not.toBeNull();
+      expect(racine.querySelector('.agent-document-apercu')).toBeNull();
+
+      (racine.querySelector('.document-fermer') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(racine.querySelector('.document-modale-apercu')).toBeNull();
+      expect(revoquerUrl).toHaveBeenCalledWith('blob:apercu-test');
+
+      page.ouvrirModale({ idInscription: 42, statutInscription: 'EN_ATTENTE', identifiants: { cin: '123456' } }, 'VALIDER');
+      fixture.detectChanges();
+      page.voirDocument(page.documentsInscription[0]);
+      fixture.detectChanges();
+      expect(racine.querySelectorAll('.document-modale-apercu').length).toBe(1);
+      expect(racine.querySelector('.document-modale-apercu iframe')).not.toBeNull();
+      expect(racine.querySelector('.document-modale-apercu')?.textContent).toContain('Carte grise');
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      fixture.detectChanges();
+      expect(racine.querySelector('.document-modale-apercu')).toBeNull();
+      expect(racine.querySelector('.agent-modale')).not.toBeNull();
+
+      page.voirDocument(page.documentsInscription[0]);
+      fixture.detectChanges();
+      (racine.querySelector('.document-voile') as HTMLElement).click();
+      fixture.detectChanges();
+      expect(racine.querySelector('.document-modale-apercu')).toBeNull();
+      expect(creerUrl).toHaveBeenCalledTimes(3);
+    } finally {
+      creerUrl.mockRestore();
+      revoquerUrl.mockRestore();
+    }
+  });
+
+  it('ne rouvre pas un aperçu après un changement de vue pendant le chargement', () => {
+    const fichier = new Subject<Blob>();
+    http.get.mockImplementation((url: string) => url.endsWith('/fichier') ? fichier.asObservable()
+      : url.endsWith('/documents/a-verifier') ? of([
+        { idDocument: 7, typeDocument: 'CIN', formatFichier: 'jpg', origine: 'PROFIL' },
+      ]) : of([]));
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.changerVue('documents');
+    page.voirDocumentVerification(page.documentsVerification()[0]);
+    page.changerVue('tableau');
+    fichier.next(new Blob(['photo']));
+    fixture.detectChanges();
+    expect(page.apercuDocument).toBeNull();
+    expect(fixture.nativeElement.querySelector('.document-modale-apercu')).toBeNull();
+  });
+
   it('bloque la création du compte tant que les pièces ne sont pas validées', () => {
     http.get.mockImplementation((url: string) => url.endsWith('/inscriptions/42')
       ? of({ documents: [{ idDocument: 7, typeDocument: 'CIN', formatFichier: 'jpg', statutDocuments: 'EN_ATTENTE' }] })

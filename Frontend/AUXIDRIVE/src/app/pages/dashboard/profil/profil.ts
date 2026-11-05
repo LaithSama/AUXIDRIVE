@@ -8,8 +8,8 @@ import { ProfilService } from '../../../services/profil-service';
 import { DocumentProfilService } from '../../../services/document-profil-service';
 import { Profil } from '../../../core/interfaces/profil';
 import { DocumentProfil, TypeDocument, TypeDocumentProfil } from '../../../core/interfaces/document-profil';
+import { carteRoseIncomplete, cinSatisfait, dossierComplet, pieceUtilisable, suppressionAvertir, suppressionCinInterdite } from '../../../core/regles-documents-profil';
 import { Squelette } from '../../../components/squelette/squelette';
-import { EtatVide } from '../../../components/etat-vide/etat-vide';
 
 const MOIS_FR = [
   'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
@@ -21,7 +21,7 @@ const EXTENSIONS_ACCEPTEES = ['pdf', 'jpg', 'jpeg', 'png'];
 
 @Component({
   selector: 'app-dashboard-profil',
-  imports: [FormsModule, Squelette, EtatVide],
+  imports: [FormsModule, Squelette],
   templateUrl: './profil.html',
   styleUrl: './profil.scss',
 })
@@ -73,7 +73,7 @@ export class DashboardProfil implements OnInit {
     {
       valeur: 'CARTE_ROSE',
       libelle: 'Carte rose',
-      description: 'Permis de conduire du conducteur principal.',
+      description: 'À accompagner d’une carte grise ou d’un modèle N°1.',
       icone: 'bi-credit-card-2-front',
     },
     {
@@ -88,6 +88,7 @@ export class DashboardProfil implements OnInit {
   documentsChargement = true;
   documentsErreur = '';
   messageDocuments = '';
+  avertissementDocuments = '';
   erreurDocument = '';
   documentEnCours = false;
   typeOuvert: TypeDocumentProfil | null = null;
@@ -152,6 +153,78 @@ export class DashboardProfil implements OnInit {
 
   get nombrePieces(): number {
     return this.documents.length;
+  }
+
+  get cinRenseigne(): boolean {
+    return this.profil?.assure?.cinRenseigne === true;
+  }
+
+  get identiteSatisfaite(): boolean {
+    return cinSatisfait(this.documents, this.cinRenseigne);
+  }
+
+  get roseIncomplete(): boolean {
+    return carteRoseIncomplete(this.documents);
+  }
+
+  get documentsComplets(): boolean {
+    return dossierComplet(this.documents, this.cinRenseigne);
+  }
+
+  get vehiculeResume(): string {
+    if (this.roseIncomplete) return 'Carte rose à compléter par une carte grise ou un modèle N°1.';
+    if (pieceUtilisable(this.documents, 'CARTE_GRISE')) return 'Complet grâce à la carte grise.';
+    if (pieceUtilisable(this.documents, 'MODELE_N1')) return 'Complet grâce au modèle N°1.';
+    return 'Aucun justificatif véhicule requis.';
+  }
+
+  get documentsEnVerification(): boolean {
+    return this.documents.some(doc => doc.statutDocuments === 'EN_ATTENTE');
+  }
+
+  badgeType(type: TypeDocumentProfil): string {
+    const doc = this.documentDuType(type);
+    if (doc?.statutDocuments === 'REJETE') return 'À remplacer';
+    if (type === 'CIN') return doc ? 'Fournie' : this.cinRenseigne ? 'Facultatif' : 'Obligatoire';
+    if (type === 'CARTE_ROSE' && this.roseIncomplete) return 'À compléter';
+    if (doc) return 'Fournie';
+    if (type === 'MODELE_N1' && this.roseIncomplete) return 'À fournir ou carte grise';
+    if (type === 'CARTE_GRISE' && this.roseIncomplete) return 'À fournir ou modèle N°1';
+    return 'Facultatif';
+  }
+
+  classeType(type: TypeDocumentProfil): string {
+    const doc = this.documentDuType(type);
+    if (doc?.statutDocuments === 'REJETE') return 'attention';
+    if (type === 'CIN' && !doc && !this.cinRenseigne) return 'obligatoire';
+    if (this.roseIncomplete && (type === 'CARTE_ROSE' || !doc)) return 'attention';
+    return doc ? 'fournie' : 'facultative';
+  }
+
+  aideType(type: TypeDocumentProfil): string {
+    if (type === 'CIN') {
+      if (this.cinRenseigne) return `Numéro de CIN enregistré (${this.profil?.assure?.cinMasque ?? 'masqué'}). La photo est facultative.`;
+      return this.documentDuType('CIN')
+        ? 'La photo tient lieu de numéro de CIN. Remplacez-la si elle est rejetée.'
+        : 'Aucun numéro de CIN enregistré : ajoutez une photo pour justifier votre identité.';
+    }
+    if (type === 'CARTE_GRISE') return this.roseIncomplete
+      ? 'Ajoutez-la pour compléter votre carte rose (ou déposez un modèle N°1).'
+      : 'Facultative : elle suffit à elle seule pour les justificatifs véhicule.';
+    if (type === 'MODELE_N1') return this.roseIncomplete
+      ? 'Ajoutez-le pour compléter votre carte rose (ou déposez une carte grise).'
+      : 'Facultatif : il suffit à lui seul pour les justificatifs véhicule.';
+    return this.roseIncomplete
+      ? 'À compléter : ajoutez une carte grise ou un modèle N°1.'
+      : 'Facultative. Si vous la déposez, ajoutez aussi une carte grise ou un modèle N°1.';
+  }
+
+  suppressionCinBloquee(doc: DocumentProfil): boolean {
+    return suppressionCinInterdite(doc.typeDocument, this.cinRenseigne);
+  }
+
+  suppressionAvecAvertissement(doc: DocumentProfil): boolean {
+    return suppressionAvertir(this.documents, doc.typeDocument);
   }
 
   enregistrer(): void {
@@ -304,6 +377,7 @@ export class DashboardProfil implements OnInit {
     if (this.documentEnCours) return;
     this.erreurDocument = '';
     this.messageDocuments = '';
+    this.avertissementDocuments = '';
     this.typeOuvert = this.typeOuvert === type ? null : type;
   }
 
@@ -330,6 +404,7 @@ export class DashboardProfil implements OnInit {
   private envoyerDocument(type: TypeDocumentProfil, fichier: File): void {
     this.erreurDocument = '';
     this.messageDocuments = '';
+    this.avertissementDocuments = '';
     this.documentEnCours = true;
     const existant = this.documentDuType(type);
 
@@ -345,6 +420,13 @@ export class DashboardProfil implements OnInit {
         this.messageDocuments = existant
           ? `La pièce « ${this.libelleType(type)} » a été remplacée. Elle sera vérifiée par un agent.`
           : `La pièce « ${this.libelleType(type)} » a été ajoutée. Elle sera vérifiée par un agent.`;
+        if (type === 'CARTE_ROSE' && this.roseIncomplete) {
+          this.avertissementDocuments = 'Ajoutez une carte grise ou un modèle N°1 pour compléter votre carte rose.';
+        } else if (type === 'CARTE_GRISE' && !this.roseIncomplete) {
+          this.messageDocuments += ' La carte rose et le modèle N°1 ne sont plus nécessaires.';
+        } else if (type === 'MODELE_N1' && pieceUtilisable(this.documents, 'CARTE_ROSE')) {
+          this.messageDocuments += ' Votre carte rose est maintenant complétée.';
+        }
       },
       error: (err: HttpErrorResponse) => {
         this.documentEnCours = false;
@@ -369,8 +451,13 @@ export class DashboardProfil implements OnInit {
 
   demanderSuppression(doc: DocumentProfil): void {
     if (this.documentEnCours) return;
+    if (this.suppressionCinBloquee(doc)) {
+      this.erreurDocument = 'Suppression impossible : la CIN est obligatoire tant qu’aucun numéro n’est enregistré. Vous pouvez remplacer la pièce.';
+      return;
+    }
     this.erreurDocument = '';
     this.messageDocuments = '';
+    this.avertissementDocuments = '';
     this.documentASupprimer = doc;
   }
 
@@ -381,6 +468,12 @@ export class DashboardProfil implements OnInit {
   confirmerSuppressionDocument(): void {
     const doc = this.documentASupprimer;
     if (!doc || this.documentEnCours) return;
+    if (this.suppressionCinBloquee(doc)) {
+      this.documentASupprimer = null;
+      this.erreurDocument = 'Suppression impossible : la CIN est obligatoire tant qu’aucun numéro n’est enregistré.';
+      return;
+    }
+    const avertir = this.suppressionAvecAvertissement(doc);
     this.documentEnCours = true;
     this.erreurDocument = '';
 
@@ -390,6 +483,7 @@ export class DashboardProfil implements OnInit {
         this.documentASupprimer = null;
         this.documentEnCours = false;
         this.messageDocuments = `La pièce « ${this.libelleType(doc.typeDocument)} » a été supprimée.`;
+        if (avertir) this.avertissementDocuments = 'Votre carte rose est maintenant seule : ajoutez une carte grise ou un modèle N°1.';
       },
       error: (err: HttpErrorResponse) => {
         this.documentASupprimer = null;

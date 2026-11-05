@@ -948,16 +948,6 @@
       </div>
     }
 
-    @if (apercuDocument) {
-      <div class="agent-document-apercu">
-        <button type="button" class="btn-contour-sombre" (click)="fermerApercuDocument()">Fermer l’aperçu</button>
-        @if (apercuDocumentType === 'pdf') {
-          <iframe [src]="apercuDocument" title="Aperçu du document" width="100%" height="420"></iframe>
-        } @else {
-          <img [src]="apercuDocument" alt="Aperçu de la pièce justificative" />
-        }
-      </div>
-    }
   }
 
   <!-- ==================== PROFIL ==================== -->
@@ -1011,16 +1001,6 @@
                 </div>
               } @empty {
                 @if (!documentsChargement && !documentsErreur) { <p>Aucune photo jointe : numéro de CIN saisi manuellement.</p> }
-              }
-              @if (apercuDocument) {
-                <div class="agent-document-apercu">
-                  <button type="button" class="btn-contour-sombre" (click)="fermerApercuDocument()">Fermer l’aperçu</button>
-                  @if (apercuDocumentType === 'pdf') {
-                    <iframe [src]="apercuDocument" title="Aperçu du document" width="100%" height="340"></iframe>
-                  } @else {
-                    <img [src]="apercuDocument" alt="Aperçu de la pièce justificative" />
-                  }
-                </div>
               }
             </section>
 
@@ -1330,3 +1310,21 @@
   }
   </main>
 </div>
+
+<!-- Aperçu partagé entre les documents à vérifier et les dossiers d’inscription -->
+@if (apercuDocument) {
+  <div class="document-voile" (click)="fermerApercuDocument()"></div>
+  <div class="document-modale document-modale-apercu" role="dialog" aria-modal="true" aria-labelledby="titre-apercu-document">
+    <div class="document-apercu-entete">
+      <strong id="titre-apercu-document">Aperçu — {{ apercuDocumentLibelle }}</strong>
+      <button type="button" class="document-fermer" (click)="fermerApercuDocument()" aria-label="Fermer l’aperçu">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    @if (apercuDocumentType === 'pdf') {
+      <iframe [src]="apercuDocument" title="Aperçu du document" width="100%" height="420"></iframe>
+    } @else {
+      <img [src]="apercuDocument" alt="Aperçu de la pièce justificative" />
+    }
+  </div>
+}

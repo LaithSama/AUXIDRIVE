@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import mg.auxidrive.api.model.Assure;
 import mg.auxidrive.api.model.CompteClient;
 import mg.auxidrive.api.repository.CompteClientRepository;
+import mg.auxidrive.api.repository.AssureIdentifiantsLegauxRepository;
 
 /**
  * Profil du client connecté : consultation et modification de ses informations,
@@ -33,10 +34,14 @@ public class ProfilService {
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private final CompteClientRepository compteClientRepository;
+    private final AssureIdentifiantsLegauxRepository identifiantsRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public ProfilService(CompteClientRepository compteClientRepository, PasswordEncoder passwordEncoder) {
+    public ProfilService(CompteClientRepository compteClientRepository,
+                         AssureIdentifiantsLegauxRepository identifiantsRepository,
+                         PasswordEncoder passwordEncoder) {
         this.compteClientRepository = compteClientRepository;
+        this.identifiantsRepository = identifiantsRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -61,6 +66,12 @@ public class ProfilService {
             boutDAssure.put("adresse", assure.getAdresse());
             boutDAssure.put("contact", assure.getContact());
             boutDAssure.put("mail", assure.getMail());
+            String cin = identifiantsRepository.findByAssure_IdAssure(assure.getIdAssure())
+                    .map(identifiants -> identifiants.getCin()).orElse(null);
+            boolean cinRenseigne = cin != null && !cin.isBlank();
+            boutDAssure.put("cinRenseigne", cinRenseigne);
+            boutDAssure.put("cinMasque", cinRenseigne
+                    ? "•••• " + cin.trim().substring(Math.max(0, cin.trim().length() - 4)) : null);
         }
 
         Map<String, Object> reponse = new LinkedHashMap<>();

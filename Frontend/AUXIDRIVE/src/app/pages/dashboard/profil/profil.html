@@ -185,14 +185,33 @@
           par un agent avant d’être validé.
         </p>
       </div>
-      <span class="documents-compteur">{{ nombrePieces }} / {{ typesDocuments.length }} pièces</span>
+      <span class="documents-compteur">{{ nombrePieces }} pièce(s) fournie(s)</span>
     </div>
+
+    @if (!documentsChargement && !documentsErreur) {
+      <div class="documents-synthese" [class.documents-synthese-incomplete]="!documentsComplets" role="status">
+        <strong><i class="bi" [class.bi-check-circle-fill]="documentsComplets"
+                   [class.bi-exclamation-circle-fill]="!documentsComplets" aria-hidden="true"></i>
+          {{ documentsComplets ? 'Pièces requises fournies' : 'Action requise pour vos documents' }}
+        </strong>
+        <div class="documents-synthese-lignes">
+          <span><b>Identité :</b> {{ identiteSatisfaite ? 'Justifiée' : 'CIN à fournir' }}</span>
+          <span><b>Véhicule :</b> {{ vehiculeResume }}</span>
+        </div>
+        @if (documentsEnVerification) {
+          <small>Certaines pièces sont encore en cours de vérification par un agent.</small>
+        }
+      </div>
+    }
 
     @if (messageDocuments) {
       <div class="message-ok" role="status">{{ messageDocuments }}</div>
     }
     @if (erreurDocument) {
       <div class="message-erreur" role="alert">{{ erreurDocument }}</div>
+    }
+    @if (avertissementDocuments) {
+      <div class="documents-avertissement" role="status">{{ avertissementDocuments }}</div>
     }
 
     @if (documentsChargement) {
@@ -203,17 +222,18 @@
         Réessayer
       </button>
     } @else {
-      @if (nombrePieces === 0) {
-        <app-etat-vide
-          titre="Aucune pièce déposée"
-          description="Ajoutez votre carte d’identité, votre carte grise, votre carte rose ou votre modèle N°1. Formats PDF, JPEG ou PNG, 5 Mo maximum."
-          icone="bi-folder2-open" />
-      }
-
-      <div class="documents-grille">
+      <p class="documents-formats">Formats acceptés : PDF, JPEG ou PNG · 5 Mo maximum par pièce.</p>
+      <div class="documents-groupe">
+        <h3 class="documents-groupe-titre"><i class="bi bi-person-vcard" aria-hidden="true"></i> Identité</h3>
+        <p>La photo de CIN est facultative si votre numéro de CIN est enregistré.</p>
+        <div class="documents-grille documents-grille-identite">
         @for (element of piecesParType; track element.type.valeur) {
+          @if (element.type.valeur === 'CIN') {
           <article class="document-carte"
-                   [class.document-carte-verrouillee]="element.document?.verrouille">
+                   [class.document-carte-verrouillee]="element.document?.verrouille"
+                   [class.document-carte-obligatoire]="classeType(element.type.valeur) === 'obligatoire'"
+                   [class.document-carte-attention]="classeType(element.type.valeur) === 'attention'"
+                   [class.document-carte-fournie]="classeType(element.type.valeur) === 'fournie'">
             <div class="document-entete">
               <span class="document-icone" aria-hidden="true"><i class="bi {{ element.type.icone }}"></i></span>
               <div>
@@ -221,6 +241,12 @@
                 <p class="document-description">{{ element.type.description }}</p>
               </div>
             </div>
+            <span class="document-obligation" [class.document-obligation-attention]="classeType(element.type.valeur) === 'attention'"
+                  [class.document-obligation-obligatoire]="classeType(element.type.valeur) === 'obligatoire'"
+                  [class.document-obligation-fournie]="classeType(element.type.valeur) === 'fournie'">
+              {{ badgeType(element.type.valeur) }}
+            </span>
+            <p class="document-aide">{{ aideType(element.type.valeur) }}</p>
 
             @if (element.document; as doc) {
               <div class="document-details">
@@ -256,12 +282,17 @@
                           (click)="ouvrirSelecteur(element.type.valeur)">
                     <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Remplacer
                   </button>
-                  <button type="button" class="document-supprimer" [disabled]="documentEnCours"
-                          (click)="demanderSuppression(doc)">
-                    <i class="bi bi-trash3" aria-hidden="true"></i> Supprimer
-                  </button>
+                  @if (!suppressionCinBloquee(doc)) {
+                    <button type="button" class="document-supprimer" [disabled]="documentEnCours"
+                            (click)="demanderSuppression(doc)">
+                      <i class="bi bi-trash3" aria-hidden="true"></i> Supprimer
+                    </button>
+                  }
                 }
               </div>
+              @if (suppressionCinBloquee(doc) && !doc.verrouille) {
+                <small class="document-verrou">La CIN ne peut pas être supprimée sans numéro enregistré. Vous pouvez la remplacer.</small>
+              }
 
               @if (typeOuvert === element.type.valeur && !doc.verrouille) {
                 <div class="document-envoi">
@@ -277,9 +308,10 @@
             } @else {
               <p class="document-absente"><i class="bi bi-dash-circle" aria-hidden="true"></i> Non fournie</p>
               <div class="document-actions">
-                <button type="button" class="btn-signal document-ajouter" [disabled]="documentEnCours"
+                <button type="button" class="document-ajouter" [class.btn-signal]="classeType(element.type.valeur) === 'obligatoire'"
+                        [class.btn-contour-sombre]="classeType(element.type.valeur) !== 'obligatoire'" [disabled]="documentEnCours"
                         (click)="ouvrirSelecteur(element.type.valeur)">
-                  <i class="bi bi-plus-lg" aria-hidden="true"></i> Ajouter la pièce
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ classeType(element.type.valeur) === 'obligatoire' ? 'Ajouter la pièce obligatoire' : 'Ajouter' }}
                 </button>
               </div>
 
@@ -296,7 +328,94 @@
               }
             }
           </article>
+          }
         }
+        </div>
+      </div>
+
+      <div class="documents-groupe">
+        <h3 class="documents-groupe-titre"><i class="bi bi-car-front" aria-hidden="true"></i> Véhicule</h3>
+        <p>Ces pièces sont facultatives. Si vous déposez une carte rose, complétez-la par une carte grise ou un modèle N°1. Vous pouvez fournir plusieurs pièces.</p>
+        <div class="documents-grille">
+        @for (element of piecesParType; track element.type.valeur) {
+          @if (element.type.valeur !== 'CIN') {
+          <article class="document-carte"
+                   [class.document-carte-verrouillee]="element.document?.verrouille"
+                   [class.document-carte-attention]="classeType(element.type.valeur) === 'attention'"
+                   [class.document-carte-fournie]="classeType(element.type.valeur) === 'fournie'">
+            <div class="document-entete">
+              <span class="document-icone" aria-hidden="true"><i class="bi {{ element.type.icone }}"></i></span>
+              <div>
+                <h3 class="document-titre">{{ element.type.libelle }}</h3>
+                <p class="document-description">{{ element.type.description }}</p>
+              </div>
+            </div>
+            <span class="document-obligation" [class.document-obligation-attention]="classeType(element.type.valeur) === 'attention'"
+                  [class.document-obligation-fournie]="classeType(element.type.valeur) === 'fournie'">
+              {{ badgeType(element.type.valeur) }}
+            </span>
+            <p class="document-aide">{{ aideType(element.type.valeur) }}</p>
+
+            @if (element.document; as doc) {
+              <div class="document-details">
+                <span [class]="'document-statut ' + statutClasse(doc)">
+                  <i class="bi bi-circle-fill" aria-hidden="true"></i>{{ statutLibelle(doc) }}
+                </span>
+                <small>{{ (doc.formatFichier || '').toUpperCase() }}
+                  @if (tailleDocument(doc)) { · {{ tailleDocument(doc) }} }
+                  · {{ dateDocument(doc) }}
+                </small>
+              </div>
+              @if (doc.statutDocuments === 'REJETE' && doc.motifRejet) {
+                <p class="document-motif" role="status"><strong>Motif du rejet :</strong> {{ doc.motifRejet }}</p>
+              }
+              @if (doc.verrouille) {
+                <p class="document-verrou">Dossier en cours d’instruction : remplacez cette pièce depuis le lien de correction reçu par e-mail.</p>
+              }
+              <div class="document-actions">
+                <button type="button" class="btn-contour-sombre" (click)="voirDocument(doc)">
+                  <i class="bi bi-eye" aria-hidden="true"></i> Aperçu
+                </button>
+                @if (!doc.verrouille) {
+                  <button type="button" class="btn-contour-sombre" [disabled]="documentEnCours"
+                          (click)="ouvrirSelecteur(element.type.valeur)">
+                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Remplacer
+                  </button>
+                  <button type="button" class="document-supprimer" [disabled]="documentEnCours"
+                          (click)="demanderSuppression(doc)">
+                    <i class="bi bi-trash3" aria-hidden="true"></i> Supprimer
+                  </button>
+                }
+              </div>
+              @if (typeOuvert === element.type.valeur && !doc.verrouille) {
+                <div class="document-envoi">
+                  <label [for]="'fichier-' + element.type.valeur">Nouveau fichier (PDF, JPEG ou PNG, 5 Mo max)</label>
+                  <input type="file" [id]="'fichier-' + element.type.valeur" accept=".pdf,.jpg,.jpeg,.png"
+                         [disabled]="documentEnCours" (change)="choisirFichier(element.type.valeur, $event)" />
+                  @if (documentEnCours) { <small role="status">Envoi en cours…</small> }
+                </div>
+              }
+            } @else {
+              <p class="document-absente"><i class="bi bi-dash-circle" aria-hidden="true"></i> Non fournie</p>
+              <div class="document-actions">
+                <button type="button" class="btn-contour-sombre document-ajouter" [disabled]="documentEnCours"
+                        (click)="ouvrirSelecteur(element.type.valeur)">
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i> Ajouter
+                </button>
+              </div>
+              @if (typeOuvert === element.type.valeur) {
+                <div class="document-envoi">
+                  <label [for]="'fichier-' + element.type.valeur">Fichier à ajouter (PDF, JPEG ou PNG, 5 Mo max)</label>
+                  <input type="file" [id]="'fichier-' + element.type.valeur" accept=".pdf,.jpg,.jpeg,.png"
+                         [disabled]="documentEnCours" (change)="choisirFichier(element.type.valeur, $event)" />
+                  @if (documentEnCours) { <small role="status">Envoi en cours…</small> }
+                </div>
+              }
+            }
+          </article>
+          }
+        }
+        </div>
       </div>
     }
   </section>
@@ -311,6 +430,9 @@
       La pièce « <strong>{{ libelleType(documentASupprimer.typeDocument) }}</strong> » sera
       définitivement supprimée. Vous pourrez la déposer à nouveau depuis cette page.
     </p>
+    @if (suppressionAvecAvertissement(documentASupprimer)) {
+      <p class="documents-avertissement">Sans cette pièce, votre carte rose restera seule. Vous devrez ajouter une carte grise ou un modèle N°1.</p>
+    }
     <div class="document-actions document-actions-modale">
       <button type="button" class="btn-zone" [disabled]="documentEnCours" (click)="confirmerSuppressionDocument()">
         {{ documentEnCours ? 'Suppression…' : 'Oui, supprimer' }}

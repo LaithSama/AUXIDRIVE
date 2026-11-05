@@ -23,7 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import mg.auxidrive.api.model.Assure;
+import mg.auxidrive.api.model.AssureIdentifiantsLegaux;
 import mg.auxidrive.api.model.CompteClient;
+import mg.auxidrive.api.repository.AssureIdentifiantsLegauxRepository;
 import mg.auxidrive.api.repository.CompteClientRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +36,8 @@ class ProfilServiceTest {
     @Mock
     private CompteClientRepository compteClientRepository;
     @Mock
+    private AssureIdentifiantsLegauxRepository identifiantsRepository;
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     private ProfilService service;
@@ -42,7 +46,7 @@ class ProfilServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ProfilService(compteClientRepository, passwordEncoder);
+        service = new ProfilService(compteClientRepository, identifiantsRepository, passwordEncoder);
 
         assure = new Assure();
         assure.setIdAssure(7L);
@@ -59,6 +63,7 @@ class ProfilServiceTest {
 
         // lenient : le test « compte introuvable » n'utilise pas ce stub
         lenient().when(compteClientRepository.findByEmail(EMAIL)).thenReturn(Optional.of(compte));
+        lenient().when(identifiantsRepository.findByAssure_IdAssure(7L)).thenReturn(Optional.empty());
     }
 
     private Map<String, Object> corpsValide() {
@@ -86,6 +91,22 @@ class ProfilServiceTest {
         assertThat(compteReponse.get("dateSuppressionPlanifiee")).isNull();
         assertThat(assureReponse.get("nomAssure")).isEqualTo("Rakoto");
         assertThat(assureReponse.get("numerosAssure")).isNull();
+        assertThat(assureReponse.get("cinRenseigne")).isEqualTo(false);
+        assertThat(assureReponse.get("cinMasque")).isNull();
+    }
+
+    @Test
+    void profilMasqueLeNumeroCin() {
+        AssureIdentifiantsLegaux identifiants = new AssureIdentifiantsLegaux();
+        identifiants.setCin("101234567890");
+        when(identifiantsRepository.findByAssure_IdAssure(7L)).thenReturn(Optional.of(identifiants));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> donnees = (Map<String, Object>) service.profil(EMAIL).get("assure");
+
+        assertThat(donnees.get("cinRenseigne")).isEqualTo(true);
+        assertThat(donnees.get("cinMasque")).isEqualTo("•••• 7890");
+        assertThat(donnees.values()).doesNotContain("101234567890");
     }
 
     @Test
