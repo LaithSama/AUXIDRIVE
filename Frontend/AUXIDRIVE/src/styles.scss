@@ -6,3 +6,11 @@
 
 /* Défilement fluide vers les ancres (navbar accueil) */
 html { scroll-behavior: smooth; }
+
+/* Sur grand écran, les conteneurs de page ne sont plus plafonnés par Bootstrap. */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 100%;
+    padding-inline: clamp(1.5rem, 2vw, 2.5rem);
+  }
+}

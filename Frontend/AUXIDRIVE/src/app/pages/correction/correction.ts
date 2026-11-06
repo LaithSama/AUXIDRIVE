@@ -10,7 +10,7 @@ interface PieceCorrection { type: string; motif: string; fichier?: File }
   imports: [RouterLink],
   templateUrl: './correction.html',
   styles: [`
-    .correction-page { max-width: 680px; margin: 3rem auto; padding: 1.5rem; }
+    .correction-page { width: calc(100% - 2rem); max-width: 64rem; margin: 3rem auto; padding: 1.5rem; }
     .correction-piece { margin: 1rem 0; padding: 1.2rem; border: 1px solid #d5dcd9; border-radius: 12px; }
     .correction-piece label { display: block; font-weight: 700; margin-bottom: .6rem; }
     .correction-piece input { display: block; max-width: 100%; }
