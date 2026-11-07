@@ -61,6 +61,14 @@ public class Contrat {
     @Column(name = "date_notif_echeance")
     private LocalDate dateNotifEcheance;
 
+    /** Choix explicite du client ; les anciens contrats sans valeur ne sont pas reconduits. */
+    @Column(name = "renouvellement_automatique", nullable = false, columnDefinition = "boolean default false")
+    private boolean renouvellementAutomatique;
+
+    /** Durée demandée pour la prochaine reconduction seulement ; null = durée actuelle. */
+    @Column(name = "duree_prochain_renouvellement_mois")
+    private Integer dureeProchainRenouvellementMois;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "statut_contrat", length = 20)
     private StatutContrat statutContrat;
@@ -205,6 +213,22 @@ public class Contrat {
 
     public void setDateNotifEcheance(LocalDate dateNotifEcheance) {
         this.dateNotifEcheance = dateNotifEcheance;
+    }
+
+    public boolean isRenouvellementAutomatique() {
+        return renouvellementAutomatique;
+    }
+
+    public void setRenouvellementAutomatique(boolean renouvellementAutomatique) {
+        this.renouvellementAutomatique = renouvellementAutomatique;
+    }
+
+    public Integer getDureeProchainRenouvellementMois() {
+        return dureeProchainRenouvellementMois;
+    }
+
+    public void setDureeProchainRenouvellementMois(Integer dureeProchainRenouvellementMois) {
+        this.dureeProchainRenouvellementMois = dureeProchainRenouvellementMois;
     }
 
     public StatutContrat getStatutContrat() {

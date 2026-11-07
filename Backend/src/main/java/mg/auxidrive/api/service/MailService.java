@@ -29,7 +29,7 @@ public class MailService {
     public record DonneesEcheance(String destinataire,
                                   String civilite, String nom, String prenom,
                                   String numPolice, LocalDate dateEffet, LocalDate dateExpiration,
-                                  Double primeTtc, String vehicules) {
+                                   Double primeTtc, String vehicules, boolean renouvellementAutomatique) {
     }
 
     /** Données du mail de confirmation de renouvellement, déjà extraites. */
@@ -168,9 +168,9 @@ public class MailService {
                 + "- Période : du " + DATE.format(d.dateEffet()) + " au " + DATE.format(d.dateExpiration()) + "\n"
                 + "- Prime TTC : " + montant(d.primeTtc()) + "\n"
                 + "- Véhicule(s) : " + d.vehicules() + "\n\n"
-                + "Pensez à organiser le renouvellement de votre contrat. Si votre contrat bénéficie du\n"
-                + "renouvellement automatique, il sera prolongé pour la période suivante sans action de\n"
-                + "votre part et vous recevrez une confirmation par e-mail.\n\n"
+                + (d.renouvellementAutomatique()
+                        ? "Le renouvellement automatique est activé : votre contrat sera prolongé à l'échéance sans action de votre part.\n\n"
+                        : "Le renouvellement automatique est désactivé : votre contrat ne sera pas prolongé à l'échéance.\n\n")
                 + "Cordialement,\nAUXIASSUR";
         envoyer(d.destinataire(), "AUXIASSUR - Votre contrat n° " + d.numPolice() + " arrive à échéance", corps);
     }

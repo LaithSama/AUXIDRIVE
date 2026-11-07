@@ -35,7 +35,10 @@ export class DashboardContrats implements OnInit {
 
   chargement = true;
   erreur = '';
+  erreurChoix = '';
   messageSucces = '';
+  choixEnCours: number | null = null;
+  dureesRenouvellement: Record<number, number | null> = {};
 
   // formulaire de souscription
   formIdOffre: number | null = null;
@@ -58,6 +61,7 @@ export class DashboardContrats implements OnInit {
     }).subscribe({
       next: ({ contrats, offres, vehicules }) => {
         this.contrats = contrats;
+        this.initialiserDurees(contrats);
         this.offres = offres;
         this.vehicules = vehicules;
         this.chargement = false;
@@ -157,6 +161,60 @@ export class DashboardContrats implements OnInit {
     });
   }
 
+  peutChoisirRenouvellement(contrat: Contrat): boolean {
+    const maintenant = new Date();
+    const aujourdHui = `${maintenant.getFullYear()}-${String(maintenant.getMonth() + 1).padStart(2, '0')}-${String(maintenant.getDate()).padStart(2, '0')}`;
+    return contrat.statutContrat === 'VALIDE'
+      && !!contrat.dateExpiration
+      && contrat.dateExpiration > aujourdHui;
+  }
+
+  choisirRenouvellement(contrat: Contrat, caseACocher: HTMLInputElement): void {
+    if (!this.peutChoisirRenouvellement(contrat) || this.choixEnCours !== null) return;
+    const actif = caseACocher.checked;
+    this.enregistrerRenouvellement(contrat, actif, null, caseACocher);
+  }
+
+  enregistrerDureeRenouvellement(contrat: Contrat): void {
+    const duree = this.dureesRenouvellement[contrat.idContrat];
+    if (!contrat.renouvellementAutomatique || !this.peutChoisirRenouvellement(contrat)
+        || this.choixEnCours !== null || !Number.isInteger(duree) || duree == null || duree < 1) {
+      this.erreurChoix = 'Saisissez une durée valide en mois.';
+      return;
+    }
+    this.enregistrerRenouvellement(contrat, true, duree);
+  }
+
+  private enregistrerRenouvellement(
+    contrat: Contrat, actif: boolean, dureeMois: number | null, caseACocher?: HTMLInputElement,
+  ): void {
+    this.choixEnCours = contrat.idContrat;
+    this.erreurChoix = '';
+    this.messageSucces = '';
+    this.contratService.choisirRenouvellementAutomatique(contrat.idContrat, actif, dureeMois).subscribe({
+      next: (misAJour) => {
+        this.contrats = this.contrats.map((c) => c.idContrat === misAJour.idContrat ? misAJour : c);
+        this.dureesRenouvellement[contrat.idContrat] = misAJour.dureeProchainRenouvellementMois ?? misAJour.dureeMois;
+        this.messageSucces = dureeMois !== null
+          ? `Durée de ${dureeMois} mois enregistrée pour le prochain renouvellement.`
+          : actif ? 'Renouvellement automatique activé pour la prochaine échéance.'
+          : 'Renouvellement automatique désactivé pour la prochaine échéance.';
+        this.choixEnCours = null;
+      },
+      error: (erreur) => {
+        if (caseACocher) caseACocher.checked = contrat.renouvellementAutomatique;
+        this.erreurChoix = erreur?.error?.message || 'Impossible de modifier le renouvellement de ce contrat.';
+        this.choixEnCours = null;
+      },
+    });
+  }
+
+  private initialiserDurees(contrats: Contrat[]): void {
+    for (const contrat of contrats) {
+      this.dureesRenouvellement[contrat.idContrat] = contrat.dureeProchainRenouvellementMois ?? contrat.dureeMois;
+    }
+  }
+
   // ---------- détail de la prime ----------
 
   /** Prime nette du contrat : base taxable de la facture moins les accessoires. */
@@ -202,7 +260,10 @@ export class DashboardContrats implements OnInit {
 
   private recharger(): void {
     this.contratService.mesContrats().subscribe({
-      next: (contrats) => (this.contrats = contrats),
+      next: (contrats) => {
+        this.contrats = contrats;
+        this.initialiserDurees(contrats);
+      },
     });
   }
 }

@@ -555,11 +555,10 @@ Des améliorations et vérifications supplémentaires restent nécessaires avant
 
 ### 4. Renouvellement
 
-1. Le contrat approche de son échéance.
-2. Le client consulte les informations de son contrat.
-3. Il effectue une demande de renouvellement.
-4. L'agent vérifie et traite la demande.
-5. Les informations du contrat sont actualisées selon le traitement effectué.
+1. Dans « Mes contrats », le client active ou désactive le renouvellement automatique de chacun de ses contrats validés avant l'échéance. Il peut choisir une nouvelle durée (au moins le minimum de l'offre) pour la prochaine reconduction, sans changer la période en cours. Désactiver l'option efface ce choix. Par défaut, elle est désactivée, y compris pour les anciens contrats.
+2. Le client reçoit un rappel lorsque le contrat arrive à échéance.
+3. À l'échéance, seuls les contrats pour lesquels il a activé l'option sont reconduits automatiquement, sans validation par un agent.
+4. Le contrat conserve son numéro de police ; la durée choisie est appliquée une fois puis effacée, ses dates et sa prime sont actualisées, une facture est émise et une confirmation est envoyée par e-mail. Le calcul de prime existant reste inchangé et ne dépend pas de la durée.
 
 ---
 
@@ -576,7 +575,7 @@ Les principaux parcours fonctionnels à vérifier comprennent :
 | Contrats | Consultation et gestion |
 | Sinistres | Déclaration et traitement |
 | Facturation | Consultation des factures |
-| Renouvellement | Traitement des demandes |
+| Renouvellement | Choix du client et reconduction automatique à l'échéance |
 | Notifications | Envoi et réception des emails |
 | Sécurité | Vérification des autorisations |
 

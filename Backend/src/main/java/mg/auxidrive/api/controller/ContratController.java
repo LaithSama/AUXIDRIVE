@@ -69,6 +69,21 @@ public class ContratController {
         return contratService.trouver(id);
     }
 
+    @PostMapping("/{id}/renouvellement-automatique")
+    @PreAuthorize("hasRole('CLIENT')")
+    public Contrat choisirRenouvellementAutomatique(@PathVariable Long id,
+                                                     @RequestBody ChoixRenouvellement choix,
+                                                     Authentication authentication) {
+        if (choix == null || choix.actif() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Le choix de renouvellement est obligatoire");
+        }
+        return contratService.choisirRenouvellementAutomatique(
+                id, idAssure(authentication), choix.actif(), choix.dureeMois());
+    }
+
+    public record ChoixRenouvellement(Boolean actif, Integer dureeMois) {
+    }
+
     /**
      * Calcule une prime sans rien enregistrer.
      * Le client l'appelle pour afficher le montant TTC avant de confirmer sa demande.

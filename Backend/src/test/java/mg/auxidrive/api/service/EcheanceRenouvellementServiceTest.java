@@ -57,6 +57,7 @@ class EcheanceRenouvellementServiceTest {
         c.setNumPolice("2600000001");
         c.setAssure(assureAvecMail("hery@example.mg"));
         c.setStatutContrat(StatutContrat.VALIDE);
+        c.setRenouvellementAutomatique(true);
         c.setDateEffet(effet);
         c.setDateExpiration(expiration);
         c.setDateNotifEcheance(notif);
@@ -204,5 +205,19 @@ class EcheanceRenouvellementServiceTest {
 
         assertThat(service.renouvelerContratsEchus()).isZero();
         verify(contratService, never()).renouveler(any());
+    }
+
+    @Test
+    @DisplayName("Un contrat sans consentement n'est jamais renouvelé automatiquement")
+    void renouvellementDesactive() {
+        LocalDate today = LocalDate.now();
+        Contrat c = contratValide(today.minusMonths(12), today, null);
+        c.setRenouvellementAutomatique(false);
+        when(contratRepository.findByStatutContratAndDateExpirationBetween(
+                StatutContrat.VALIDE, today.minusDays(7), today)).thenReturn(List.of(c));
+
+        assertThat(service.renouvelerContratsEchus()).isZero();
+        verify(contratService, never()).renouveler(any());
+        verify(mailService, never()).envoyerRenouvellement(any());
     }
 }

@@ -72,7 +72,7 @@ public class EcheanceRenouvellementService {
                 mailService.envoyerEcheanceProche(new DonneesEcheance(
                         assure.getMail(), assure.getCivilite(), assure.getNomAssure(), assure.getPrenomAssure(),
                         contrat.getNumPolice(), contrat.getDateEffet(), contrat.getDateExpiration(),
-                        contrat.getPrimeTtcCourante(), vehicules(contrat)));
+                        contrat.getPrimeTtcCourante(), vehicules(contrat), contrat.isRenouvellementAutomatique()));
                 envoyes++;
             }
             contrat.setDateNotifEcheance(today);
@@ -88,6 +88,9 @@ public class EcheanceRenouvellementService {
                 StatutContrat.VALIDE, today.minusDays(FENETRE_RATTRAPAGE_JOURS), today);
         int renouvelles = 0;
         for (Contrat contrat : contrats) {
+            if (!contrat.isRenouvellementAutomatique()) {
+                continue;
+            }
             try {
                 contratService.renouveler(contrat);
             } catch (RuntimeException e) {

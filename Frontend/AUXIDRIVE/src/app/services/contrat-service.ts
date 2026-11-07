@@ -16,6 +16,10 @@ export class ContratService {
     return this.http.get<Contrat[]>(`${this.apiUrl}/compte`);
   }
 
+  choisirRenouvellementAutomatique(id: number, actif: boolean, dureeMois: number | null = null): Observable<Contrat> {
+    return this.http.post<Contrat>(`${this.apiUrl}/${id}/renouvellement-automatique`, { actif, dureeMois });
+  }
+
   souscrire(demande: DemandeSouscription): Observable<ResultatSouscription> {
     return this.http.post<ResultatSouscription>(this.apiUrl, demande);
   }

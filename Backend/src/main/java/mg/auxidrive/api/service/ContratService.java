@@ -126,6 +126,30 @@ public class ContratService {
         return contrat;
     }
 
+    /** Le titulaire décide seul de la reconduction de son contrat à la prochaine échéance. */
+    @Transactional
+    public Contrat choisirRenouvellementAutomatique(Long id, Long idAssure, boolean actif, Integer dureeMois) {
+        Contrat contrat = trouverPourAssure(id, idAssure);
+        if (contrat.getStatutContrat() != StatutContrat.VALIDE
+                || contrat.getDateExpiration() == null
+                || !contrat.getDateExpiration().isAfter(LocalDate.now())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Le choix de renouvellement est réservé aux contrats validés avant leur échéance");
+        }
+        if (actif && dureeMois != null) {
+            Integer minimum = contrat.getOffre() == null || contrat.getOffre().getDureeMinMois() == null
+                    ? DUREE_DEFAUT_MOIS : contrat.getOffre().getDureeMinMois();
+            if (dureeMois < 1 || dureeMois < minimum) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "La prochaine durée doit être d'au moins " + minimum + " mois");
+            }
+        }
+        contrat.setRenouvellementAutomatique(actif);
+        // Annuler la reconduction efface aussi une éventuelle durée en attente.
+        contrat.setDureeProchainRenouvellementMois(actif ? dureeMois : null);
+        return contratRepository.save(contrat);
+    }
+
     @Transactional(readOnly = true)
     public List<ContratAuto> vehiculesDuContrat(Long idContrat) {
         trouver(idContrat);
@@ -255,12 +279,18 @@ public class ContratService {
         if (contrat.getStatutContrat() != StatutContrat.VALIDE) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Seul un contrat validé peut être renouvelé");
         }
+        if (!contrat.isRenouvellementAutomatique()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Renouvellement automatique désactivé pour ce contrat");
+        }
         Detail detail = calculerPourContrat(contrat, null);
 
-        Integer dureeMois = dureeMoisDuContrat(contrat);
+        Integer dureeMois = contrat.getDureeProchainRenouvellementMois() == null
+                ? dureeMoisDuContrat(contrat) : contrat.getDureeProchainRenouvellementMois();
         LocalDate ancienneExpiration = contrat.getDateExpiration();
         contrat.setDateEffet(ancienneExpiration == null ? LocalDate.now() : ancienneExpiration);
         contrat.setDateExpiration(contrat.getDateEffet().plusMonths(dureeMois));
+        contrat.setDureeMois(dureeMois);
+        contrat.setDureeProchainRenouvellementMois(null);
         contrat.setPrimeNetteCourante(detail.base() - detail.accessoires());
         contrat.setAccessoires(detail.accessoires());
         contrat.setPrimeTtcCourante(detail.ttc());

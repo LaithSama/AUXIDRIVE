@@ -220,8 +220,8 @@ public class FacturePdfGenerator {
         if (contrat.getDateExpiration() != null) {
             ligne(table, "Date d'expiration", contrat.getDateExpiration().format(DATE_FR));
         }
-        ligne(table, "Mode de renouvellement", contrat.getModeRenouvellement() == null
-                ? "Non précisé" : contrat.getModeRenouvellement().getModeDeRnvltLib());
+        ligne(table, "Mode de renouvellement", contrat.isRenouvellementAutomatique()
+                ? "Renouvellement automatique" : "Renouvellement automatique désactivé");
         document.add(table);
     }
 

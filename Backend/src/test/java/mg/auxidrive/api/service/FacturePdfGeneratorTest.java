@@ -24,7 +24,6 @@ import mg.auxidrive.api.model.Assure;
 import mg.auxidrive.api.model.Contrat;
 import mg.auxidrive.api.model.ContratAuto;
 import mg.auxidrive.api.model.Facture;
-import mg.auxidrive.api.model.ModeRenouvellement;
 import mg.auxidrive.api.model.TypeFacture;
 import mg.auxidrive.api.model.Vehicule;
 
@@ -73,17 +72,13 @@ class FacturePdfGeneratorTest {
         assure.setAdresse("Lot II M 12 Antananarivo");
         assure.setContact("0320524221");
 
-        ModeRenouvellement mode = new ModeRenouvellement();
-        mode.setModeDeRnvlt("AUTO");
-        mode.setModeDeRnvltLib("Renouvellement automatique");
-
         Contrat contrat = new Contrat();
         contrat.setNumPolice("2600000001");
         contrat.setAssure(assure);
         contrat.setDateSouscription(LocalDate.of(2026, 10, 1));
         contrat.setDateEffet(LocalDate.of(2026, 10, 15));
         contrat.setDateExpiration(LocalDate.of(2027, 10, 14));
-        contrat.setModeRenouvellement(mode);
+        contrat.setRenouvellementAutomatique(true);
 
         Facture facture = new Facture();
         facture.setNumFacture("FAC-2026-" + String.format("%04d", SEQUENCE.incrementAndGet()));

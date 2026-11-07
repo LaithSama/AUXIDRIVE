@@ -9,7 +9,9 @@ export interface Contrat {
   dateSouscription: string | null;
   dateEffet: string | null;
   dateExpiration: string | null;
+  renouvellementAutomatique: boolean;
   dureeMois: number | null;
+  dureeProchainRenouvellementMois: number | null;
   statutContrat: StatutContrat;
   coefficientBonusMalus: number | null;
   primeNetteCourante: number | null;

@@ -1,7 +1,7 @@
 <div class="entete-contenu">
   <div>
     <h1 class="titre-section">Mes contrats</h1>
-    <p class="chapeau mb-0">Suivez vos contrats et souscrivez une nouvelle offre.</p>
+    <p class="chapeau mb-0">Suivez vos contrats, choisissez leur renouvellement et souscrivez une nouvelle offre.</p>
   </div>
 </div>
 
@@ -12,11 +12,15 @@
 @if (erreur) {
   <div class="message-erreur">{{ erreur }}</div>
 }
+@if (erreurChoix) {
+  <div class="message-erreur">{{ erreurChoix }}</div>
+}
 @if (messageSucces) {
   <div class="message-ok">{{ messageSucces }}</div>
 }
 
 @if (!chargement && !erreur) {
+  <p class="aide">Le renouvellement automatique est désactivé par défaut. Avant l'échéance, vous pouvez l'activer, choisir la durée de la prochaine période ou l'annuler à tout moment. La période en cours ne change pas.</p>
   <!-- Liste des contrats -->
   <div class="carte p-0 overflow-hidden contrats-liste d-none d-lg-block">
     <div class="table-responsive">
@@ -28,6 +32,7 @@
             <th>Garanties</th>
             <th>Effet</th>
             <th>Expiration</th>
+            <th>Renouvellement automatique</th>
             <th class="text-end">Détail</th>
           </tr>
         </thead>
@@ -59,6 +64,30 @@
               </td>
               <td>{{ c.dateEffet | dateFr }}</td>
               <td>{{ c.dateExpiration | dateFr }}</td>
+              <td>
+                @if (c.statutContrat === 'VALIDE') {
+                  <div class="contrat-renouvellement-options" (click)="$event.stopPropagation()">
+                    <label class="contrat-renouvellement">
+                      <input type="checkbox" [checked]="c.renouvellementAutomatique"
+                             [disabled]="!peutChoisirRenouvellement(c) || choixEnCours !== null"
+                             (change)="choisirRenouvellement(c, $any($event.target))" />
+                      <span>{{ c.renouvellementAutomatique ? 'Activé' : 'Désactivé' }}</span>
+                    </label>
+                    @if (c.renouvellementAutomatique) {
+                      <span class="aide">Durée actuelle : {{ c.dureeMois }} mois</span>
+                      <label class="contrat-duree-label" [for]="'duree-renouvellement-' + c.idContrat">Prochaine durée (mois)</label>
+                      <input class="contrat-duree-input" type="number" min="1" step="1"
+                             [id]="'duree-renouvellement-' + c.idContrat"
+                             [ngModel]="dureesRenouvellement[c.idContrat]"
+                             (ngModelChange)="dureesRenouvellement[c.idContrat] = $event"
+                             [disabled]="!peutChoisirRenouvellement(c) || choixEnCours !== null" />
+                      <button type="button" class="btn-contour-sombre contrat-detail-bouton"
+                              [disabled]="!peutChoisirRenouvellement(c) || choixEnCours !== null"
+                              (click)="enregistrerDureeRenouvellement(c)">Enregistrer la durée</button>
+                    }
+                  </div>
+                } @else { — }
+              </td>
               <td class="text-end">
                 @if (c.statutContrat === 'VALIDE') {
                   <button type="button" class="btn-contour-sombre contrat-detail-bouton"
@@ -70,7 +99,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="contrats-vide">
+              <td colspan="7" class="contrats-vide">
                 <app-etat-vide titre="Aucun contrat pour le moment." description="Découvrez les offres disponibles pour assurer votre véhicule."
                   icone="bi-file-earmark-plus" action="Voir les offres" lien="#contrats-souscription" />
               </td>
@@ -98,6 +127,30 @@
         <dl class="liste-mobile-details">
           <div><dt>Effet</dt><dd>{{ c.dateEffet | dateFr }}</dd></div>
           <div><dt>Expiration</dt><dd>{{ c.dateExpiration | dateFr }}</dd></div>
+          @if (c.statutContrat === 'VALIDE') {
+            <div><dt>Renouvellement automatique</dt><dd>
+              <div class="contrat-renouvellement-options">
+                <label class="contrat-renouvellement">
+                  <input type="checkbox" [checked]="c.renouvellementAutomatique"
+                         [disabled]="!peutChoisirRenouvellement(c) || choixEnCours !== null"
+                         (change)="choisirRenouvellement(c, $any($event.target))" />
+                  <span>{{ c.renouvellementAutomatique ? 'Activé' : 'Désactivé' }}</span>
+                </label>
+                @if (c.renouvellementAutomatique) {
+                  <span class="aide">Durée actuelle : {{ c.dureeMois }} mois</span>
+                  <label class="contrat-duree-label" [for]="'duree-renouvellement-mobile-' + c.idContrat">Prochaine durée (mois)</label>
+                  <input class="contrat-duree-input" type="number" min="1" step="1"
+                         [id]="'duree-renouvellement-mobile-' + c.idContrat"
+                         [ngModel]="dureesRenouvellement[c.idContrat]"
+                         (ngModelChange)="dureesRenouvellement[c.idContrat] = $event"
+                         [disabled]="!peutChoisirRenouvellement(c) || choixEnCours !== null" />
+                  <button type="button" class="btn-contour-sombre contrat-detail-bouton"
+                          [disabled]="!peutChoisirRenouvellement(c) || choixEnCours !== null"
+                          (click)="enregistrerDureeRenouvellement(c)">Enregistrer la durée</button>
+                }
+              </div>
+            </dd></div>
+          }
           <div>
             <dt>Garanties</dt>
             <dd>

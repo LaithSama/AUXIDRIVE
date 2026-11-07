@@ -139,6 +139,7 @@ class ContratServiceTest {
         contrat.setIdContrat(1L);
         contrat.setNumPolice("2600000001");
         contrat.setStatutContrat(StatutContrat.VALIDE);
+        contrat.setRenouvellementAutomatique(true);
         contrat.setAssure(assure);
         contrat.setOffre(offre);
         contrat.setBranche(branche);
@@ -360,5 +361,101 @@ class ContratServiceTest {
                 .hasMessageContaining("renouvelé");
 
         verifyNoInteractions(contratAutoRepository, factureService, contratRepository);
+    }
+
+    @Test
+    void renouvelerRefuseSansChoixDuClient() {
+        Contrat contrat = contratValide();
+        contrat.setRenouvellementAutomatique(false);
+
+        assertThatThrownBy(() -> service.renouveler(contrat))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("désactivé");
+        verifyNoInteractions(contratAutoRepository, factureService, contratRepository);
+    }
+
+    @Test
+    void choixDuTitulaireEnregistreSansValidationAgent() {
+        Contrat contrat = contratValide();
+        contrat.setDateExpiration(LocalDate.now().plusDays(5));
+        contrat.getAssure().setIdAssure(42L);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        when(contratRepository.save(contrat)).thenReturn(contrat);
+
+        assertThat(service.choisirRenouvellementAutomatique(1L, 42L, false, null)
+                .isRenouvellementAutomatique()).isFalse();
+        verify(contratRepository).save(contrat);
+    }
+
+    @Test
+    void choixInterditSurLeContratDUnAutreClient() {
+        Contrat contrat = contratValide();
+        contrat.getAssure().setIdAssure(42L);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+
+        assertThatThrownBy(() -> service.choisirRenouvellementAutomatique(1L, 99L, true, 24))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Contrat introuvable");
+        verify(contratRepository, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    void dureeChoisieNeModifiePasLaPeriodeEnCours() {
+        Contrat contrat = contratValide();
+        contrat.setDureeMois(12);
+        contrat.setDateExpiration(LocalDate.now().plusDays(5));
+        contrat.getAssure().setIdAssure(42L);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        when(contratRepository.save(contrat)).thenReturn(contrat);
+
+        service.choisirRenouvellementAutomatique(1L, 42L, true, 24);
+
+        assertThat(contrat.getDureeMois()).isEqualTo(12);
+        assertThat(contrat.getDateExpiration()).isEqualTo(LocalDate.now().plusDays(5));
+        assertThat(contrat.getDureeProchainRenouvellementMois()).isEqualTo(24);
+    }
+
+    @Test
+    void annulerRenouvellementEffaceLaDureePrevue() {
+        Contrat contrat = contratValide();
+        contrat.setDateExpiration(LocalDate.now().plusDays(5));
+        contrat.setDureeProchainRenouvellementMois(24);
+        contrat.getAssure().setIdAssure(42L);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+
+        service.choisirRenouvellementAutomatique(1L, 42L, false, 36);
+
+        assertThat(contrat.isRenouvellementAutomatique()).isFalse();
+        assertThat(contrat.getDureeProchainRenouvellementMois()).isNull();
+    }
+
+    @Test
+    void dureeInferieureAuMinimumEstRefusee() {
+        Contrat contrat = contratValide();
+        contrat.setDateExpiration(LocalDate.now().plusDays(5));
+        contrat.getAssure().setIdAssure(42L);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+
+        assertThatThrownBy(() -> service.choisirRenouvellementAutomatique(1L, 42L, true, 6))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("12 mois");
+        verify(contratRepository, org.mockito.Mockito.never()).save(any());
+    }
+
+    @Test
+    void dureePrevueEstAppliqueeUneSeuleFoisAuRenouvellement() {
+        Contrat contrat = contratValide();
+        contrat.setDureeMois(12);
+        contrat.setDureeProchainRenouvellementMois(24);
+        stubsRecalcul(contrat);
+        when(contratRepository.save(contrat)).thenReturn(contrat);
+
+        service.renouveler(contrat);
+
+        assertThat(contrat.getDateExpiration()).isEqualTo(LocalDate.now().plusMonths(24));
+        assertThat(contrat.getDureeMois()).isEqualTo(24);
+        assertThat(contrat.getDureeProchainRenouvellementMois()).isNull();
+        assertThat(contrat.isRenouvellementAutomatique()).isTrue();
+        verify(factureService).emettreRenouvellement(eq(contrat), any(Detail.class));
     }
 }
