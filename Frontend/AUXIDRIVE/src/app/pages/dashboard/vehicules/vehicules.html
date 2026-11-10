@@ -130,11 +130,39 @@
 
     <!-- Liste des véhicules -->
     <div class="col-lg-7">
+      @if (vehicules.length || messageSuppression || erreursSuppression.length) {
+        <div class="veh-actions carte" aria-live="polite">
+          @if (messageSuppression) {
+            <div class="message-ok">{{ messageSuppression }}</div>
+          }
+          @for (message of erreursSuppression; track message) {
+            <div class="message-erreur">{{ message }}</div>
+          }
+          @if (vehicules.length) {
+            <p>Sélectionnez un ou plusieurs véhicules à supprimer. Un véhicule lié à un contrat ou une facture ne peut pas être supprimé.</p>
+            <button type="button" class="veh-btn-suppression" [disabled]="!selection.size || suppressionEnCours"
+                    (click)="confirmationSuppression = true">
+              Supprimer la sélection ({{ selection.size }})
+            </button>
+            @if (confirmationSuppression) {
+              <div class="veh-confirmation" role="alertdialog" aria-labelledby="veh-confirmation-titre">
+                <strong id="veh-confirmation-titre">Confirmer la suppression de {{ selection.size }} véhicule{{ selection.size > 1 ? 's' : '' }} ?</strong>
+                <p>Cette action est irréversible. Les véhicules liés à un contrat ou une facture seront conservés.</p>
+                <div class="veh-confirmation-boutons">
+                  <button type="button" class="btn-contour-sombre" (click)="confirmationSuppression = false">Annuler</button>
+                  <button type="button" class="btn-signal btn-primaire" (click)="supprimerSelection()">Confirmer la suppression</button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
       <div class="carte p-0 overflow-hidden veh-liste d-none d-lg-block">
         <div class="table-responsive">
           <table class="tableau">
             <thead>
               <tr>
+                <th scope="col">Choix</th>
                 <th>Immatriculation</th>
                 <th>Véhicule</th>
                 <th>Énergie</th>
@@ -144,6 +172,9 @@
             <tbody>
               @for (v of vehicules; track v.idVehicule) {
                 <tr>
+                  <td><input type="checkbox" [checked]="selection.has(v.idVehicule)" [disabled]="suppressionEnCours"
+                             [attr.aria-label]="'Sélectionner le véhicule ' + v.numImmatriculation"
+                             (change)="basculerSelection(v.idVehicule, $any($event.target).checked)" /></td>
                   <td class="veh-plaque">{{ v.numImmatriculation }}</td>
                   <td>
                     <strong>{{ v.marque }} {{ v.modele }}</strong>
@@ -154,7 +185,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="4" class="veh-vide">
+                  <td colspan="5" class="veh-vide">
                     @if (!erreur) {
                       <app-etat-vide titre="Aucun véhicule enregistré." description="Ajoutez votre premier véhicule pour pouvoir souscrire."
                         icone="bi-car-front" action="Ajouter un véhicule" lien="#veh-formulaire" />
@@ -170,6 +201,9 @@
         @for (v of vehicules; track v.idVehicule) {
           <article class="liste-mobile-carte">
             <div class="liste-mobile-entete">
+              <input type="checkbox" [checked]="selection.has(v.idVehicule)" [disabled]="suppressionEnCours"
+                     [attr.aria-label]="'Sélectionner le véhicule ' + v.numImmatriculation"
+                     (change)="basculerSelection(v.idVehicule, $any($event.target).checked)" />
               <div>
                 <h2 class="liste-mobile-titre">{{ v.marque }} {{ v.modele }}</h2>
                 <span class="veh-plaque">{{ v.numImmatriculation }}</span>

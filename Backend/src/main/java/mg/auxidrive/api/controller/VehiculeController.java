@@ -102,11 +102,12 @@ public class VehiculeController {
         return vehiculeService.modifier(id, donnees);
     }
 
-    /** Suppression réservée à l'agent et à l'administrateur. */
+    /** Un client ne peut supprimer que son véhicule ; tout lien à un contrat interdit la suppression. */
     @DeleteMapping("/{id}")
-    @PreAuthorize(ROLES_STAFF)
-    public Map<String, Object> supprimer(@PathVariable Long id) {
-        Vehicule vehicule = vehiculeService.supprimer(id);
+    public Map<String, Object> supprimer(@PathVariable Long id, Authentication authentication) {
+        Vehicule vehicule = estClient(authentication)
+                ? vehiculeService.supprimerPourAssure(id, idAssure(authentication))
+                : vehiculeService.supprimer(id);
         return Map.of("supprime", true, "idVehicule", vehicule.getIdVehicule());
     }
 

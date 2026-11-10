@@ -30,6 +30,61 @@
   box-shadow: 6px 6px 0 rgba(46, 52, 55, 0.07);
 }
 
+.veh-actions {
+  margin-bottom: 1rem;
+  padding: 1rem;
+
+  p { margin-bottom: 0.75rem; }
+  .message-ok, .message-erreur { margin-bottom: 0.75rem; }
+}
+
+.veh-btn-suppression {
+  background: var(--erreur);
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.75rem 1.4rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #93201a;
+    box-shadow: 0 8px 18px rgba(179, 38, 30, 0.35);
+    transform: translateY(-2px);
+  }
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .veh-btn-suppression {
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+}
+
+.veh-confirmation {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--nuit);
+
+  p { margin: 0.5rem 0; }
+}
+
+.veh-confirmation-boutons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.liste-mobile-entete { display: flex; gap: 0.75rem; }
+
 .veh-plaque {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700;

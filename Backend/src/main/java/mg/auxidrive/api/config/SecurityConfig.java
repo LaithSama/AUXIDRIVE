@@ -53,7 +53,7 @@ public class SecurityConfig {
                 // correspond gagne ; sans cela un client pourrait lister les véhicules d'un autre assuré.
                 .requestMatchers(HttpMethod.GET, "/api/vehicules").hasAnyRole("AGENT", "ADMIN")
                 .requestMatchers("/api/vehicules/assure/**").hasAnyRole("AGENT", "ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/vehicules/**").hasAnyRole("AGENT", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/vehicules/*").hasAnyRole("CLIENT", "AGENT", "ADMIN")
                 .requestMatchers("/api/vehicules/**").hasAnyRole("CLIENT", "AGENT", "ADMIN")
                 // contrats : le client souscrit et suit les siens, l'agent valide ou refuse.
                 // La validation et le refus engagent la compagnie, ils sont donc réservés au staff.

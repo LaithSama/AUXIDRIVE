@@ -14,5 +14,7 @@ public interface ContratAutoRepository extends JpaRepository<ContratAuto, Long> 
 
     List<ContratAuto> findByVehicule_IdVehicule(Long idVehicule);
 
+    boolean existsByVehicule_IdVehicule(Long idVehicule);
+
     boolean existsByContrat_IdContratAndVehicule_IdVehicule(Long idContrat, Long idVehicule);
 }

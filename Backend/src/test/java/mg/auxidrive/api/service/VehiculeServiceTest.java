@@ -3,6 +3,7 @@ package mg.auxidrive.api.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,6 +26,7 @@ import mg.auxidrive.api.model.AutoCodeTarif;
 import mg.auxidrive.api.model.Vehicule;
 import mg.auxidrive.api.repository.AssureRepository;
 import mg.auxidrive.api.repository.AutoCodeTarifRepository;
+import mg.auxidrive.api.repository.ContratAutoRepository;
 import mg.auxidrive.api.repository.VehiculeRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,12 +38,14 @@ class VehiculeServiceTest {
     private AssureRepository assureRepository;
     @Mock
     private AutoCodeTarifRepository codeTarifRepository;
+    @Mock
+    private ContratAutoRepository contratAutoRepository;
 
     private VehiculeService service;
 
     @BeforeEach
     void setUp() {
-        service = new VehiculeService(vehiculeRepository, assureRepository, codeTarifRepository);
+        service = new VehiculeService(vehiculeRepository, assureRepository, codeTarifRepository, contratAutoRepository);
     }
 
     private Assure assure(Long id) {
@@ -265,6 +270,54 @@ class VehiculeServiceTest {
         when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
 
         assertThat(service.trouverPourAssure(10L, 1L)).isSameAs(vehicule);
+    }
+
+    @Test
+    @DisplayName("Suppression client : un véhicule libre lui appartenant est supprimé")
+    void clientSupprimeSonVehiculeLibre() {
+        Vehicule vehicule = vehiculeEnBase();
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+
+        assertThat(service.supprimerPourAssure(10L, 1L)).isSameAs(vehicule);
+        verify(vehiculeRepository).delete(vehicule);
+    }
+
+    @Test
+    @DisplayName("Suppression client : un véhicule d'un autre assuré est introuvable")
+    void clientNeSupprimePasLeVehiculeDUnAutre() {
+        Vehicule vehicule = vehiculeEnBase();
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+
+        assertThatThrownBy(() -> service.supprimerPourAssure(10L, 2L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertStatut((ResponseStatusException) e, 404));
+        verify(vehiculeRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("Suppression : un véhicule lié à un contrat (et potentiellement facturé) est conservé")
+    void refuseSuppressionVehiculeLieAUnContrat() {
+        Vehicule vehicule = vehiculeEnBase();
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+        when(contratAutoRepository.existsByVehicule_IdVehicule(10L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.supprimerPourAssure(10L, 1L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertStatut((ResponseStatusException) e, 409));
+        verify(vehiculeRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("Suppression : une autre référence en base renvoie un conflit explicite")
+    void refuseSuppressionSiAutreReferenceExiste() {
+        Vehicule vehicule = vehiculeEnBase();
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+        doThrow(new DataIntegrityViolationException("Référence existante"))
+                .when(vehiculeRepository).flush();
+
+        assertThatThrownBy(() -> service.supprimerPourAssure(10L, 1L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertStatut((ResponseStatusException) e, 409));
     }
 
     @Test

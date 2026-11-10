@@ -19,6 +19,10 @@ export class VehiculeService {
     return this.http.post<Vehicule>(`${this.apiUrl}/compte`, vehicule);
   }
 
+  supprimer(id: number): Observable<{ supprime: boolean; idVehicule: number }> {
+    return this.http.delete<{ supprime: boolean; idVehicule: number }>(`${this.apiUrl}/${id}`);
+  }
+
   codesTarifaires(): Observable<CodeTarif[]> {
     return this.http.get<CodeTarif[]>(`${environment.apiUrl}/api/referentiels/codes-tarifaires`);
   }

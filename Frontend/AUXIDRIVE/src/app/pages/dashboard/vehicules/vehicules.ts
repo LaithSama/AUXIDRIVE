@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { VehiculeService } from '../../../services/vehicule-service';
 import { CodeTarif, Vehicule } from '../../../core/interfaces/vehicule';
 import { EtatVide } from '../../../components/etat-vide/etat-vide';
@@ -21,6 +21,11 @@ export class DashboardVehicules implements OnInit {
   erreur = '';
   messageSucces = '';
   enCours = false;
+  selection = new Set<number>();
+  confirmationSuppression = false;
+  suppressionEnCours = false;
+  messageSuppression = '';
+  erreursSuppression: string[] = [];
 
   // formulaire d'ajout
   formImmatriculation = '';
@@ -52,6 +57,61 @@ export class DashboardVehicules implements OnInit {
       error: () => {
         this.erreur = 'Impossible de charger vos véhicules.';
         this.chargement = false;
+      },
+    });
+  }
+
+  basculerSelection(id: number, coche: boolean): void {
+    if (coche) {
+      this.selection.add(id);
+    } else {
+      this.selection.delete(id);
+    }
+    this.confirmationSuppression = false;
+  }
+
+  supprimerSelection(): void {
+    if (!this.confirmationSuppression || this.suppressionEnCours || !this.selection.size) return;
+
+    const cibles = this.vehicules.filter((v) => this.selection.has(v.idVehicule));
+    if (!cibles.length) {
+      this.selection.clear();
+      this.confirmationSuppression = false;
+      return;
+    }
+    this.suppressionEnCours = true;
+    this.confirmationSuppression = false;
+    this.messageSuppression = '';
+    this.erreursSuppression = [];
+
+    forkJoin(
+      cibles.map((v) =>
+        this.vehiculeService.supprimer(v.idVehicule).pipe(
+          catchError((erreur: HttpErrorResponse) => of({ erreur, idVehicule: v.idVehicule })),
+        ),
+      ),
+    ).subscribe({
+      next: (resultats) => {
+        const supprimes = new Set<number>();
+        resultats.forEach((resultat, index) => {
+          if ('erreur' in resultat) {
+            const vehicule = cibles[index];
+            const raison = resultat.erreur.status === 409
+              ? 'lié à un contrat, une facture ou une autre donnée existante'
+              : resultat.erreur.status === 404
+                ? 'introuvable ou ne vous appartient pas'
+                : 'suppression impossible, veuillez réessayer';
+            this.erreursSuppression.push(`${vehicule.numImmatriculation} : ${raison}.`);
+          } else {
+            supprimes.add(resultat.idVehicule);
+            this.selection.delete(resultat.idVehicule);
+          }
+        });
+        this.vehicules = this.vehicules.filter((v) => !supprimes.has(v.idVehicule));
+        if (supprimes.size) {
+          this.messageSuppression = `${supprimes.size} véhicule${supprimes.size > 1 ? 's' : ''} supprimé${supprimes.size > 1 ? 's' : ''}.`;
+        }
+        this.suppressionEnCours = false;
       },
     });
   }
@@ -138,6 +198,7 @@ export class DashboardVehicules implements OnInit {
     this.vehiculeService.mesVehicules().subscribe({
       next: (vehicules) => {
         this.vehicules = vehicules;
+        this.selection = new Set([...this.selection].filter((id) => vehicules.some((v) => v.idVehicule === id)));
         this.chargement = false;
       },
       error: () => {

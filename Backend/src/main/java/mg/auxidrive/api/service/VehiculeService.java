@@ -3,6 +3,7 @@ package mg.auxidrive.api.service;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -12,6 +13,7 @@ import mg.auxidrive.api.model.AutoCodeTarif;
 import mg.auxidrive.api.model.Vehicule;
 import mg.auxidrive.api.repository.AssureRepository;
 import mg.auxidrive.api.repository.AutoCodeTarifRepository;
+import mg.auxidrive.api.repository.ContratAutoRepository;
 import mg.auxidrive.api.repository.VehiculeRepository;
 
 /**
@@ -25,13 +27,16 @@ public class VehiculeService {
     private final VehiculeRepository vehiculeRepository;
     private final AssureRepository assureRepository;
     private final AutoCodeTarifRepository codeTarifRepository;
+    private final ContratAutoRepository contratAutoRepository;
 
     public VehiculeService(VehiculeRepository vehiculeRepository,
                            AssureRepository assureRepository,
-                           AutoCodeTarifRepository codeTarifRepository) {
+                           AutoCodeTarifRepository codeTarifRepository,
+                           ContratAutoRepository contratAutoRepository) {
         this.vehiculeRepository = vehiculeRepository;
         this.assureRepository = assureRepository;
         this.codeTarifRepository = codeTarifRepository;
+        this.contratAutoRepository = contratAutoRepository;
     }
 
     /** Tous les véhicules, pour l'agent et l'administrateur. */
@@ -97,7 +102,26 @@ public class VehiculeService {
     @Transactional
     public Vehicule supprimer(Long id) {
         Vehicule vehicule = trouver(id);
-        vehiculeRepository.delete(vehicule);
+        return supprimerVehicule(vehicule);
+    }
+
+    @Transactional
+    public Vehicule supprimerPourAssure(Long id, Long idAssure) {
+        return supprimerVehicule(trouverPourAssure(id, idAssure));
+    }
+
+    private Vehicule supprimerVehicule(Vehicule vehicule) {
+        if (contratAutoRepository.existsByVehicule_IdVehicule(vehicule.getIdVehicule())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ce véhicule est lié à un contrat ou à une facture et ne peut pas être supprimé");
+        }
+        try {
+            vehiculeRepository.delete(vehicule);
+            vehiculeRepository.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Ce véhicule est encore utilisé et ne peut pas être supprimé", e);
+        }
         return vehicule;
     }
 
