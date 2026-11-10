@@ -89,7 +89,7 @@
             }
           </div>
 
-          <button type="submit" class="btn-signal profil-bouton" [disabled]="!informationsValides || enCours">
+          <button type="submit" class="btn-signal btn-primaire profil-bouton" [disabled]="!informationsValides || enCours">
             {{ enCours ? 'Enregistrement…' : 'Enregistrer mes informations' }}
           </button>
         </form>
@@ -121,7 +121,7 @@
             }
           </div>
 
-          <button type="submit" class="btn-signal profil-bouton" [disabled]="!motDePasseValide || enCours">
+          <button type="submit" class="btn-signal btn-primaire profil-bouton" [disabled]="!motDePasseValide || enCours">
             {{ enCours ? 'Mise à jour…' : 'Mettre à jour le mot de passe' }}
           </button>
         </form>
@@ -167,7 +167,7 @@
             Votre compte est programmé pour suppression le <strong>{{ dateSuppressionFr }}</strong>
             (dans environ {{ heuresRestantes }} h).
           </p>
-          <button type="button" class="btn-signal profil-bouton" (click)="annulerSuppression()" [disabled]="enCours">
+          <button type="button" class="btn-signal btn-primaire profil-bouton" (click)="annulerSuppression()" [disabled]="enCours">
             {{ enCours ? 'Annulation…' : 'Annuler la suppression' }}
           </button>
         }
@@ -308,7 +308,7 @@
             } @else {
               <p class="document-absente"><i class="bi bi-dash-circle" aria-hidden="true"></i> Non fournie</p>
               <div class="document-actions">
-                <button type="button" class="document-ajouter" [class.btn-signal]="classeType(element.type.valeur) === 'obligatoire'"
+                <button type="button" class="document-ajouter" [class.btn-signal]="classeType(element.type.valeur) === 'obligatoire'" [class.btn-primaire]="classeType(element.type.valeur) === 'obligatoire'"
                         [class.btn-contour-sombre]="classeType(element.type.valeur) !== 'obligatoire'" [disabled]="documentEnCours"
                         (click)="ouvrirSelecteur(element.type.valeur)">
                   <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ classeType(element.type.valeur) === 'obligatoire' ? 'Ajouter la pièce obligatoire' : 'Ajouter' }}

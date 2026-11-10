@@ -312,7 +312,7 @@
                   <td class="d-none d-md-table-cell"><span class="pastille pastille-sombre font-monospace">{{ d.identifiants?.cin || 'Absent' }}</span></td>
                   <td class="text-end pe-4">
                     <div class="d-inline-flex gap-2">
-                      <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')"><i class="bi bi-folder2-open" aria-hidden="true"></i>{{ d.statutInscription === 'CORRECTION_DEMANDEE' ? 'Voir correction' : 'Examiner' }}</button>
+                      <button type="button" class="agent-btn agent-btn-valider btn-primaire" (click)="ouvrirModale(d, 'VALIDER')"><i class="bi bi-folder2-open" aria-hidden="true"></i>{{ d.statutInscription === 'CORRECTION_DEMANDEE' ? 'Voir correction' : 'Examiner' }}</button>
                       @if (d.statutInscription === 'EN_ATTENTE') {
                         <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')"><i class="bi bi-x-lg" aria-hidden="true"></i>Refuser</button>
                       }
@@ -406,7 +406,7 @@
           </dl>
           @if (ongletActif() === 'EN_ATTENTE') {
             <div class="agent-actions-mobile">
-               <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirModale(d, 'VALIDER')">{{ d.statutInscription === 'CORRECTION_DEMANDEE' ? 'Voir correction' : 'Examiner' }}</button>
+               <button type="button" class="agent-btn agent-btn-valider btn-primaire" (click)="ouvrirModale(d, 'VALIDER')">{{ d.statutInscription === 'CORRECTION_DEMANDEE' ? 'Voir correction' : 'Examiner' }}</button>
                @if (d.statutInscription === 'EN_ATTENTE') {
                  <button type="button" class="agent-btn agent-btn-refuser" (click)="ouvrirModale(d, 'REFUSER')">Refuser</button>
                }
@@ -801,7 +801,7 @@
                    <td><span class="pastille agent-pastille-action">À clôturer</span></td>
                   <td class="text-end">{{ s.montantIndemnisation | montant }}</td>
                   <td class="text-end pe-4">
-                    <button type="button" class="agent-btn agent-btn-valider" (click)="ouvrirCloture(s)"><i class="bi bi-archive-fill" aria-hidden="true"></i>Clôturer</button>
+                    <button type="button" class="agent-btn agent-btn-valider btn-primaire" (click)="ouvrirCloture(s)"><i class="bi bi-archive-fill" aria-hidden="true"></i>Clôturer</button>
                   </td>
                 </tr>
               } @empty {
@@ -861,7 +861,7 @@
           </dl>
           @switch (ongletSinistre()) {
             @case ('DECLARE') { <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirRapport(s)">Rédiger le rapport</button> }
-            @case ('RAPPORT_EN_COURS') { <button type="button" class="agent-btn agent-btn-valider liste-mobile-action" (click)="ouvrirCloture(s)">Clôturer</button> }
+            @case ('RAPPORT_EN_COURS') { <button type="button" class="agent-btn agent-btn-valider btn-primaire liste-mobile-action" (click)="ouvrirCloture(s)">Clôturer</button> }
             @case ('CLOTURES') { <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirDetail(s)">Voir le détail</button> }
           }
         </article>
@@ -930,7 +930,7 @@
 
             <div class="agent-document-verif-actions">
               <button type="button" class="btn-contour-sombre" (click)="voirDocumentVerification(doc)">Voir la pièce</button>
-              <button type="button" class="agent-btn agent-btn-valider"
+              <button type="button" class="agent-btn agent-btn-valider btn-primaire"
                       [disabled]="documentVerifEnCours"
                       (click)="examinerDocumentVerification(doc, 'valider')">Accepter la pièce</button>
             </div>
@@ -993,7 +993,7 @@
                   @if (doc.motifRejet) { <p>Motif : {{ doc.motifRejet }}</p> }
                   <button type="button" class="btn-contour-sombre" (click)="voirDocument(doc)">Voir la pièce</button>
                   @if (doc.statutDocuments === 'EN_ATTENTE' && demandeSelectionnee.statutInscription === 'EN_ATTENTE') {
-                    <button type="button" class="agent-btn agent-btn-valider" [disabled]="documentEnCours" (click)="examinerDocument(doc, 'valider')">Accepter la pièce</button>
+                    <button type="button" class="agent-btn agent-btn-valider btn-primaire" [disabled]="documentEnCours" (click)="examinerDocument(doc, 'valider')">Accepter la pièce</button>
                     <label [for]="'motif-document-' + doc.idDocument">Motif si correction nécessaire</label>
                     <textarea [id]="'motif-document-' + doc.idDocument" [(ngModel)]="motifDocument[doc.idDocument]" rows="2" maxlength="255"></textarea>
                     <button type="button" class="agent-btn agent-btn-refuser" [disabled]="documentEnCours || !motifDocument[doc.idDocument]?.trim()" (click)="examinerDocument(doc, 'rejeter')">Demander une correction</button>
@@ -1029,7 +1029,7 @@
           <div class="agent-modale-piede">
             <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
             @if (modeAction === 'VALIDER' && !messageSucces) {
-              <button type="button" class="btn-signal" [disabled]="!numAssureValide || !documentsPrets" (click)="confirmerValidation()">Valider l'inscription</button>
+              <button type="button" class="btn-signal btn-primaire" [disabled]="!numAssureValide || !documentsPrets" (click)="confirmerValidation()">Valider l'inscription</button>
             }
             @if (modeAction === 'REFUSER' && !messageSucces) {
               <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" [disabled]="!motifRefusSaisi.trim()" (click)="confirmerRefus()">Refuser le dossier</button>
@@ -1121,7 +1121,7 @@
               <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" (click)="refuserContrat()">
                 <i class="bi bi-x-lg" aria-hidden="true"></i>Refuser
               </button>
-              <button type="button" class="btn-signal" [disabled]="!detailPrime" (click)="validerContrat()">
+              <button type="button" class="btn-signal btn-primaire" [disabled]="!detailPrime" (click)="validerContrat()">
                 <i class="bi bi-check-lg" aria-hidden="true"></i>Valider le contrat
               </button>
             }
@@ -1192,7 +1192,7 @@
           <div class="agent-modale-piede">
             <button type="button" class="agent-btn agent-btn-annuler" (click)="fermerModale()">Annuler</button>
             @if (!messageSucces) {
-              <button type="button" class="btn-signal" [disabled]="!rapportPret" (click)="envoyerRapport()">
+              <button type="button" class="btn-signal btn-primaire" [disabled]="!rapportPret" (click)="envoyerRapport()">
                 Enregistrer le rapport
               </button>
             }
@@ -1250,7 +1250,7 @@
               <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" (click)="cloturer(false)">
                 <i class="bi bi-x-lg" aria-hidden="true"></i>Refuser
               </button>
-              <button type="button" class="btn-signal" [disabled]="!indemnisationPrete" (click)="cloturer(true)">
+              <button type="button" class="btn-signal btn-primaire" [disabled]="!indemnisationPrete" (click)="cloturer(true)">
                 <i class="bi bi-check-lg" aria-hidden="true"></i>Indemniser
               </button>
             }

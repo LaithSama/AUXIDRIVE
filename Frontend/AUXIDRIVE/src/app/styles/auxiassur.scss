@@ -102,6 +102,38 @@ select:focus-visible, textarea:focus-visible {
   &:disabled { opacity: 0.6; cursor: wait; }
 }
 
+/* Actions principales : même signature visuelle que la connexion. */
+.btn-signal.btn-primaire,
+.agent-btn.agent-btn-valider.btn-primaire {
+  background: var(--lagon);
+  color: #fff;
+  font-weight: 700;
+  border-color: var(--lagon);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(31, 107, 74, 0.18);
+
+  &:hover:not(:disabled) {
+    background: #18583c;
+    color: #fff;
+    border-color: #18583c;
+    box-shadow: 0 8px 18px rgba(31, 107, 74, 0.28);
+  }
+
+  &:active:not(:disabled) {
+    box-shadow: 0 2px 6px rgba(31, 107, 74, 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .agent-btn.agent-btn-valider.btn-primaire {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+      transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover:not(:disabled) { transform: translateY(-2px); }
+    &:active:not(:disabled) { transform: translateY(0); }
+  }
+}
+
 .btn-contour {
   display: inline-block;
   background: transparent;

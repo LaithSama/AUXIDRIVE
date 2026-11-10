@@ -56,7 +56,7 @@
                   (ngModelChange)="normaliser($event)"
                 />
               </div>
-              <button type="submit" class="btn-signal">Faire ma demande</button>
+              <button type="submit" class="btn-signal btn-primaire">Faire ma demande</button>
             </div>
             <p class="plaque-note">Vous pouvez aussi <a routerLink="/inscription">vous inscrire sans immatriculation</a>.</p>
           </form>
@@ -151,7 +151,7 @@
           <div class="appel">
             <p class="appel-titre">Déjà inscrit ?</p>
             <p>Connectez-vous avec l'adresse e-mail et le mot de passe reçus après la validation de votre dossier.</p>
-            <a routerLink="/connexion" class="btn-signal btn-signal-clair">Se connecter</a>
+            <a routerLink="/connexion" class="btn-signal btn-primaire btn-signal-clair">Se connecter</a>
           </div>
         </div>
       </div>
@@ -185,7 +185,7 @@
                 }
               </ul>
               <div class="actu-tels">
-                <a class="btn-signal" [href]="telephones[0].lien"><i class="bi bi-telephone-fill me-2" aria-hidden="true"></i>Pour plus d'infos</a>
+                <a class="btn-signal btn-primaire" [href]="telephones[0].lien"><i class="bi bi-telephone-fill me-2" aria-hidden="true"></i>Pour plus d'infos</a>
               </div>
             </div>
           </article>

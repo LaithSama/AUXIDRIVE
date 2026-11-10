@@ -101,7 +101,7 @@
       </div>
 
       @if (vue() !== 'tableau') {
-        <button type="button" class="btn-signal admin-nouveau" (click)="ouvrirCreation(sectionVue)">
+        <button type="button" class="btn-signal btn-primaire admin-nouveau" (click)="ouvrirCreation(sectionVue)">
           <i class="bi bi-plus-lg" aria-hidden="true"></i> Nouveau
         </button>
       }
@@ -909,7 +909,7 @@
 
     <div class="admin-modale-pied">
       @if (motDePasseTemporaire()) {
-        <button type="button" class="btn-signal" (click)="fermerModale()">
+        <button type="button" class="btn-signal btn-primaire" (click)="fermerModale()">
           <i class="bi bi-check-lg" aria-hidden="true"></i> Terminé
         </button>
       } @else {
@@ -919,7 +919,7 @@
             : 'Renseignez les champs obligatoires pour activer « Enregistrer ».' }}</span>
         }
         <button type="button" class="btn-contour-sombre" (click)="fermerModale()">Annuler</button>
-        <button type="button" class="btn-signal" [disabled]="!pret || enregistrementEnCours()" (click)="enregistrer()">
+        <button type="button" class="btn-signal btn-primaire" [disabled]="!pret || enregistrementEnCours()" (click)="enregistrer()">
           <i class="bi bi-check-lg" aria-hidden="true"></i>
           {{ modeModale() === 'CREATION' ? 'Créer' : 'Enregistrer' }}
         </button>

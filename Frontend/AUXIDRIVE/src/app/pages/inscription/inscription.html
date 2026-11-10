@@ -136,7 +136,7 @@
         <input type="file" id="modeleN1" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileChange($event, 'modeleN1')" />
       </div>
 
-      <button type="submit" class="btn-signal inscription-envoi" [disabled]="enCours || dossierEnvoye">
+      <button type="submit" class="btn-signal btn-primaire inscription-envoi" [disabled]="enCours || dossierEnvoye">
         {{ enCours ? 'Transmission du dossier…' : 'Transmettre le dossier' }}
       </button>
     </form>
@@ -168,7 +168,7 @@
       </p>
 
       <div class="confirmation-actions">
-        <button type="button" class="btn-signal" (click)="allerConnexion()">Se connecter</button>
+        <button type="button" class="btn-signal btn-primaire" (click)="allerConnexion()">Se connecter</button>
         <a routerLink="/" class="btn-contour-sombre">Retour à l'accueil</a>
       </div>
     </div>
