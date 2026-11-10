@@ -32,14 +32,26 @@
       <!-- Champ Mot de passe -->
       <div class="champ">
         <label for="password">Mot de passe</label>
-        <input
-          type="password"
-          id="password"
-          name="motDePasse"
-          placeholder="••••••••"
-          [(ngModel)]="motDePasse"
-          required
-        />
+        <div class="connexion-mot-de-passe">
+          <input
+            [type]="motDePasseVisible ? 'text' : 'password'"
+            id="password"
+            name="motDePasse"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            [(ngModel)]="motDePasse"
+            required
+          />
+          <button
+            type="button"
+            class="connexion-visibilite"
+            [attr.aria-label]="motDePasseVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+            [attr.aria-pressed]="motDePasseVisible"
+            (click)="motDePasseVisible = !motDePasseVisible"
+          >
+            <i [class]="motDePasseVisible ? 'bi bi-eye-slash' : 'bi bi-eye'" aria-hidden="true"></i>
+          </button>
+        </div>
       </div>
 
       <!-- Affichage dynamique du message d'erreur backend -->

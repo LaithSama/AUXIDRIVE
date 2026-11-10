@@ -33,6 +33,29 @@ describe('Connexion', () => {
     expect(component).toBeTruthy();
   });
 
+  it('affiche et masque le mot de passe sans modifier la saisie ni envoyer le formulaire', async () => {
+    component.motDePasse = 'secret';
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('#password') as HTMLInputElement;
+    const bouton = fixture.nativeElement.querySelector('.connexion-visibilite') as HTMLButtonElement;
+
+    expect(input.type).toBe('password');
+    expect(input.value).toBe('secret');
+    expect(bouton.getAttribute('aria-label')).toBe('Afficher le mot de passe');
+    bouton.click();
+    fixture.detectChanges();
+    expect(input.type).toBe('text');
+    expect(input.value).toBe('secret');
+    expect(bouton.getAttribute('aria-label')).toBe('Masquer le mot de passe');
+    bouton.click();
+    fixture.detectChanges();
+    expect(input.type).toBe('password');
+    expect(component.motDePasse).toBe('secret');
+    expect(httpMock.match(API)).toHaveLength(0);
+  });
+
   it('refuse un formulaire incomplet avant toute requête', async () => {
     fixture.detectChanges();
     await fixture.whenStable();

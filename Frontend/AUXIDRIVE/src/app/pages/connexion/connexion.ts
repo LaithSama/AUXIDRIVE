@@ -15,6 +15,7 @@ export class Connexion {
 
   email: string = '';
   motDePasse: string = '';
+  motDePasseVisible = false;
   errorMessage: string = '';
   enCours = false;
 
