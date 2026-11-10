@@ -7,9 +7,10 @@ import { AuthService } from '../../services/auth-service';
 import { AgentDashboard } from './agent-dashboard';
 
 describe('AgentDashboard', () => {
-  const http = { get: vi.fn(), put: vi.fn() };
+  const http = { get: vi.fn(), put: vi.fn(), post: vi.fn() };
 
   beforeEach(async () => {
+    http.post.mockReset();
     http.get.mockImplementation((url: string) => {
       if (url.endsWith('/inscriptions')) return of([
         { statutInscription: 'EN_ATTENTE' }, { statutInscription: 'VALIDEE' },
@@ -75,6 +76,43 @@ describe('AgentDashboard', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.agent-tableau-carte').classList.contains('d-lg-block')).toBe(true);
     expect(fixture.nativeElement.querySelector('.liste-mobile').classList.contains('d-lg-none')).toBe(true);
+  });
+
+  it('demande une confirmation avant d’annuler et présente le contrat dans l’historique', () => {
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    const contrat = { ...page.contrats()[1], idContrat: 42, numPolice: 'POL-42', statutContrat: 'VALIDE' as const };
+    page.contrats.set([contrat]);
+    page.changerVue('contrats');
+    page.changerOngletContrat('VALIDE');
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.agent-annuler-contrat') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="alertdialog"]')?.textContent).toContain('Client non présenté');
+    expect(http.post).not.toHaveBeenCalled();
+
+    http.post.mockReturnValue(of({ ...contrat, statutContrat: 'ANNULE' }));
+    page.confirmerAnnulation();
+    expect(http.post).toHaveBeenCalledWith(expect.stringContaining('/contrats/42/annuler'), null);
+    expect(page.ongletContrat()).toBe('ANNULE');
+    expect(page.contratAAnnuler).toBeNull();
+  });
+
+  it('conserve la confirmation ouverte si le contrat ne peut pas être annulé', () => {
+    const fixture = TestBed.createComponent(AgentDashboard);
+    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    page.ouvrirAnnulation({ ...page.contrats()[1], idContrat: 42, statutContrat: 'VALIDE' });
+    http.post.mockReturnValue(throwError(() => ({ status: 409, error: { message: 'Une facture est payée' } })));
+
+    page.confirmerAnnulation();
+    fixture.detectChanges();
+
+    expect(page.contratAAnnuler?.idContrat).toBe(42);
+    expect(fixture.nativeElement.querySelector('[role="alertdialog"] [role="alert"]')?.textContent)
+      .toContain('Une facture est payée');
   });
 
   it('réserve le repère action requise aux dossiers à traiter sur bureau et mobile', () => {

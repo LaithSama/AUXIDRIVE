@@ -58,7 +58,8 @@ public class SecurityConfig {
                 // contrats : le client souscrit et suit les siens, l'agent valide ou refuse.
                 // La validation et le refus engagent la compagnie, ils sont donc réservés au staff.
                 // L'ordre compte : les routes staff sont déclarées avant les routes client.
-                .requestMatchers("/api/contrats/assure/**", "/api/contrats/*/valider", "/api/contrats/*/refuser")
+                .requestMatchers("/api/contrats/assure/**", "/api/contrats/*/valider", "/api/contrats/*/refuser",
+                                 "/api/contrats/*/annuler")
                     .hasAnyRole("AGENT", "ADMIN")
                 .requestMatchers("/api/contrats/**").hasAnyRole("CLIENT", "AGENT", "ADMIN")
                 // factures : l'agent et l'administrateur y accèdent globalement, le client seulement

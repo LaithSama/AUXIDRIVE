@@ -106,7 +106,7 @@
         <p class="chapeau mb-0">Consultez, validez ou suivez l'historique des requêtes de souscription. <span class="agent-entete-compte">{{ demandesEnAttente().length }} en attente · {{ demandesValidees().length }} validés · {{ demandesRefusees().length }} refusés</span></p>
       } @else if (vue() === 'contrats') {
         <h1 class="titre-section agent-titre">Validation des contrats</h1>
-        <p class="chapeau mb-0">Validez les demandes de souscription : la validation attribue le numéro de police et émet la facture. <span class="agent-entete-compte">{{ contratsAttente().length }} à valider · {{ contratsValides().length }} validés · {{ contratsRefuses().length }} refusés</span></p>
+        <p class="chapeau mb-0">Validez les demandes de souscription : la validation attribue le numéro de police et émet la facture. <span class="agent-entete-compte">{{ contratsAttente().length }} à valider · {{ contratsValides().length }} validés · {{ contratsRefuses().length }} refusés · {{ contratsAnnules().length }} annulés</span></p>
       } @else if (vue() === 'documents') {
         <h1 class="titre-section agent-titre">Documents à vérifier</h1>
         <p class="chapeau mb-0">Pièces ajoutées ou remplacées depuis le profil des clients : acceptez-les ou rejetez-les avec un motif. <span class="agent-entete-compte">{{ documentsVerification().length }} en attente</span></p>
@@ -433,6 +433,7 @@
 
   <!-- ==================== CONTRATS ==================== -->
   @if (vue() === 'contrats') {
+    @if (messageSucces) { <div class="message-ok" role="status">{{ messageSucces }}</div> }
     <div class="agent-kpis">
       <button type="button" class="agent-kpi agent-kpi-signal"
               [class.agent-kpi-actif]="ongletContrat() === 'EN_ATTENTE'"
@@ -461,6 +462,15 @@
           <span class="agent-kpi-libelle">Refusés</span>
         </span>
       </button>
+      <button type="button" class="agent-kpi agent-kpi-erreur"
+              [class.agent-kpi-actif]="ongletContrat() === 'ANNULE'"
+              (click)="changerOngletContrat('ANNULE')">
+        <i class="bi bi-slash-circle-fill" aria-hidden="true"></i>
+        <span>
+          <span class="agent-kpi-valeur">{{ contratsAnnules().length }}</span>
+          <span class="agent-kpi-libelle">Annulés</span>
+        </span>
+      </button>
     </div>
 
     <ul class="onglets">
@@ -483,6 +493,13 @@
                 [class.onglet-actif]="ongletContrat() === 'REFUSE'"
                 (click)="changerOngletContrat('REFUSE')">
           <i class="bi bi-x-circle-fill" aria-hidden="true"></i>Refusés ({{ contratsRefuses().length }})
+        </button>
+      </li>
+      <li>
+        <button type="button" class="onglet onglet-refuse"
+                [class.onglet-actif]="ongletContrat() === 'ANNULE'"
+                (click)="changerOngletContrat('ANNULE')">
+          <i class="bi bi-slash-circle-fill" aria-hidden="true"></i>Annulés ({{ contratsAnnules().length }})
         </button>
       </li>
     </ul>
@@ -538,7 +555,7 @@
           <thead>
             <tr>
               <th class="ps-4">N° Contrat</th>
-              @if (ongletContrat() === 'VALIDE') {
+              @if (ongletContrat() === 'VALIDE' || ongletContrat() === 'ANNULE') {
                 <th>N° Police</th>
               }
               <th>Client</th>
@@ -580,7 +597,10 @@
                   <td>{{ c.dateEffet | dateFr }}</td>
                   <td>{{ c.dateExpiration | dateFr }}</td>
                   <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
-                  <td><span class="pastille pastille-lagon">Validé</span></td>
+                   <td><span class="pastille pastille-lagon">Validé</span>
+                     <button type="button" class="agent-btn agent-btn-refuser agent-annuler-contrat"
+                             (click)="ouvrirAnnulation(c)">Annuler</button>
+                   </td>
                 </tr>
               } @empty {
                 <tr><td colspan="8"><app-etat-vide titre="Aucun contrat validé pour l'instant." description="L'historique des contrats validés apparaîtra ici." [action]="contratsValides().length ? 'Réinitialiser les filtres' : ''" (actionCliquee)="reinitialiserFiltres()" /></td></tr>
@@ -604,6 +624,23 @@
               }
             }
 
+            @if (ongletContrat() === 'ANNULE') {
+              @for (c of contratsPage(); track c.idContrat) {
+                <tr>
+                  <td class="ps-4 agent-num agent-num-ko">#{{ c.idContrat }}</td>
+                  <td class="font-monospace">{{ c.numPolice || '—' }}</td>
+                  <td class="fw-medium">{{ c.nomAssure }} {{ c.prenomAssure }}</td>
+                  <td>{{ c.dateSouscription | dateFr }}</td>
+                  <td>{{ c.dateEffet | dateFr }}</td>
+                  <td>{{ c.dateExpiration | dateFr }}</td>
+                  <td class="text-end fw-medium">{{ c.primeTtcCourante | montant }}</td>
+                  <td><span class="pastille pastille-rouge">Annulé</span><small class="d-block">{{ c.motifAnnulation }} — {{ c.dateAnnulation | dateFr }}</small></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="8"><app-etat-vide titre="Aucun contrat annulé." description="Les annulations apparaîtront ici." /></td></tr>
+              }
+            }
+
           </tbody>
         </table>
       </div>
@@ -617,22 +654,27 @@
                @case ('EN_ATTENTE') { <span class="pastille agent-pastille-action">À valider</span> }
               @case ('VALIDE') { <span class="pastille pastille-lagon">Validé</span> }
               @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+              @case ('ANNULE') { <span class="pastille pastille-rouge">Annulé</span> }
             }
           </div>
           <dl class="liste-mobile-details">
-            @if (ongletContrat() === 'VALIDE') { <div><dt>N° police</dt><dd>{{ c.numPolice || '—' }}</dd></div> }
+            @if (ongletContrat() === 'VALIDE' || ongletContrat() === 'ANNULE') { <div><dt>N° police</dt><dd>{{ c.numPolice || '—' }}</dd></div> }
+            @if (ongletContrat() === 'ANNULE') { <div><dt>Annulation</dt><dd>{{ c.motifAnnulation }} — {{ c.dateAnnulation | dateFr }}</dd></div> }
             <div><dt>Émission</dt><dd>{{ c.dateSouscription | dateFr }}</dd></div>
             <div><dt>Effet</dt><dd>{{ c.dateEffet | dateFr }}</dd></div>
             <div><dt>Expiration</dt><dd>{{ c.dateExpiration | dateFr }}</dd></div>
             <div><dt>Prime TTC</dt><dd><strong>{{ c.primeTtcCourante | montant }}</strong></dd></div>
           </dl>
-          @if (ongletContrat() === 'EN_ATTENTE') {
-            <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirModaleContrat(c)">Traiter le contrat</button>
-          }
+           @if (ongletContrat() === 'EN_ATTENTE') {
+             <button type="button" class="agent-btn liste-mobile-action" (click)="ouvrirModaleContrat(c)">Traiter le contrat</button>
+           }
+           @if (ongletContrat() === 'VALIDE') {
+             <button type="button" class="agent-btn agent-btn-refuser liste-mobile-action" (click)="ouvrirAnnulation(c)">Annuler le contrat</button>
+           }
         </article>
       } @empty {
         <app-etat-vide class="liste-mobile-carte" titre="Aucun contrat pour ce statut." description="Les contrats correspondants apparaîtront ici." icone="bi-file-earmark-text"
-          [action]="(ongletContrat() === 'EN_ATTENTE' ? contratsAttente() : ongletContrat() === 'VALIDE' ? contratsValides() : contratsRefuses()).length ? 'Réinitialiser les filtres' : ''"
+           [action]="(ongletContrat() === 'EN_ATTENTE' ? contratsAttente() : ongletContrat() === 'VALIDE' ? contratsValides() : ongletContrat() === 'REFUSE' ? contratsRefuses() : contratsAnnules()).length ? 'Réinitialiser les filtres' : ''"
           (actionCliquee)="reinitialiserFiltres()" />
       }
     </div>
@@ -1036,6 +1078,31 @@
             }
           </div>
 
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== MODALE : ANNULATION DE CONTRAT ==================== -->
+  @if (contratAAnnuler) {
+    <div class="modal d-block" role="alertdialog" aria-modal="true" aria-labelledby="annulation-contrat-titre">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content agent-modale">
+          <div class="agent-modale-entete">
+            <h5 id="annulation-contrat-titre" class="agent-modale-titre">Annuler le contrat n°{{ contratAAnnuler.idContrat }}</h5>
+            <button type="button" class="agent-modale-fermer" [disabled]="annulationEnCours" (click)="fermerAnnulation()" aria-label="Fermer"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          </div>
+          <div class="modal-body py-4">
+            <p>Motif : <strong>Client non présenté</strong>.</p>
+            <p>Le contrat {{ contratAAnnuler.numPolice || '#' + contratAAnnuler.idContrat }} et sa facture impayée seront annulés, mais resteront dans l'historique. Cette action est irréversible.</p>
+            @if (erreurAnnulation) { <div class="message-erreur" role="alert">{{ erreurAnnulation }}</div> }
+          </div>
+          <div class="agent-modale-piede">
+            <button type="button" class="agent-btn agent-btn-annuler" [disabled]="annulationEnCours" (click)="fermerAnnulation()">Retour</button>
+            <button type="button" class="agent-btn agent-btn-refuser agent-btn-plein" [disabled]="annulationEnCours" (click)="confirmerAnnulation()">
+              {{ annulationEnCours ? 'Annulation en cours…' : 'Confirmer l’annulation' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

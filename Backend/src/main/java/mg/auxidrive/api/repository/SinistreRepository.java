@@ -28,4 +28,6 @@ public interface SinistreRepository extends JpaRepository<Sinistre, Long> {
 
     @EntityGraph(attributePaths = {"contrat", "contrat.assure", "vehicule", "vehicule.codeTarif"})
     List<Sinistre> findByContrat_Assure_IdAssureOrderByIdSinistre(Long idAssure);
+
+    boolean existsByContrat_IdContrat(Long idContrat);
 }

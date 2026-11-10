@@ -73,6 +73,12 @@ public class Contrat {
     @Column(name = "statut_contrat", length = 20)
     private StatutContrat statutContrat;
 
+    @Column(name = "date_annulation")
+    private LocalDate dateAnnulation;
+
+    @Column(name = "motif_annulation", length = 255)
+    private String motifAnnulation;
+
     @Column(name = "coefficient_bonus_malus")
     private Double coefficientBonusMalus;
 
@@ -237,6 +243,22 @@ public class Contrat {
 
     public void setStatutContrat(StatutContrat statutContrat) {
         this.statutContrat = statutContrat;
+    }
+
+    public LocalDate getDateAnnulation() {
+        return dateAnnulation;
+    }
+
+    public void setDateAnnulation(LocalDate dateAnnulation) {
+        this.dateAnnulation = dateAnnulation;
+    }
+
+    public String getMotifAnnulation() {
+        return motifAnnulation;
+    }
+
+    public void setMotifAnnulation(String motifAnnulation) {
+        this.motifAnnulation = motifAnnulation;
     }
 
     public Double getTauxCommission() {

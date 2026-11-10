@@ -48,7 +48,8 @@
                 @switch (c.statutContrat) {
                   @case ('VALIDE') { <span class="pastille pastille-lagon">Validé</span> }
                   @case ('EN_ATTENTE') { <span class="pastille">En attente</span> }
-                  @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+                   @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+                   @case ('ANNULE') { <span class="pastille pastille-rouge">Annulé</span><small class="d-block">{{ c.motifAnnulation }} — {{ c.dateAnnulation | dateFr }}</small> }
                 }
               </td>
               <td class="contrat-garanties-cellule">
@@ -122,11 +123,13 @@
             @case ('VALIDE') { <span class="pastille pastille-lagon">Validé</span> }
             @case ('EN_ATTENTE') { <span class="pastille">En attente</span> }
             @case ('REFUSE') { <span class="pastille pastille-rouge">Refusé</span> }
+            @case ('ANNULE') { <span class="pastille pastille-rouge">Annulé</span> }
           }
         </div>
         <dl class="liste-mobile-details">
           <div><dt>Effet</dt><dd>{{ c.dateEffet | dateFr }}</dd></div>
           <div><dt>Expiration</dt><dd>{{ c.dateExpiration | dateFr }}</dd></div>
+          @if (c.statutContrat === 'ANNULE') { <div><dt>Annulation</dt><dd>{{ c.motifAnnulation }} — {{ c.dateAnnulation | dateFr }}</dd></div> }
           @if (c.statutContrat === 'VALIDE') {
             <div><dt>Renouvellement automatique</dt><dd>
               <div class="contrat-renouvellement-options">

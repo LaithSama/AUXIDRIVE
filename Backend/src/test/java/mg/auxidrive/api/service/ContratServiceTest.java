@@ -30,9 +30,12 @@ import mg.auxidrive.api.model.CodeTaxePolice;
 import mg.auxidrive.api.model.Contrat;
 import mg.auxidrive.api.model.ContratAuto;
 import mg.auxidrive.api.model.DemandeSouscription;
+import mg.auxidrive.api.model.Facture;
 import mg.auxidrive.api.model.GarantieType;
 import mg.auxidrive.api.model.Offre;
 import mg.auxidrive.api.model.StatutContrat;
+import mg.auxidrive.api.model.StatutFacture;
+import mg.auxidrive.api.model.TypeFacture;
 import mg.auxidrive.api.model.TypeOffre;
 import mg.auxidrive.api.model.Vehicule;
 import mg.auxidrive.api.repository.AssureRepository;
@@ -41,8 +44,10 @@ import mg.auxidrive.api.repository.BrancheParametresCalculRepository;
 import mg.auxidrive.api.repository.CodeTaxePoliceRepository;
 import mg.auxidrive.api.repository.ContratAutoRepository;
 import mg.auxidrive.api.repository.ContratRepository;
+import mg.auxidrive.api.repository.FactureRepository;
 import mg.auxidrive.api.repository.GarantieTypeRepository;
 import mg.auxidrive.api.repository.OffreRepository;
+import mg.auxidrive.api.repository.SinistreRepository;
 import mg.auxidrive.api.repository.VehiculeRepository;
 import mg.auxidrive.api.service.PrimeCalculator.Detail;
 
@@ -78,6 +83,10 @@ class ContratServiceTest {
     private GarantieTypeRepository garantieRepository;
     @Mock
     private FactureService factureService;
+    @Mock
+    private FactureRepository factureRepository;
+    @Mock
+    private SinistreRepository sinistreRepository;
 
     private ContratService service;
 
@@ -85,7 +94,7 @@ class ContratServiceTest {
     void setUp() {
         service = new ContratService(contratRepository, contratAutoRepository, offreRepository,
                 vehiculeRepository, assureRepository, parametresRepository, codeTaxeRepository,
-                codeTarifRepository, garantieRepository, factureService);
+                codeTarifRepository, garantieRepository, factureService, factureRepository, sinistreRepository);
     }
 
     // ---- fixtures ----
@@ -403,6 +412,87 @@ class ContratServiceTest {
                 .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
         verify(contratRepository, never()).save(any());
         verifyNoInteractions(factureService);
+    }
+
+    private Facture factureSouscription(StatutFacture statut) {
+        Facture facture = new Facture();
+        facture.setTypeFacture(TypeFacture.SOUSCRIPTION);
+        facture.setStatutFacture(statut);
+        return facture;
+    }
+
+    @Test
+    @DisplayName("Client absent : le contrat et sa facture restent en historique avec leur statut annulé")
+    void annulerContratImpayéSansSinistre() {
+        Contrat contrat = contratValide();
+        Facture facture = factureSouscription(StatutFacture.EMISE);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        when(factureRepository.findByContrat_IdContratOrderByIdFacture(1L)).thenReturn(List.of(facture));
+        when(contratRepository.save(contrat)).thenReturn(contrat);
+
+        Contrat resultat = service.annulerPourAbsence(1L);
+
+        assertThat(resultat.getStatutContrat()).isEqualTo(StatutContrat.ANNULE);
+        assertThat(resultat.getMotifAnnulation()).isEqualTo("Client non présenté");
+        assertThat(resultat.getDateAnnulation()).isEqualTo(LocalDate.now());
+        assertThat(resultat.isRenouvellementAutomatique()).isFalse();
+        assertThat(facture.getStatutFacture()).isEqualTo(StatutFacture.ANNULEE);
+        verify(factureRepository).save(facture);
+        verify(contratRepository).save(contrat);
+    }
+
+    @Test
+    void annulerRefuseFacturePayee() {
+        Contrat contrat = contratValide();
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        when(factureRepository.findByContrat_IdContratOrderByIdFacture(1L))
+                .thenReturn(List.of(factureSouscription(StatutFacture.PAYEE)));
+
+        assertThatThrownBy(() -> service.annulerPourAbsence(1L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
+        verify(contratRepository, never()).save(any());
+        verify(factureRepository, never()).save(any());
+    }
+
+    @Test
+    void annulerRefuseSinistre() {
+        Contrat contrat = contratValide();
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        when(sinistreRepository.existsByContrat_IdContrat(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.annulerPourAbsence(1L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
+        verifyNoInteractions(factureRepository);
+    }
+
+    @Test
+    void annulerRefuseContratNonValideOuDejaAnnule() {
+        Contrat contrat = contratValide();
+        contrat.setStatutContrat(StatutContrat.ANNULE);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+
+        assertThatThrownBy(() -> service.annulerPourAbsence(1L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
+        verifyNoInteractions(factureRepository, sinistreRepository);
+    }
+
+    @Test
+    void annulerRefuseContratDejaRenouvele() {
+        Contrat contrat = contratValide();
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        Facture factureRenouvellement = new Facture();
+        factureRenouvellement.setTypeFacture(TypeFacture.RENOUVELLEMENT);
+        factureRenouvellement.setStatutFacture(StatutFacture.EMISE);
+        when(factureRepository.findByContrat_IdContratOrderByIdFacture(1L)).thenReturn(
+                List.of(factureSouscription(StatutFacture.EMISE), factureRenouvellement));
+
+        assertThatThrownBy(() -> service.annulerPourAbsence(1L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
+        verify(contratRepository, never()).save(any());
     }
 
     // ---- renouveler ----

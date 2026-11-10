@@ -257,6 +257,11 @@
   &:hover:not(:disabled) { background: var(--erreur); color: #fff; }
 }
 
+.agent-annuler-contrat {
+  display: block;
+  margin-top: 0.4rem;
+}
+
 .agent-btn-annuler {
   border-color: #b8c2c9;
   color: var(--gris);

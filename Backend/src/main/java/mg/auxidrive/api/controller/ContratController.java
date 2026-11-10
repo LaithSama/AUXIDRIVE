@@ -148,6 +148,12 @@ public class ContratController {
         return contratService.refuser(id);
     }
 
+    @PostMapping("/{id}/annuler")
+    @PreAuthorize(ROLES_STAFF)
+    public Contrat annuler(@PathVariable Long id) {
+        return contratService.annulerPourAbsence(id);
+    }
+
     /** Un client ne peut pas mobiliser un véhicule qui ne lui appartient pas. */
     private void verifierVehiculesAppartenance(DemandeSouscription demande, Long idAssure) {
         if (demande == null || demande.getIdVehicules() == null) {

@@ -156,8 +156,13 @@ export class AgentDashboard implements OnInit {
     this.contrats().filter(c => c.statutContrat === 'VALIDE'));
   contratsRefuses = computed(() =>
     this.contrats().filter(c => c.statutContrat === 'REFUSE'));
+  contratsAnnules = computed(() =>
+    this.contrats().filter(c => c.statutContrat === 'ANNULE'));
 
   contratSelectionne: Contrat | null = null;
+  contratAAnnuler: Contrat | null = null;
+  annulationEnCours = false;
+  erreurAnnulation = '';
 
   /** Champs de la modale de calcul de prime. */
   parametresPrime: ParametresPrime | null = null;
@@ -184,7 +189,7 @@ export class AgentDashboard implements OnInit {
   contratsAffiches = computed(() => {
     const liste = this.ongletContrat() === 'EN_ATTENTE' ? this.contratsAttente()
       : this.ongletContrat() === 'VALIDE' ? this.contratsValides()
-      : this.contratsRefuses();
+      : this.ongletContrat() === 'REFUSE' ? this.contratsRefuses() : this.contratsAnnules();
 
     const min = this.nombreOuNull(this.primeMinContrat());
     const max = this.nombreOuNull(this.primeMaxContrat());
@@ -592,6 +597,7 @@ export class AgentDashboard implements OnInit {
     this.demandeSelectionnee = null;
     this.modeAction = null;
     this.contratSelectionne = null;
+    if (!this.annulationEnCours) this.contratAAnnuler = null;
     this.parametresPrime = null;
     this.detailPrime = null;
     this.primeNetteSaisie = '';
@@ -753,6 +759,37 @@ export class AgentDashboard implements OnInit {
         this.messageErreur = err.status === 409
           ? 'Seule une demande encore en attente peut être traitée.'
           : 'Impossible de refuser ce contrat.';
+      },
+    });
+  }
+
+  ouvrirAnnulation(contrat: Contrat): void {
+    if (contrat.statutContrat !== 'VALIDE') return;
+    this.contratAAnnuler = contrat;
+    this.erreurAnnulation = '';
+  }
+
+  fermerAnnulation(): void {
+    if (!this.annulationEnCours) this.contratAAnnuler = null;
+  }
+
+  confirmerAnnulation(): void {
+    const contrat = this.contratAAnnuler;
+    if (!contrat || this.annulationEnCours) return;
+    this.annulationEnCours = true;
+    this.erreurAnnulation = '';
+    this.http.post<Contrat>(`${this.apiUrl}/contrats/${contrat.idContrat}/annuler`, null).subscribe({
+      next: () => {
+        this.annulationEnCours = false;
+        this.contratAAnnuler = null;
+        this.changerOngletContrat('ANNULE');
+        this.messageSucces = `Contrat #${contrat.idContrat} annulé pour client non présenté. Sa facture est annulée.`;
+        this.chargerContrats();
+      },
+      error: (err) => {
+        this.annulationEnCours = false;
+        this.erreurAnnulation = err.error?.detail || err.error?.message
+          || 'Annulation impossible : vérifiez que la facture est impayée et qu’aucun sinistre n’existe.';
       },
     });
   }

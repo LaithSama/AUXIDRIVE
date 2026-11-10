@@ -20,11 +20,14 @@ import mg.auxidrive.api.model.CodeTaxePolice;
 import mg.auxidrive.api.model.Contrat;
 import mg.auxidrive.api.model.ContratAuto;
 import mg.auxidrive.api.model.DemandeSouscription;
+import mg.auxidrive.api.model.Facture;
 import mg.auxidrive.api.model.GarantieType;
 import mg.auxidrive.api.model.Offre;
 import mg.auxidrive.api.model.ParametresPrime;
 import mg.auxidrive.api.model.PrimeRequest;
 import mg.auxidrive.api.model.StatutContrat;
+import mg.auxidrive.api.model.StatutFacture;
+import mg.auxidrive.api.model.TypeFacture;
 import mg.auxidrive.api.model.TypeOffre;
 import mg.auxidrive.api.model.Vehicule;
 import mg.auxidrive.api.repository.AssureRepository;
@@ -33,8 +36,10 @@ import mg.auxidrive.api.repository.BrancheParametresCalculRepository;
 import mg.auxidrive.api.repository.CodeTaxePoliceRepository;
 import mg.auxidrive.api.repository.ContratAutoRepository;
 import mg.auxidrive.api.repository.ContratRepository;
+import mg.auxidrive.api.repository.FactureRepository;
 import mg.auxidrive.api.repository.GarantieTypeRepository;
 import mg.auxidrive.api.repository.OffreRepository;
+import mg.auxidrive.api.repository.SinistreRepository;
 import mg.auxidrive.api.repository.VehiculeRepository;
 import mg.auxidrive.api.service.PrimeCalculator.CalculPrimeException;
 import mg.auxidrive.api.service.PrimeCalculator.Detail;
@@ -75,6 +80,8 @@ public class ContratService {
     private final AutoCodeTarifRepository codeTarifRepository;
     private final GarantieTypeRepository garantieRepository;
     private final FactureService factureService;
+    private final FactureRepository factureRepository;
+    private final SinistreRepository sinistreRepository;
 
     public ContratService(ContratRepository contratRepository,
                           ContratAutoRepository contratAutoRepository,
@@ -85,7 +92,9 @@ public class ContratService {
                           CodeTaxePoliceRepository codeTaxeRepository,
                           AutoCodeTarifRepository codeTarifRepository,
                           GarantieTypeRepository garantieRepository,
-                          FactureService factureService) {
+                           FactureService factureService,
+                           FactureRepository factureRepository,
+                           SinistreRepository sinistreRepository) {
         this.contratRepository = contratRepository;
         this.contratAutoRepository = contratAutoRepository;
         this.offreRepository = offreRepository;
@@ -96,6 +105,8 @@ public class ContratService {
         this.codeTarifRepository = codeTarifRepository;
         this.garantieRepository = garantieRepository;
         this.factureService = factureService;
+        this.factureRepository = factureRepository;
+        this.sinistreRepository = sinistreRepository;
     }
 
     // ---- lecture ----
@@ -268,6 +279,40 @@ public class ContratService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Seule une demande en attente peut être refusée");
         }
         contrat.setStatutContrat(StatutContrat.REFUSE);
+        return contratRepository.save(contrat);
+    }
+
+    /** Annulation administrative d'un contrat validé dont le client ne s'est pas présenté. */
+    @Transactional
+    public Contrat annulerPourAbsence(Long idContrat) {
+        Contrat contrat = trouver(idContrat);
+        if (contrat.getStatutContrat() != StatutContrat.VALIDE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Seul un contrat validé peut être annulé");
+        }
+        if (sinistreRepository.existsByContrat_IdContrat(idContrat)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Un sinistre existe pour ce contrat : annulation impossible");
+        }
+
+        List<Facture> factures = factureRepository.findByContrat_IdContratOrderByIdFacture(idContrat);
+        if (factures.stream().anyMatch(f -> f.getStatutFacture() == StatutFacture.PAYEE)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Une facture est payée : annulation impossible");
+        }
+        // Une reconduction ou une autre opération facturée implique un historique de couverture
+        // qui ne doit pas être effacé par une simple annulation pour non-présentation.
+        if (factures.size() != 1 || factures.get(0).getTypeFacture() != TypeFacture.SOUSCRIPTION
+                || factures.get(0).getStatutFacture() != StatutFacture.EMISE) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "L'annulation exige une seule facture de souscription émise et impayée");
+        }
+
+        contrat.setStatutContrat(StatutContrat.ANNULE);
+        contrat.setRenouvellementAutomatique(false);
+        contrat.setDureeProchainRenouvellementMois(null);
+        contrat.setDateAnnulation(LocalDate.now());
+        contrat.setMotifAnnulation("Client non présenté");
+        Facture facture = factures.get(0);
+        facture.setStatutFacture(StatutFacture.ANNULEE);
+        factureRepository.save(facture);
         return contratRepository.save(contrat);
     }
 
