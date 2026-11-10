@@ -176,6 +176,10 @@ public class ContratService {
     @Transactional
     public Contrat souscrire(DemandeSouscription demande, Long idAssure, String canal) {
         Preparation p = preparer(demande);
+        // La date d'effet réelle ne sera fixée qu'à la validation ; à ce stade, on exclut
+        // les couvertures qui chevaucheraient une prise d'effet immédiate.
+        LocalDate aujourdHui = LocalDate.now();
+        verifierCouverture(p.vehicules(), aujourdHui, aujourdHui.plusMonths(p.dureeMois()), null, false);
         Detail detail = calculer(p, demande.getTauxCommission());
 
         Assure assure = assureRepository.findById(idAssure)
@@ -234,11 +238,12 @@ public class ContratService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Seule une demande en attente peut être validée");
         }
 
-        Detail detail = calculerPourContrat(contrat, requete);
-
         // la date d'effet est celle de la validation : le contrat prend effet immédiatement
         LocalDate dateValidation = LocalDate.now();
         Integer dureeMois = dureeMoisDuContrat(contrat);
+        verifierCouverture(contratAutoRepository.findByContrat_IdContrat(idContrat).stream().map(ContratAuto::getVehicule).toList(),
+                dateValidation, dateValidation.plusMonths(dureeMois), idContrat, true);
+        Detail detail = calculerPourContrat(contrat, requete);
 
         contrat.setNumPolice(nextNumPolice());
         contrat.setStatutContrat(StatutContrat.VALIDE);
@@ -282,12 +287,15 @@ public class ContratService {
         if (!contrat.isRenouvellementAutomatique()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Renouvellement automatique désactivé pour ce contrat");
         }
-        Detail detail = calculerPourContrat(contrat, null);
-
         Integer dureeMois = contrat.getDureeProchainRenouvellementMois() == null
                 ? dureeMoisDuContrat(contrat) : contrat.getDureeProchainRenouvellementMois();
         LocalDate ancienneExpiration = contrat.getDateExpiration();
-        contrat.setDateEffet(ancienneExpiration == null ? LocalDate.now() : ancienneExpiration);
+        LocalDate nouveauDebut = ancienneExpiration == null ? LocalDate.now() : ancienneExpiration;
+        verifierCouverture(contratAutoRepository.findByContrat_IdContrat(contrat.getIdContrat()).stream().map(ContratAuto::getVehicule).toList(),
+                nouveauDebut, nouveauDebut.plusMonths(dureeMois), contrat.getIdContrat(), true);
+        Detail detail = calculerPourContrat(contrat, null);
+
+        contrat.setDateEffet(nouveauDebut);
         contrat.setDateExpiration(contrat.getDateEffet().plusMonths(dureeMois));
         contrat.setDureeMois(dureeMois);
         contrat.setDureeProchainRenouvellementMois(null);
@@ -301,6 +309,27 @@ public class ContratService {
 
         factureService.emettreRenouvellement(contrat, detail);
         return contrat;
+    }
+
+    /** Vérification sous transaction ; le verrou véhicule sérialise validations et renouvellements concurrents. */
+    private void verifierCouverture(List<Vehicule> vehicules, LocalDate debut, LocalDate fin,
+                                     Long contratExclu, boolean verrouiller) {
+        if (verrouiller) {
+            vehicules.stream().map(Vehicule::getIdVehicule).distinct().sorted().forEach(id ->
+                    vehiculeRepository.verrouillerPourCouverture(id)
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Véhicule introuvable")));
+        }
+        for (Vehicule vehicule : vehicules) {
+            List<Contrat> conflits = contratAutoRepository.trouverContratsChevauchants(
+                    vehicule.getIdVehicule(), StatutContrat.VALIDE, debut, fin, contratExclu);
+            if (!conflits.isEmpty()) {
+                Contrat conflit = conflits.get(0);
+                String reference = conflit.getNumPolice() == null ? "n°" + conflit.getIdContrat() : conflit.getNumPolice();
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Le véhicule " + vehicule.getNumImmatriculation() + " est déjà couvert par le contrat "
+                                + reference + " jusqu'au " + conflit.getDateExpiration());
+            }
+        }
     }
 
     /**

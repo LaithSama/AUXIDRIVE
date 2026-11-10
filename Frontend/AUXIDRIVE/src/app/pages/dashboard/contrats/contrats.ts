@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { ContratService } from '../../../services/contrat-service';
@@ -154,8 +155,10 @@ export class DashboardContrats implements OnInit {
         this.enCours = false;
         this.recharger();
       },
-      error: () => {
-        this.erreur = 'Souscription impossible : vérifiez les informations saisies.';
+      error: (err: HttpErrorResponse) => {
+        this.erreur = err.status === 409
+          ? err.error?.detail || err.error?.message || 'Ce véhicule est déjà couvert par un contrat valide sur cette période.'
+          : 'Souscription impossible : vérifiez les informations saisies.';
         this.enCours = false;
       },
     });

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -32,6 +33,7 @@ import mg.auxidrive.api.model.DemandeSouscription;
 import mg.auxidrive.api.model.GarantieType;
 import mg.auxidrive.api.model.Offre;
 import mg.auxidrive.api.model.StatutContrat;
+import mg.auxidrive.api.model.TypeOffre;
 import mg.auxidrive.api.model.Vehicule;
 import mg.auxidrive.api.repository.AssureRepository;
 import mg.auxidrive.api.repository.AutoCodeTarifRepository;
@@ -156,11 +158,14 @@ class ContratServiceTest {
         ContratAuto lien = new ContratAuto();
         lien.setVehicule(vehiculeDuFixture());
         when(contratAutoRepository.findByContrat_IdContrat(1L)).thenReturn(List.of(lien));
+        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(lien.getVehicule()));
         when(parametresRepository.findByBranche_CdBranche("11")).thenReturn(Optional.of(parametres()));
     }
 
     private Vehicule vehiculeDuFixture() {
         Vehicule v = new Vehicule();
+        v.setIdVehicule(10L);
+        v.setNumImmatriculation("ABC-123");
         v.setCodeTarif(codeTarif());
         return v;
     }
@@ -271,6 +276,58 @@ class ContratServiceTest {
     }
 
     @Test
+    @DisplayName("Un véhicule déjà couvert pendant la période demandée bloque la souscription")
+    void souscrireRefuseCouvertureChevauchante() {
+        Vehicule vehicule = vehiculeDuFixture();
+        when(offreRepository.findById(1L)).thenReturn(Optional.of(offre(3)));
+        when(parametresRepository.findByBranche_CdBranche("11")).thenReturn(Optional.of(parametres()));
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(vehicule));
+        Contrat conflit = contratValide();
+        when(contratAutoRepository.trouverContratsChevauchants(eq(10L), eq(StatutContrat.VALIDE),
+                eq(LocalDate.now()), eq(LocalDate.now().plusMonths(3)), eq(null)))
+                .thenReturn(List.of(conflit));
+
+        DemandeSouscription demande = new DemandeSouscription();
+        demande.setIdOffre(1L);
+        demande.setIdVehicules(List.of(10L));
+        demande.setDureeMois(3);
+
+        assertThatThrownBy(() -> service.souscrire(demande, 5L, "PORTAL_CLIENT"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT))
+                .hasMessageContaining("ABC-123").hasMessageContaining(conflit.getNumPolice());
+        verify(contratRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Une flotte avec un seul véhicule déjà couvert est entièrement refusée")
+    void souscrireRefuseFlotteSiUnVehiculeEstCouvert() {
+        Offre offre = offre(3);
+        offre.setTypeOffre(TypeOffre.FLOTTE);
+        Vehicule libre = vehiculeDuFixture();
+        Vehicule couvert = vehiculeDuFixture();
+        couvert.setIdVehicule(11L);
+        couvert.setNumImmatriculation("XYZ-789");
+        when(offreRepository.findById(1L)).thenReturn(Optional.of(offre));
+        when(parametresRepository.findByBranche_CdBranche("11")).thenReturn(Optional.of(parametres()));
+        when(vehiculeRepository.findById(10L)).thenReturn(Optional.of(libre));
+        when(vehiculeRepository.findById(11L)).thenReturn(Optional.of(couvert));
+        when(contratAutoRepository.trouverContratsChevauchants(any(Long.class), eq(StatutContrat.VALIDE),
+                any(LocalDate.class), any(LocalDate.class), eq(null)))
+                .thenAnswer(invocation -> invocation.<Long>getArgument(0) == 11L
+                        ? List.of(contratValide()) : List.of());
+
+        DemandeSouscription demande = new DemandeSouscription();
+        demande.setIdOffre(1L);
+        demande.setIdVehicules(List.of(10L, 11L));
+        demande.setDureeMois(3);
+
+        assertThatThrownBy(() -> service.souscrire(demande, 5L, "PORTAL_CLIENT"))
+                .isInstanceOf(ResponseStatusException.class).hasMessageContaining("XYZ-789");
+        verify(contratRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("Une garantie relevant d'une autre branche est refusée")
     void souscrireRefuseUneGarantieHorsBranche() {
         Vehicule vehicule = vehiculeDuFixture();
@@ -328,6 +385,26 @@ class ContratServiceTest {
         verify(factureService).emettreSouscription(eq(contrat), any(Detail.class));
     }
 
+    @Test
+    @DisplayName("La validation recontrôle la couverture et ne produit ni police ni facture si conflit")
+    void validerRefuseSiUneAutreDemandeAFinalementEteValidee() {
+        Contrat contrat = contratValide();
+        contrat.setStatutContrat(StatutContrat.EN_ATTENTE);
+        when(contratRepository.findById(1L)).thenReturn(Optional.of(contrat));
+        ContratAuto lien = new ContratAuto();
+        lien.setVehicule(vehiculeDuFixture());
+        when(contratAutoRepository.findByContrat_IdContrat(1L)).thenReturn(List.of(lien));
+        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(lien.getVehicule()));
+        when(contratAutoRepository.trouverContratsChevauchants(eq(10L), eq(StatutContrat.VALIDE),
+                any(LocalDate.class), any(LocalDate.class), eq(1L))).thenReturn(List.of(contratValide()));
+
+        assertThatThrownBy(() -> service.valider(1L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
+        verify(contratRepository, never()).save(any());
+        verifyNoInteractions(factureService);
+    }
+
     // ---- renouveler ----
 
     @Test
@@ -348,6 +425,25 @@ class ContratServiceTest {
         assertThat(renouvele.getDateNotifEcheance()).isNull();
         verify(factureService).emettreRenouvellement(eq(contrat), any(Detail.class));
         verify(contratRepository).save(contrat);
+    }
+
+    @Test
+    @DisplayName("La reconduction est refusée si elle recouvre une autre police")
+    void renouvelerRefuseChevauchement() {
+        Contrat contrat = contratValide();
+        ContratAuto lien = new ContratAuto();
+        lien.setVehicule(vehiculeDuFixture());
+        when(contratAutoRepository.findByContrat_IdContrat(1L)).thenReturn(List.of(lien));
+        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(lien.getVehicule()));
+        when(contratAutoRepository.trouverContratsChevauchants(eq(10L), eq(StatutContrat.VALIDE),
+                eq(LocalDate.now()), eq(LocalDate.now().plusMonths(12)), eq(1L)))
+                .thenReturn(List.of(contratValide()));
+
+        assertThatThrownBy(() -> service.renouveler(contrat))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
+        verify(contratRepository, never()).save(any());
+        verifyNoInteractions(factureService);
     }
 
     @Test

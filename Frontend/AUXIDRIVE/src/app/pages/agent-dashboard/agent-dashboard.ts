@@ -730,7 +730,7 @@ export class AgentDashboard implements OnInit {
       error: (err) => {
         console.error(err);
         this.messageErreur = err.status === 409
-          ? 'Seule une demande encore en attente peut être traitée.'
+          ? err.error?.detail || err.error?.message || 'Ce véhicule est déjà couvert ou la demande n’est plus en attente.'
           : 'Impossible de valider ce contrat.';
       },
     });
