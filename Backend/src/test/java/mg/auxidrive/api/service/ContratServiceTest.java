@@ -167,7 +167,7 @@ class ContratServiceTest {
         ContratAuto lien = new ContratAuto();
         lien.setVehicule(vehiculeDuFixture());
         when(contratAutoRepository.findByContrat_IdContrat(1L)).thenReturn(List.of(lien));
-        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(lien.getVehicule()));
+        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(10L));
         when(parametresRepository.findByBranche_CdBranche("11")).thenReturn(Optional.of(parametres()));
     }
 
@@ -391,6 +391,7 @@ class ContratServiceTest {
         assertThat(valide.getDureeMois()).isEqualTo(3);
         assertThat(valide.getStatutContrat()).isEqualTo(StatutContrat.VALIDE);
         assertThat(valide.getNumPolice()).matches("[A-Z]{3}\\d{3}");
+        verify(vehiculeRepository).verrouillerPourCouverture(10L);
         verify(factureService).emettreSouscription(eq(contrat), any(Detail.class));
     }
 
@@ -403,7 +404,7 @@ class ContratServiceTest {
         ContratAuto lien = new ContratAuto();
         lien.setVehicule(vehiculeDuFixture());
         when(contratAutoRepository.findByContrat_IdContrat(1L)).thenReturn(List.of(lien));
-        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(lien.getVehicule()));
+        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(10L));
         when(contratAutoRepository.trouverContratsChevauchants(eq(10L), eq(StatutContrat.VALIDE),
                 any(LocalDate.class), any(LocalDate.class), eq(1L))).thenReturn(List.of(contratValide()));
 
@@ -513,6 +514,7 @@ class ContratServiceTest {
         assertThat(renouvele.getPrimeNetteCourante()).isEqualTo(100000d, org.assertj.core.data.Offset.offset(DELTA));
         assertThat(renouvele.getMontantCommission()).isEqualTo(10200d, org.assertj.core.data.Offset.offset(DELTA));
         assertThat(renouvele.getDateNotifEcheance()).isNull();
+        verify(vehiculeRepository).verrouillerPourCouverture(10L);
         verify(factureService).emettreRenouvellement(eq(contrat), any(Detail.class));
         verify(contratRepository).save(contrat);
     }
@@ -524,7 +526,7 @@ class ContratServiceTest {
         ContratAuto lien = new ContratAuto();
         lien.setVehicule(vehiculeDuFixture());
         when(contratAutoRepository.findByContrat_IdContrat(1L)).thenReturn(List.of(lien));
-        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(lien.getVehicule()));
+        when(vehiculeRepository.verrouillerPourCouverture(10L)).thenReturn(Optional.of(10L));
         when(contratAutoRepository.trouverContratsChevauchants(eq(10L), eq(StatutContrat.VALIDE),
                 eq(LocalDate.now()), eq(LocalDate.now().plusMonths(12)), eq(1L)))
                 .thenReturn(List.of(contratValide()));
